@@ -51,3 +51,12 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - Precisiones aprobadas sobre R2, R4, R8, R9, R10, R11 y la vuelta del totalizador — registradas en `docs/PRODUCT_BIBLE.md` §6; donde difieran de la especificación técnica §7, las precisiones mandan.
 - **Reglas de negocio congeladas** (31-jul-2026): cualquier modificación futura requiere una nueva prueba, actualización del Product Bible, y una nueva DEC si cambia el comportamiento.
 - DEC-011: **Thin API** — la API es solo un orquestador (autenticación, autorización, validación estructural, invocar dominio, persistencia, auditoría, respuesta HTTP); nunca contiene, duplica ni reinterpreta reglas de negocio.
+
+## [Etapa 1 — API] — POST /api/v1/cargas aprobada
+
+### Agregado
+- `apps/api`: Fastify + zod + pg con composición inyectable; `POST /api/v1/cargas` (validación estructural, idempotencia por uuid del cliente, contexto y tenant resueltos en la base, única invocación a `validarCarga`, persistencia transaccional carga + fotos); 13 pruebas HTTP con repositorio en memoria.
+- Observabilidad por defecto vía middleware: request_id en toda respuesta, evento estructurado por petición con duración, resultado, banderas del dominio y versiones de API/dominio.
+
+### Decidido
+- DEC-012: **Observabilidad por defecto** — trazabilidad completa por middleware, sin fotos/tokens/datos sensibles; `request_id` en cada respuesta.
