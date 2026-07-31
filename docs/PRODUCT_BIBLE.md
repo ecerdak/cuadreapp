@@ -1,7 +1,7 @@
 # Product Bible — CuadreApp
 
-**Versión:** 1.1 — 31 de julio de 2026
-**Estado del proyecto:** Pre-Etapa 0 — decisiones arquitectónicas cerradas (DEC-004, DEC-005, DEC-006), iniciando esquema de Supabase
+**Versión:** 1.2 — 31 de julio de 2026
+**Estado del proyecto:** Etapa 0 implementada — pendiente de verificación en un entorno con Postgres disponible (ver [Roadmap](#8-roadmap))
 **Propietario del producto:** Lubryco S.A.S. — Buga, Valle del Cauca
 **Cliente piloto:** Industrias Alimenticias El Trébol S.A.S. (Panela Trébol)
 
@@ -130,7 +130,7 @@ Esto es un principio de arquitectura, no un detalle de implementación pendiente
 
 | Etapa | Alcance | Estado | Criterio de terminado |
 |---|---|---|---|
-| **0** | Esquema Supabase + RLS + seed con equipos reales de El Trébol | **En progreso** — decisiones bloqueantes cerradas ([DEC-004](#decisiones)/[005](#decisiones)/[006](#decisiones)) | Un `insert` de carga desde SQL dispara triggers y actualiza `tot_actual_gal` |
+| **0** | Esquema Supabase + RLS + seed con equipos reales de El Trébol | **Implementada, verificación pendiente** — tablas, RLS y trigger escritos (`supabase/migrations/`); seed de *demostración* (no el inventario real, que sigue pendiente); el entorno de desarrollo no tenía Docker/Postgres disponible para correr `supabase/verificacion_etapa0.sql` | Un `insert` de carga desde SQL dispara triggers y actualiza `tot_actual_gal` — script listo en `supabase/verificacion_etapa0.sql`, revisado a mano, no ejecutado todavía |
 | **1** | Flujo de conductor completo, offline, con R1–R12 validadas contra la API propia (Railway) | Pendiente | 10 cargas registradas en modo avión y sincronizadas al recuperar señal |
 | **2** | Dashboard del cliente, 4 pestañas | Pendiente | Reproduce el diseño aprobado (`docs/mockups/`) con datos reales |
 | **3** | Entregas de Lubryco + balance + alerta de reorden | Pendiente | La alerta salta con la autonomía calculada |

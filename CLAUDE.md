@@ -44,4 +44,6 @@ Detalle y razones completas en `docs/PRODUCT_BIBLE.md` §7 y §9 (DEC-004, DEC-0
 
 ## Estado actual
 
-**Etapa 0 en progreso.** Decisiones arquitectónicas bloqueantes cerradas (DEC-004, DEC-005, DEC-006). Construyendo el esquema de Supabase, RLS, triggers y seed de demostración.
+**Etapa 0 implementada, verificación pendiente.** Esquema, RLS, trigger y seed de demostración escritos en `supabase/`. El entorno de desarrollo no tenía Docker ni Postgres nativo disponible para correr `supabase start` y ejecutar `supabase/verificacion_etapa0.sql` — revisado a mano con cuidado (sintaxis balanceada, dependencias de FK en orden), pero no corrido contra una base de datos real. Correr ese script es lo primero que hay que hacer antes de dar la Etapa 0 por cerrada de verdad.
+
+`usuarios` y `dispositivos` quedaron con esquema y RLS, pero sin filas sembradas: requieren cuentas reales de Supabase Auth, que se crean en las Etapas 1–2.
