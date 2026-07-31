@@ -2,5 +2,25 @@
   "name": "@cuadreapp/api",
   "version": "0.0.0",
   "private": true,
-  "description": "API propia de CuadreApp: única vía de escritura del sistema, revalida R1-R12 contra el dato real de la base. Desplegada en Railway."
+  "description": "API propia de CuadreApp: única vía de escritura del sistema. Orquestador puro (DEC-011): invoca packages/dominio y nunca contiene reglas de negocio. Desplegada en Railway.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/servidor.ts",
+    "start": "tsx src/servidor.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cuadreapp/dominio": "workspace:*",
+    "fastify": "^5.6.0",
+    "pg": "^8.13.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.4"
+  }
 }
