@@ -95,11 +95,11 @@ function armar() {
 /* ============================================================ */
 
 describe("GET /salud", () => {
-  it("responde ok", async () => {
+  it("responde ok (con el request_id que agrega la observabilidad)", async () => {
     const { app } = armar();
     const respuesta = await app.inject({ method: "GET", url: "/salud" });
     expect(respuesta.statusCode).toBe(200);
-    expect(respuesta.json()).toEqual({ ok: true });
+    expect(respuesta.json()).toMatchObject({ ok: true });
   });
 });
 

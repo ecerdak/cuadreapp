@@ -18,6 +18,7 @@ export function registrarRutaCargas(app: FastifyInstance, repositorio: Repositor
     // 1. Validación estructural (forma y rangos; nada de negocio).
     const analisis = esquemaCargaEntrante.safeParse(solicitud.body);
     if (!analisis.success) {
+      solicitud.observable.resultado = "invalido";
       return respuesta.status(400).send({
         error: "VALIDACION_ESTRUCTURAL",
         detalles: analisis.error.issues.map((problema) => ({
@@ -32,6 +33,7 @@ export function registrarRutaCargas(app: FastifyInstance, repositorio: Repositor
     //    offline con el mismo id devuelve lo ya persistido (spec §10.4).
     const existente = await repositorio.buscarCargaPorId(entrada.id);
     if (existente) {
+      solicitud.observable.resultado = "idempotente";
       return respuesta.status(200).send({
         id: existente.id,
         estado: existente.estado,
@@ -50,6 +52,7 @@ export function registrarRutaCargas(app: FastifyInstance, repositorio: Repositor
       conductorId: entrada.conductor_id,
     });
     if (contexto === null) {
+      solicitud.observable.resultado = "referencia_no_encontrada";
       return respuesta.status(404).send({
         error: "REFERENCIA_NO_ENCONTRADA",
         detalle: "dispensador, equipo o conductor inexistente, inactivo o de otro cliente",
@@ -119,7 +122,13 @@ export function registrarRutaCargas(app: FastifyInstance, repositorio: Repositor
       fotos,
     );
 
-    // 6. Respuesta: el veredicto del servidor, que es la autoridad.
+    // 6. Contexto para el evento de observabilidad (DEC-012) y respuesta:
+    //    el veredicto del servidor, que es la autoridad.
+    solicitud.observable.resultado = "registrada";
+    solicitud.observable.clienteId = contexto.clienteId;
+    solicitud.observable.sedeId = contexto.sedeId;
+    solicitud.observable.banderas = veredicto.banderas;
+
     return respuesta.status(201).send({
       id: entrada.id,
       estado: veredicto.estado,
