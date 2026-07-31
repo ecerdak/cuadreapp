@@ -19,6 +19,24 @@ Los dos primeros documentos no se duplican entre sí a propósito: el Product Bi
   3. Agregar la entrada correspondiente a `CHANGELOG.md`.
   4. Hacer commits pequeños y atómicos (no un commit gigante por etapa).
 
+## Tests First (DEC-010)
+
+Toda regla de negocio en `packages/dominio` sigue este ciclo, sin excepciones:
+
+1. Escribir primero las pruebas.
+2. Verificar que fallen.
+3. Implementar la regla.
+4. Verificar que todas las pruebas pasen.
+5. Refactorizar si es necesario.
+6. Actualizar documentación si cambió el comportamiento.
+
+Además:
+
+- Ninguna regla de negocio se considera terminada sin pruebas automatizadas.
+- Cada regla R1–R12 tiene pruebas unitarias independientes.
+- Los casos límite de la especificación técnica (§13) son obligatorios.
+- Toda corrección futura comienza agregando una prueba que reproduzca el problema, antes de modificar el código.
+
 ## Convenciones de código (para cuando se apruebe escribir código)
 
 - Todo en español: nombres de tablas, columnas, variables de dominio, textos de UI.
