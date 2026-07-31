@@ -3,21 +3,25 @@
 
 export type Bandera =
   | "TANDA_NO_RESETEADA" // R1
-  | "SALTO_TOTALIZADOR" // R2
+  | "SALTO_TOTALIZADOR" // R2: el totalizador arrancó por encima del último conocido
+  | "SALTO_TOTALIZADOR_NEGATIVO" // R2: arrancó por debajo — mensaje distinto en la UI
   | "TANDA_NO_CUADRA" // R3
-  | "TOTALIZADOR_RETROCEDE" // R4
+  | "TOTALIZADOR_RETROCEDE" // R4: retrocedió de verdad
+  | "TOTALIZADOR_SIN_AVANCE" // R4: no se movió — mensaje distinto en la UI
   | "SIN_DESPACHO" // R5
   | "EXCEDE_CAPACIDAD" // R6
   | "CONTADOR_RETROCEDE" // R7
   | "SALTO_CONTADOR" // R8
   | "FOTO_FALTANTE" // R9
   | "FUERA_DE_SEDE" // R10
+  | "SIN_GPS" // R10: no fue posible validar la geocerca — informativa
   | "POSIBLE_DUPLICADO" // R11
   | "TIEMPO_ATIPICO"; // R12
 
 export type EstadoCarga = "ok" | "advertencia" | "inconsistente";
 
-export type ClaseMarca = "advertencia" | "inconsistente";
+/** 'info' no afecta el estado de la carga: solo deja constancia. */
+export type ClaseMarca = "info" | "advertencia" | "inconsistente";
 
 export type OrigenCarga = "app" | "papel_retro" | "correccion";
 

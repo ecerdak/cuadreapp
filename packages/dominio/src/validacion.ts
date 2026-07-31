@@ -13,8 +13,10 @@ const VUELTA_TOTALIZADOR_GAL = 1_000_000;
 const TANDA_MAXIMA_GAL = 9_999.9;
 
 const FACTOR_EXCESO_CAPACIDAD = 1.15; // R6
-const MAX_SALTO_HOROMETRO_H = 24; // R8
-const MAX_SALTO_ODOMETRO_KM = 800; // R8
+// R8 — constante de negocio (Product Bible §6, precisiones aprobadas):
+// un odómetro no puede acumular más km de los que caben en el tiempo
+// calendario transcurrido a esta velocidad sostenida.
+const VELOCIDAD_MAXIMA_PLAUSIBLE_KMH = 100;
 const VENTANA_DUPLICADO_MS = 3 * 60 * 1000; // R11
 const DURACION_MINIMA_S = 20; // R12
 const DURACION_MAXIMA_S = 60 * 60; // R12
@@ -29,20 +31,24 @@ const enMs = (fecha: string | Date): number => new Date(fecha).getTime();
 export function deltaTotalizador(
   totInicialGal: number,
   totFinalGal: number,
-): { delta: number; dioVuelta: boolean; retrocede: boolean } {
+): { delta: number; dioVuelta: boolean; retrocede: boolean; sinAvance: boolean } {
   const inicial = enDecimas(totInicialGal);
   const final = enDecimas(totFinalGal);
 
   if (final > inicial) {
-    return { delta: aGalones(final - inicial), dioVuelta: false, retrocede: false };
+    return { delta: aGalones(final - inicial), dioVuelta: false, retrocede: false, sinAvance: false };
+  }
+
+  if (final === inicial) {
+    return { delta: 0, dioVuelta: false, retrocede: false, sinAvance: true };
   }
 
   const conVuelta = final + enDecimas(VUELTA_TOTALIZADOR_GAL) - inicial;
   if (conVuelta > 0 && conVuelta <= enDecimas(TANDA_MAXIMA_GAL)) {
-    return { delta: aGalones(conVuelta), dioVuelta: true, retrocede: false };
+    return { delta: aGalones(conVuelta), dioVuelta: true, retrocede: false, sinAvance: false };
   }
 
-  return { delta: 0, dioVuelta: false, retrocede: true };
+  return { delta: 0, dioVuelta: false, retrocede: true, sinAvance: false };
 }
 
 /** R1 — la tanda inicial debe estar en 0.0: prueba de que se reseteó el medidor. */
@@ -51,13 +57,16 @@ export function reglaR1(registro: RegistroCarga): MarcaRegla | null {
   return { bandera: "TANDA_NO_RESETEADA", clase: "advertencia", exigeNota: true };
 }
 
-/** R2 — el totalizador inicial debe coincidir con el último conocido del dispensador. */
+/** R2 — el totalizador inicial debe coincidir con el último conocido del
+ *  dispensador. El salto positivo (arrancó más arriba: alguien cargó sin
+ *  registrar) y el negativo (arrancó más abajo) llevan banderas distintas
+ *  para que la UI muestre mensajes distintos. */
 export function reglaR2(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
   const inicial = enDecimas(registro.totInicialGal);
   const actual = enDecimas(contexto.dispensador.totActualGal);
   if (inicial === actual) return null;
   return {
-    bandera: "SALTO_TOTALIZADOR",
+    bandera: inicial > actual ? "SALTO_TOTALIZADOR" : "SALTO_TOTALIZADOR_NEGATIVO",
     clase: "inconsistente",
     galNoRegistrados: aGalones(inicial - actual),
   };
@@ -65,19 +74,26 @@ export function reglaR2(registro: RegistroCarga, contexto: ContextoValidacion): 
 
 /** R3 — la tanda final debe cuadrar con lo que subió el totalizador (± tolerancia). */
 export function reglaR3(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
-  const { delta, retrocede } = deltaTotalizador(registro.totInicialGal, registro.totFinalGal);
-  if (retrocede) return null; // el retroceso es asunto de R4; aquí no hay delta que comparar
+  const { delta, retrocede, sinAvance } = deltaTotalizador(registro.totInicialGal, registro.totFinalGal);
+  if (retrocede || sinAvance) return null; // ambos son asunto de R4; aquí no hay delta que comparar
 
   const diferencia = Math.abs(enDecimas(registro.tandaFinalGal) - enDecimas(delta));
   if (diferencia <= enDecimas(contexto.dispensador.toleranciaTandaGal)) return null;
   return { bandera: "TANDA_NO_CUADRA", clase: "inconsistente" };
 }
 
-/** R4 — el totalizador nunca retrocede (salvo la vuelta legítima en 999999). */
+/** R4 — el totalizador debe avanzar. Separa el retroceso real
+ *  (TOTALIZADOR_RETROCEDE) del que no se movió (TOTALIZADOR_SIN_AVANCE),
+ *  para que la UI dé mensajes distintos. La vuelta legítima en 999999
+ *  no marca ninguno de los dos. */
 export function reglaR4(registro: RegistroCarga): MarcaRegla | null {
-  const { retrocede } = deltaTotalizador(registro.totInicialGal, registro.totFinalGal);
-  if (!retrocede) return null;
-  return { bandera: "TOTALIZADOR_RETROCEDE", clase: "inconsistente", bloqueaAvance: true };
+  const { retrocede, sinAvance } = deltaTotalizador(registro.totInicialGal, registro.totFinalGal);
+  if (!retrocede && !sinAvance) return null;
+  return {
+    bandera: retrocede ? "TOTALIZADOR_RETROCEDE" : "TOTALIZADOR_SIN_AVANCE",
+    clase: "inconsistente",
+    bloqueaAvance: true,
+  };
 }
 
 /** R5 — tiene que haber despacho real. */
@@ -103,22 +119,35 @@ export function reglaR7(registro: RegistroCarga, contexto: ContextoValidacion): 
   return { bandera: "CONTADOR_RETROCEDE", clase: "advertencia" };
 }
 
-/** R8 — el salto del contador es plausible: ≤ 24 h de horómetro, ≤ 800 km de odómetro. */
+/** R8 — el salto del contador es plausible contra el TIEMPO CALENDARIO
+ *  transcurrido desde la última carga del equipo (precisión aprobada,
+ *  Product Bible §6): un horómetro no puede acumular más horas que las
+ *  transcurridas, y un odómetro no puede acumular más km de los que
+ *  caben en ese tiempo a velocidad máxima plausible. El objetivo es
+ *  detectar saltos imposibles, no penalizar equipos que pasan días sin
+ *  abastecer. Sin fecha de última carga no hay referencia y no se evalúa. */
 export function reglaR8(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
-  const { tipoMedidor, ultimaLectura } = contexto.equipo;
+  const { tipoMedidor, ultimaLectura, ultimaCargaFinalizadaEn } = contexto.equipo;
   if (tipoMedidor === "ninguno" || ultimaLectura === null || registro.lecturaEquipo === null) return null;
+  if (ultimaCargaFinalizadaEn === null) return null;
 
   const salto = enDecimas(registro.lecturaEquipo) - enDecimas(ultimaLectura);
   if (salto < 0) return null; // el retroceso es asunto de R7
 
-  const maximo = tipoMedidor === "horometro" ? MAX_SALTO_HOROMETRO_H : MAX_SALTO_ODOMETRO_KM;
-  if (salto <= enDecimas(maximo)) return null;
+  const horasTranscurridas = Math.max(0, (enMs(registro.iniciadaEn) - enMs(ultimaCargaFinalizadaEn)) / 3_600_000);
+  const maximoPlausible =
+    tipoMedidor === "horometro"
+      ? horasTranscurridas
+      : horasTranscurridas * VELOCIDAD_MAXIMA_PLAUSIBLE_KMH;
+
+  if (salto <= enDecimas(maximoPlausible)) return null;
   return { bandera: "SALTO_CONTADOR", clase: "advertencia" };
 }
 
-/** R9 — las dos fotos existen y vienen de cámara en vivo. Solo aplica al
- *  flujo en vivo de la app: un registro retroactivo de papel no tiene
- *  fotos por definición. */
+/** R9 — las dos fotos existen y vienen de cámara en vivo. papel_retro
+ *  queda exento (no tiene fotos por definición); las correcciones SÍ
+ *  las requieren (precisión aprobada). La falta de fotos clasifica la
+ *  carga como inconsistente. */
 export function reglaR9(registro: RegistroCarga): MarcaRegla | null {
   if (registro.origen === "papel_retro") return null;
   if (registro.fotoInicial && registro.fotoFinal) return null;
@@ -135,16 +164,23 @@ function distanciaMetros(lat1: number, lng1: number, lat2: number, lng2: number)
   return 2 * RADIO_TIERRA_M * Math.asin(Math.sqrt(a));
 }
 
-/** R10 — el GPS está dentro de la geocerca de la sede. Sin GPS o sin
- *  coordenadas de sede no se marca nada: puede no haber señal. */
+/** R10 — el GPS está dentro de la geocerca de la sede. Cuando no hay
+ *  coordenadas del dispositivo, o la sede no tiene geocerca configurada,
+ *  se emite SIN_GPS (clase 'info'): no bloquea ni cambia el estado, solo
+ *  deja constancia de que la geocerca no pudo validarse (precisión
+ *  aprobada). */
 export function reglaR10(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
   const { lat: sedeLat, lng: sedeLng, radioGeocercaM } = contexto.sede;
-  if (registro.lat === null || registro.lng === null || sedeLat === null || sedeLng === null) return null;
+  if (registro.lat === null || registro.lng === null || sedeLat === null || sedeLng === null) {
+    return { bandera: "SIN_GPS", clase: "info" };
+  }
   if (distanciaMetros(registro.lat, registro.lng, sedeLat, sedeLng) <= radioGeocercaM) return null;
   return { bandera: "FUERA_DE_SEDE", clase: "advertencia" };
 }
 
-/** R11 — no existe otra carga del mismo equipo en los últimos 3 minutos. */
+/** R11 — no existe otra carga del mismo equipo en los últimos 3 minutos.
+ *  Puntos de referencia (precisión aprobada): `finalizada_en` de la carga
+ *  anterior del equipo contra `iniciada_en` de la nueva. */
 export function reglaR11(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
   const ultima = contexto.equipo.ultimaCargaFinalizadaEn;
   if (ultima === null) return null;
@@ -178,10 +214,12 @@ export function validarCarga(registro: RegistroCarga, contexto: ContextoValidaci
   ].filter((marca): marca is MarcaRegla => marca !== null);
 
   const hayInconsistencia = marcas.some((m) => m.clase === "inconsistente");
+  const hayAdvertencia = marcas.some((m) => m.clase === "advertencia");
   const saltoTotalizador = marcas.find((m) => m.galNoRegistrados !== undefined);
 
   return {
-    estado: hayInconsistencia ? "inconsistente" : marcas.length > 0 ? "advertencia" : "ok",
+    // Las marcas 'info' (SIN_GPS) no afectan el estado: solo informan.
+    estado: hayInconsistencia ? "inconsistente" : hayAdvertencia ? "advertencia" : "ok",
     banderas: marcas.map((m) => m.bandera),
     marcas,
     galNoRegistrados: saltoTotalizador?.galNoRegistrados ?? null,

@@ -52,7 +52,8 @@ function contextoBase(cambios: {
       tipoMedidor: "horometro",
       ultimaLectura: 1086.5,
       capacidadTanqueGal: 80.0,
-      ultimaCargaFinalizadaEn: "2026-07-31T06:00:00-05:00",
+      // 15 horas calendario antes de iniciadaEn (09:00) — R8 valida contra esto.
+      ultimaCargaFinalizadaEn: "2026-07-30T18:00:00-05:00",
       ...cambios.equipo,
     },
     sede: { lat: 3.9, lng: -76.3, radioGeocercaM: 150, ...cambios.sede },
@@ -100,9 +101,13 @@ describe("R2 — totalizador inicial vs. último conocido (SALTO_TOTALIZADOR)", 
     });
   });
 
-  it("marca también cuando el inicial viene por DEBAJO del último conocido (gal_no_registrados negativo)", () => {
+  it("el salto NEGATIVO lleva su propia bandera diferenciada (precisión aprobada)", () => {
     const marca = reglaR2(registroBase({ totInicialGal: 1846.0 }), contextoBase());
-    expect(marca).toMatchObject({ bandera: "SALTO_TOTALIZADOR", galNoRegistrados: -1.0 });
+    expect(marca).toMatchObject({
+      bandera: "SALTO_TOTALIZADOR_NEGATIVO",
+      clase: "inconsistente",
+      galNoRegistrados: -1.0,
+    });
   });
 });
 
@@ -110,19 +115,33 @@ describe("R2 — totalizador inicial vs. último conocido (SALTO_TOTALIZADOR)", 
 
 describe("deltaTotalizador — la vuelta del totalizador en 999999 (caso límite obligatorio §13)", () => {
   it("delta normal cuando el totalizador avanza", () => {
-    expect(deltaTotalizador(1847.0, 1889.5)).toEqual({ delta: 42.5, dioVuelta: false, retrocede: false });
+    expect(deltaTotalizador(1847.0, 1889.5)).toEqual({
+      delta: 42.5,
+      dioVuelta: false,
+      retrocede: false,
+      sinAvance: false,
+    });
   });
 
   it("detecta la vuelta: 999980.0 → 22.5 es un avance de 42.5", () => {
-    expect(deltaTotalizador(999980.0, 22.5)).toEqual({ delta: 42.5, dioVuelta: true, retrocede: false });
+    expect(deltaTotalizador(999980.0, 22.5)).toEqual({
+      delta: 42.5,
+      dioVuelta: true,
+      retrocede: false,
+      sinAvance: false,
+    });
   });
 
   it("un retroceso grande NO se confunde con una vuelta (1847 → 1800)", () => {
-    expect(deltaTotalizador(1847.0, 1800.0).retrocede).toBe(true);
+    const resultado = deltaTotalizador(1847.0, 1800.0);
+    expect(resultado.retrocede).toBe(true);
+    expect(resultado.sinAvance).toBe(false);
   });
 
-  it("un totalizador que no se movió se trata como retroceso (condición literal tot_final > tot_inicial)", () => {
-    expect(deltaTotalizador(1847.0, 1847.0).retrocede).toBe(true);
+  it("un totalizador que no se movió es sinAvance, no retroceso (precisión aprobada)", () => {
+    const resultado = deltaTotalizador(1847.0, 1847.0);
+    expect(resultado.sinAvance).toBe(true);
+    expect(resultado.retrocede).toBe(false);
   });
 });
 
@@ -187,16 +206,20 @@ describe("R3 — la tanda cuadra con el totalizador (TANDA_NO_CUADRA)", () => {
   it("no evalúa nada si el totalizador retrocede (eso es asunto de R4)", () => {
     expect(reglaR3(registroBase({ totFinalGal: 1800.0 }), contextoBase())).toBeNull();
   });
+
+  it("tampoco evalúa si el totalizador no se movió (eso también es asunto de R4)", () => {
+    expect(reglaR3(registroBase({ totFinalGal: 1847.0 }), contextoBase())).toBeNull();
+  });
 });
 
 /* ============================================================ R4 */
 
-describe("R4 — el totalizador no retrocede (TOTALIZADOR_RETROCEDE)", () => {
+describe("R4 — el totalizador avanza (TOTALIZADOR_RETROCEDE / TOTALIZADOR_SIN_AVANCE)", () => {
   it("pasa cuando el totalizador avanza", () => {
     expect(reglaR4(registroBase())).toBeNull();
   });
 
-  it("marca inconsistente y bloquea avance cuando retrocede (1847 → 1800)", () => {
+  it("marca TOTALIZADOR_RETROCEDE, inconsistente y bloquea avance, cuando retrocede de verdad (1847 → 1800)", () => {
     const marca = reglaR4(registroBase({ totFinalGal: 1800.0 }));
     expect(marca).toMatchObject({
       bandera: "TOTALIZADOR_RETROCEDE",
@@ -205,8 +228,13 @@ describe("R4 — el totalizador no retrocede (TOTALIZADOR_RETROCEDE)", () => {
     });
   });
 
-  it("marca cuando el totalizador no se movió (condición literal tot_final > tot_inicial)", () => {
-    expect(reglaR4(registroBase({ totFinalGal: 1847.0 }))?.bandera).toBe("TOTALIZADOR_RETROCEDE");
+  it("marca TOTALIZADOR_SIN_AVANCE, con su propia bandera, cuando no se movió (precisión aprobada)", () => {
+    const marca = reglaR4(registroBase({ totFinalGal: 1847.0 }));
+    expect(marca).toMatchObject({
+      bandera: "TOTALIZADOR_SIN_AVANCE",
+      clase: "inconsistente",
+      bloqueaAvance: true,
+    });
   });
 
   it("NO marca en una vuelta plausible del totalizador (999980.0 → 22.5)", () => {
@@ -281,28 +309,47 @@ describe("R7 — el contador del equipo no retrocede (CONTADOR_RETROCEDE)", () =
 
 /* ============================================================ R8 */
 
-describe("R8 — salto plausible del contador (SALTO_CONTADOR)", () => {
-  it("pasa con un salto normal de horómetro (6.5 h)", () => {
+describe("R8 — salto plausible del contador contra el tiempo calendario transcurrido (SALTO_CONTADOR)", () => {
+  // Caso base: la última carga fue hace 15 horas calendario.
+
+  it("pasa con un salto normal de horómetro (6.5 h en 15 h transcurridas)", () => {
     expect(reglaR8(registroBase(), contextoBase())).toBeNull();
   });
 
-  it("pasa con el salto máximo exacto de horómetro (24.0 h)", () => {
-    expect(reglaR8(registroBase({ lecturaEquipo: 1110.5 }), contextoBase())).toBeNull();
+  it("pasa con la máquina trabajando sin parar: salto igual al tiempo transcurrido (15.0 h en 15 h)", () => {
+    expect(reglaR8(registroBase({ lecturaEquipo: 1101.5 }), contextoBase())).toBeNull();
   });
 
-  it("marca advertencia apenas se pasa (24.1 h)", () => {
-    const marca = reglaR8(registroBase({ lecturaEquipo: 1110.6 }), contextoBase());
+  it("marca advertencia con un salto físicamente imposible (15.1 h en 15 h transcurridas)", () => {
+    const marca = reglaR8(registroBase({ lecturaEquipo: 1101.6 }), contextoBase());
     expect(marca).toMatchObject({ bandera: "SALTO_CONTADOR", clase: "advertencia" });
   });
 
-  it("odómetro: pasa con 800.0 km exactos", () => {
+  it("NO penaliza un equipo que pasó días sin abastecer: 40 h de horómetro en 72 h calendario", () => {
+    const contexto = contextoBase({
+      equipo: { ultimaCargaFinalizadaEn: "2026-07-28T09:00:00-05:00" }, // 72 h antes
+    });
+    expect(reglaR8(registroBase({ lecturaEquipo: 1126.5 }), contexto)).toBeNull(); // salto 40.0
+  });
+
+  it("odómetro: pasa con 800 km en 15 h (dentro de la velocidad máxima plausible de 100 km/h)", () => {
     const contexto = contextoBase({ equipo: { tipoMedidor: "odometro", ultimaLectura: 45000.0 } });
     expect(reglaR8(registroBase({ lecturaEquipo: 45800.0 }), contexto)).toBeNull();
   });
 
-  it("odómetro: marca con 800.1 km", () => {
+  it("odómetro: pasa exactamente en el límite (1500.0 km en 15 h a 100 km/h)", () => {
     const contexto = contextoBase({ equipo: { tipoMedidor: "odometro", ultimaLectura: 45000.0 } });
-    expect(reglaR8(registroBase({ lecturaEquipo: 45800.1 }), contexto)?.bandera).toBe("SALTO_CONTADOR");
+    expect(reglaR8(registroBase({ lecturaEquipo: 46500.0 }), contexto)).toBeNull();
+  });
+
+  it("odómetro: marca un salto físicamente imposible (1500.1 km en 15 h)", () => {
+    const contexto = contextoBase({ equipo: { tipoMedidor: "odometro", ultimaLectura: 45000.0 } });
+    expect(reglaR8(registroBase({ lecturaEquipo: 46500.1 }), contexto)?.bandera).toBe("SALTO_CONTADOR");
+  });
+
+  it("no aplica sin fecha de última carga (no hay referencia temporal)", () => {
+    const contexto = contextoBase({ equipo: { ultimaCargaFinalizadaEn: null } });
+    expect(reglaR8(registroBase({ lecturaEquipo: 2000.0 }), contexto)).toBeNull();
   });
 
   it("no aplica si el contador retrocedió (eso es asunto de R7)", () => {
@@ -337,6 +384,11 @@ describe("R9 — las dos fotos de cámara en vivo (FOTO_FALTANTE)", () => {
   it("no aplica a registros retroactivos de papel (origen papel_retro, sin fotos por definición)", () => {
     expect(reglaR9(registroBase({ origen: "papel_retro", fotoInicial: false, fotoFinal: false }))).toBeNull();
   });
+
+  it("las correcciones SÍ requieren fotos (precisión aprobada)", () => {
+    const marca = reglaR9(registroBase({ origen: "correccion", fotoInicial: false, fotoFinal: false }));
+    expect(marca).toMatchObject({ bandera: "FOTO_FALTANTE", clase: "inconsistente" });
+  });
 });
 
 /* ============================================================ R10 */
@@ -351,12 +403,14 @@ describe("R10 — GPS dentro de la geocerca (FUERA_DE_SEDE)", () => {
     expect(marca).toMatchObject({ bandera: "FUERA_DE_SEDE", clase: "advertencia" });
   });
 
-  it("no aplica sin GPS (puede no haber señal)", () => {
-    expect(reglaR10(registroBase({ lat: null, lng: null }), contextoBase())).toBeNull();
+  it("sin GPS emite la bandera informativa SIN_GPS: no valida, pero deja constancia (precisión aprobada)", () => {
+    const marca = reglaR10(registroBase({ lat: null, lng: null }), contextoBase());
+    expect(marca).toMatchObject({ bandera: "SIN_GPS", clase: "info" });
   });
 
-  it("no aplica si la sede no tiene coordenadas configuradas", () => {
-    expect(reglaR10(registroBase(), contextoBase({ sede: { lat: null, lng: null } }))).toBeNull();
+  it("sede sin coordenadas configuradas también emite SIN_GPS (la geocerca no se puede validar)", () => {
+    const marca = reglaR10(registroBase(), contextoBase({ sede: { lat: null, lng: null } }));
+    expect(marca).toMatchObject({ bandera: "SIN_GPS", clase: "info" });
   });
 });
 
@@ -493,5 +547,18 @@ describe("validarCarga — orquestación y estado resultante (§7)", () => {
     );
     expect(resultado.estado).toBe("ok");
     expect(resultado.banderas).toEqual([]);
+  });
+
+  it("SIN_GPS es informativa: aparece en las banderas pero el estado sigue en 'ok'", () => {
+    const resultado = validarCarga(registroBase({ lat: null, lng: null }), contextoBase());
+    expect(resultado.banderas).toEqual(["SIN_GPS"]);
+    expect(resultado.estado).toBe("ok");
+  });
+
+  it("el totalizador sin avance también bloquea el avance y no dispara R3 encima", () => {
+    const resultado = validarCarga(registroBase({ totFinalGal: 1847.0 }), contextoBase());
+    expect(resultado.bloqueaAvance).toBe(true);
+    expect(resultado.banderas).toContain("TOTALIZADOR_SIN_AVANCE");
+    expect(resultado.banderas).not.toContain("TANDA_NO_CUADRA");
   });
 });
