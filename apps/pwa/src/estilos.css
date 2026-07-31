@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Sol directo, guantes, una mano (spec §8.1): contraste alto, botones
+   grandes, cero animación decorativa. */
+:root {
+  color-scheme: dark;
+}
+body {
+  background-color: #070d13;
+  color: #e7eef6;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
