@@ -32,6 +32,16 @@ Los dos primeros documentos no se duplican entre sí a propósito: el Product Bi
 
 CuadreApp es un producto completamente independiente. No depende de ningún sistema externo (incluido "StationOS", que a efectos de este proyecto no existe). Cualquier integración futura es únicamente vía una API REST propia y versionada — nunca compartiendo tablas, código, autenticación ni repositorio. Detalle en `docs/PRODUCT_BIBLE.md` §7.
 
+## Arquitectura y hosting (decisiones cerradas)
+
+- **Hosting:** PWA/dashboard en **Vercel**; API propia en **Railway**; base de datos y autenticación en **Supabase**. Tres proveedores, responsabilidad separada, ninguno atado a otro.
+- **Autenticación y autorización:** Supabase Auth resuelve identidad. Los roles y permisos son **RBAC propio** modelado en tablas del dominio (`roles`, `usuarios`, `dispositivos`) — nunca custom claims de Supabase ni roles nativos de Postgres como fuente de autorización.
+- **Autoridad de escritura:** toda inserción a `cargas` pasa por un único endpoint de la API propia (Railway), nunca por escritura directa del cliente a la base de datos.
+- **Monorepo:** pnpm workspaces desde el inicio — `apps/pwa` (cliente, Vercel), `apps/api` (servidor, Railway), `packages/dominio` (reglas R1–R12 y cálculos, sin dependencias de entorno), `packages/tipos-bd` (tipos generados de Supabase), `supabase/` (migraciones, RLS, seed).
+- **Preparado para Expo EAS:** `packages/dominio` es TypeScript puro sin dependencias de navegador; si en el futuro se migra de PWA a React Native, se reutiliza sin cambios y el nuevo cliente consume la misma API de Railway.
+
+Detalle y razones completas en `docs/PRODUCT_BIBLE.md` §7 y §9 (DEC-004, DEC-005, DEC-006).
+
 ## Estado actual
 
-**Pre-Etapa 0.** Product Bible construido. Quedan decisiones abiertas antes de poder empezar el esquema de Supabase — ver la tabla de Decisiones en `docs/PRODUCT_BIBLE.md` (DEC-004 modelo de usuarios/roles, DEC-005 hosting, DEC-006 gestor de monorepo).
+**Etapa 0 en progreso.** Decisiones arquitectónicas bloqueantes cerradas (DEC-004, DEC-005, DEC-006). Construyendo el esquema de Supabase, RLS, triggers y seed de demostración.

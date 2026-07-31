@@ -1,7 +1,7 @@
 # Product Bible — CuadreApp
 
-**Versión:** 1.0 — 31 de julio de 2026
-**Estado del proyecto:** Pre-Etapa 0 (sin código escrito todavía)
+**Versión:** 1.1 — 31 de julio de 2026
+**Estado del proyecto:** Pre-Etapa 0 — decisiones arquitectónicas cerradas (DEC-004, DEC-005, DEC-006), iniciando esquema de Supabase
 **Propietario del producto:** Lubryco S.A.S. — Buga, Valle del Cauca
 **Cliente piloto:** Industrias Alimenticias El Trébol S.A.S. (Panela Trébol)
 
@@ -105,12 +105,14 @@ Las doce reglas de validación (R1–R12) con su fórmula exacta y tolerancia vi
 
 Resumen orientado a producto — el detalle de esquema SQL vive en `docs/ESPEC_App_Cuadre_Lubryco.md` §4 y §6.
 
-- **Cliente:** una sola PWA (React + TypeScript + Vite + Tailwind) con rutas para el flujo del conductor, el dashboard del cliente y la vista de Lubryco. Un solo despliegue. Elegida sobre React Native + Expo por el modelo de distribución (instalable desde un link, sin tienda, sin cuenta de developer, actualización instantánea) — ver [Decisión DEC-001](#decisiones).
+- **Cliente:** una sola PWA (React + TypeScript + Vite + Tailwind) con rutas para el flujo del conductor, el dashboard del cliente y la vista de Lubryco. Elegida sobre React Native + Expo por el modelo de distribución — ver [Decisión DEC-001](#decisiones).
+- **Hosting:** tres capas con responsabilidad separada y ninguna atada a la otra — PWA/dashboard en **Vercel**, API propia en **Railway**, base de datos y autenticación en **Supabase** ([DEC-005](#decisiones)).
 - **Offline:** cola local en IndexedDB (Dexie) con fotos comprimidas; se sincroniza cuando la app está abierta y hay señal. No depende de Background Sync del navegador (no existe en iOS Safari).
-- **Backend:** Supabase (Postgres + Auth + Storage + RLS).
-- **Autoridad de escritura:** toda inserción de `cargas` pasa por una única función de servidor que revalida las 12 reglas contra el dato real de la base — el cliente nunca escribe directo. Así el servidor es la autoridad de verdad, no solo una frase en el documento.
-- **Una sola fuente para las reglas de validación:** las 12 reglas viven en un único paquete de código (`packages/dominio`), sin dependencias de entorno, importado tanto por el cliente como por la función de servidor. Una regla, un lugar — nunca se reescribe la misma regla en dos lenguajes distintos.
+- **Autenticación y autorización:** Supabase Auth resuelve identidad. Los roles y permisos son RBAC propio, modelado en tablas del dominio (`roles`, `usuarios`, `dispositivos`) — nunca en mecanismos específicos de Supabase (custom claims, roles nativos de Postgres) como única fuente de verdad ([DEC-004](#decisiones)).
+- **Autoridad de escritura:** toda inserción de `cargas` pasa por un único endpoint de la API propia (Railway) que revalida las 12 reglas contra el dato real de la base — el cliente nunca escribe directo a la base de datos. Así el servidor es la autoridad de verdad, no solo una frase en el documento.
+- **Una sola fuente para las reglas de validación:** las 12 reglas viven en un único paquete de código (`packages/dominio`), sin dependencias de entorno (ni de navegador, ni de un framework de servidor específico), importado tanto por la PWA como por la API. Una regla, un lugar — nunca se reescribe la misma regla en dos lenguajes distintos.
 - **Multi-tenant desde el diseño:** todo aislado por `cliente_id` vía RLS, incluyendo la vista agregada de Lubryco (que nunca toca las tablas base de detalle).
+- **Preparado para Expo EAS:** si en el futuro el cliente migra de PWA a React Native, `packages/dominio` se reutiliza sin cambios (es TypeScript puro, sin dependencias de navegador) y la API de Railway ya es la única puerta de escritura — un cliente Expo la consumiría sin tocar el backend ([DEC-005](#decisiones)).
 
 ### Límite de integración externa (independencia de StationOS)
 
@@ -128,8 +130,8 @@ Esto es un principio de arquitectura, no un detalle de implementación pendiente
 
 | Etapa | Alcance | Estado | Criterio de terminado |
 |---|---|---|---|
-| **0** | Esquema Supabase + RLS + seed con equipos reales de El Trébol | **Pendiente de inicio** — hay decisiones abiertas que la bloquean, ver [Decisiones](#decisiones) | Un `insert` de carga desde SQL dispara triggers y actualiza `tot_actual_gal` |
-| **1** | Flujo de conductor completo, offline, con R1–R12 | Pendiente | 10 cargas registradas en modo avión y sincronizadas al recuperar señal |
+| **0** | Esquema Supabase + RLS + seed con equipos reales de El Trébol | **En progreso** — decisiones bloqueantes cerradas ([DEC-004](#decisiones)/[005](#decisiones)/[006](#decisiones)) | Un `insert` de carga desde SQL dispara triggers y actualiza `tot_actual_gal` |
+| **1** | Flujo de conductor completo, offline, con R1–R12 validadas contra la API propia (Railway) | Pendiente | 10 cargas registradas en modo avión y sincronizadas al recuperar señal |
 | **2** | Dashboard del cliente, 4 pestañas | Pendiente | Reproduce el diseño aprobado (`docs/mockups/`) con datos reales |
 | **3** | Entregas de Lubryco + balance + alerta de reorden | Pendiente | La alerta salta con la autonomía calculada |
 | **4** | Vista Lubryco multicliente | Pendiente | Rol `comercial_lubryco` activo sobre vistas agregadas. Sin integración a ningún sistema externo — CuadreApp es autónomo (ver [DEC-002](#decisiones)) |
@@ -143,10 +145,10 @@ Registro de decisiones de producto y arquitectura, con su razón y alternativas 
 |---|---|---|---|---|---|
 | DEC-001 | 2026-07-31 | Cliente móvil: PWA (React + TS + Vite + Tailwind) | **Aceptada** | El modelo de negocio es regalar la app a múltiples clientes industriales — cero fricción de instalación y cero costo de tienda pesan más que las ventajas nativas de cámara/push/storage, ninguna de las cuales es un requisito bloqueante hoy. | React Native + Expo (mejor cámara con overlay nativo, push maduro en iOS, storage sin riesgo de purga — pero con USD 99/año de cuenta Apple obligatoria y fricción de distribución que choca con el modelo de regalo multicliente) |
 | DEC-002 | 2026-07-31 | CuadreApp es completamente independiente de StationOS. A efectos del proyecto, StationOS no existe. Cualquier integración futura es únicamente vía API REST propia — nunca tablas, código, autenticación o repositorio compartidos. | **Aceptada** | Evitar acoplar el roadmap y la arquitectura de CuadreApp a un sistema externo indefinido. CuadreApp debe poder desarrollarse, desplegarse y operar sin ninguna dependencia externa. | Integración a nivel de base de datos o repositorio compartido con StationOS (descartada explícitamente) |
-| DEC-003 | 2026-07-31 | Las reglas de validación (R1–R12) viven en un único paquete TypeScript (`packages/dominio`), importado por el cliente y por una función de servidor que es la única vía de escritura a `cargas`. | Propuesta — pendiente de confirmación al iniciar Etapa 0 | Cumplir la regla del propio spec técnico ("una regla, un lugar") sin reescribir la lógica de negocio en SQL además de TypeScript. | Trigger `plpgsql` con las reglas reescritas en SQL (descartada por duplicación) |
-| DEC-004 | 2026-07-31 | Agregar al esquema una tabla `usuarios` (rol + cliente_id) y una tabla `dispositivos` (enrolamiento por sede), ausentes en el esquema original de la especificación técnica §6. | **Abierta** — pendiente de aprobación explícita | Sin esto no hay forma de implementar RLS por rol para `supervisor`, `admin_cliente`, `conductor_lubryco` y `comercial_lubryco`, ni de definir qué identidad de Supabase Auth usa un dispositivo enrolado. | — |
-| DEC-005 | 2026-07-31 | Hosting: Cloudflare Pages vs. Vercel | **Abierta** — pendiente de decisión | El propio spec técnico deja ambas opciones abiertas (§4). | — |
-| DEC-006 | 2026-07-31 | Gestor de monorepo: pnpm workspaces, sin Turborepo por ahora | Propuesta — pendiente de confirmación | Una app y dos paquetes no justifican todavía la caché de build de Turborepo; se puede agregar después si el monorepo crece. | npm workspaces (equivalente, sin ventaja clara); Turborepo (prematuro a este tamaño) |
+| DEC-003 | 2026-07-31 | Las reglas de validación (R1–R12) viven en un único paquete TypeScript (`packages/dominio`), importado por el cliente y por el servidor (la API propia, [DEC-005](#decisiones)) que es la única vía de escritura a `cargas`. | Propuesta — pendiente de confirmación al implementar Etapa 1 | Cumplir la regla del propio spec técnico ("una regla, un lugar") sin reescribir la lógica de negocio en SQL además de TypeScript. | Trigger `plpgsql` con las reglas reescritas en SQL (descartada por duplicación) |
+| DEC-004 | 2026-07-31 | **Autenticación:** Supabase Auth. **Autorización:** RBAC propio en base de datos — tablas `roles`, `usuarios` (identidad + `cliente_id` + `sede_id` + rol) y `dispositivos` (enrolamiento por sede), ausentes en el esquema original de la especificación técnica §6. Los roles y permisos son un concepto del dominio del negocio, no del framework: nunca se usan custom claims de Supabase Auth ni roles nativos de Postgres como única fuente de autorización. | **Aceptada** | RLS necesita una fuente de roles legible y versionada en el propio esquema, no oculta en configuración de un proveedor — así el modelo de permisos se puede auditar, testear y portar de proveedor de Auth sin reescribir lógica de negocio. | Custom claims de Supabase Auth (JWT `app_metadata`) como única fuente de autorización (descartada — acopla la lógica de negocio al framework) |
+| DEC-005 | 2026-07-31 | **Hosting:** PWA/dashboard en **Vercel**; API propia en **Railway**; base de datos y autenticación en **Supabase**. La arquitectura se mantiene preparada para que, si en el futuro se migra de PWA a React Native, un cliente Expo/EAS consuma la misma API sin cambios de backend. | **Aceptada** | Separar cliente, API y datos en tres proveedores de responsabilidad única evita que un cambio de cliente (PWA → React Native) obligue a rehacer el backend — la API en Railway es agnóstica de quién la consume. | Cloudflare Pages para el cliente (descartada a favor de Vercel); lógica de servidor como Edge Functions de Supabase en vez de una API propia (descartada para no atar la autoridad de escritura al proveedor de base de datos) |
+| DEC-006 | 2026-07-31 | **Monorepo:** pnpm workspaces desde el inicio, con la estructura pensada para escalar (varias apps y paquetes reutilizables) desde la Etapa 0. | **Aceptada** | Con dos apps ya previstas (PWA en `apps/pwa`, API en `apps/api`) y paquetes compartidos (`packages/dominio`, `packages/tipos-bd`), vale la pena empezar con la estructura correcta y evitar una migración de tooling a mitad de proyecto. | npm workspaces (equivalente, sin ventaja clara); Turborepo (se puede añadir después si el grafo de builds lo justifica) |
 
 ## 10. Glosario
 
@@ -156,13 +158,14 @@ Registro de decisiones de producto y arquitectura, con su razón y alternativas 
 - **Carga:** un evento de despacho de combustible a un equipo, con sus lecturas antes/después, fotos y validaciones — inmutable una vez guardada.
 - **Cuadre:** que el combustible despachado tenga dueño verificable el mismo día; también el nombre del producto.
 - **Dispensador:** el punto físico (manguera + medidor) por donde se despacha combustible.
-- **Edge Function:** función de servidor (en este proyecto, sobre Supabase/Deno) que corre lejos del cliente y tiene autoridad final sobre la escritura.
+- **API propia:** el servicio de servidor (Node/TypeScript, desplegado en Railway) que expone los endpoints de escritura del sistema y tiene autoridad final sobre la validación — separado de Supabase, que solo provee base de datos, autenticación y storage.
 - **Estado de una carga:** `ok` | `advertencia` | `inconsistente`, según qué banderas se dispararon.
 - **Existencia estimada:** cuánto combustible debería quedar en el tanque, calculado por balance (entregado − despachado), no medido directamente — no hay aforo del tanque todavía.
 - **Geocerca:** radio alrededor de una sede dentro del cual se espera que ocurra una carga.
 - **Origen de una carga:** `app` (registro normal) | `papel_retro` (digitación tardía de un registro en papel) | `correccion` (nueva carga que corrige una anterior).
 - **PWA (Progressive Web App):** aplicación web instalable desde el navegador, sin tienda de aplicaciones.
 - **Punto de reorden:** la fecha en la que Lubryco debería programar la siguiente entrega para no dejar al cliente sin combustible.
+- **RBAC (Role-Based Access Control):** control de acceso basado en roles. En CuadreApp es propio del dominio (tablas `roles`/`usuarios`), no un mecanismo del framework de autenticación.
 - **Remisión:** el documento/registro de una entrega de combustible de Lubryco al cliente.
 - **RLS (Row Level Security):** mecanismo de Postgres que restringe qué filas puede ver o modificar cada usuario según su rol — aquí es donde vive la regla de privacidad de Lubryco, no en la interfaz.
 - **StationOS:** sistema mencionado en una versión anterior del roadmap. **No existe a efectos de este proyecto** — ver [DEC-002](#decisiones). Si en el futuro existe, se integra únicamente por API REST propia.
