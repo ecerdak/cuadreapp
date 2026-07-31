@@ -37,6 +37,10 @@ Además:
 - Los casos límite de la especificación técnica (§13) son obligatorios.
 - Toda corrección futura comienza agregando una prueba que reproduzca el problema, antes de modificar el código.
 
+## Precisiones de reglas de negocio
+
+Las ambigüedades de R1–R12 detectadas en la Etapa 1 fueron resueltas por el propietario del producto y están registradas en `docs/PRODUCT_BIBLE.md` §6 («Precisiones aprobadas sobre las reglas»). **Donde difieran de la especificación técnica §7, las precisiones mandan.** Puntos clave: R8 valida contra tiempo calendario transcurrido (no límites fijos); R2 distingue `SALTO_TOTALIZADOR_NEGATIVO`; R4 separa `TOTALIZADOR_SIN_AVANCE` de `TOTALIZADOR_RETROCEDE`; R10 emite `SIN_GPS` informativa (clase `info`, no afecta el estado); `papel_retro` exento de fotos, correcciones no.
+
 ## Convenciones de código (para cuando se apruebe escribir código)
 
 - Todo en español: nombres de tablas, columnas, variables de dominio, textos de UI.

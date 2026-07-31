@@ -1,7 +1,7 @@
 # Product Bible — CuadreApp
 
-**Versión:** 1.4 — 31 de julio de 2026
-**Estado del proyecto:** Arquitectura congelada (DEC-001 a DEC-009) + metodología Tests First registrada (DEC-010). Etapa 0 implementada, verificación pendiente de un entorno con Postgres (ver [Roadmap](#8-roadmap)). Etapa 1 en progreso: dominio primero, pantallas solo tras aprobación.
+**Versión:** 1.5 — 31 de julio de 2026
+**Estado del proyecto:** Arquitectura congelada (DEC-001 a DEC-009) + Tests First (DEC-010). Etapa 1 en progreso: dominio R1–R12 aprobado con precisiones del propietario del producto (ver §6); siguiente paso, la API. Verificación de Etapa 0 sigue pendiente de un entorno con Postgres.
 **Propietario del producto:** Lubryco S.A.S. — Buga, Valle del Cauca
 **Cliente piloto:** Industrias Alimenticias El Trébol S.A.S. (Panela Trébol)
 
@@ -89,17 +89,29 @@ Las doce reglas de validación (R1–R12) con su fórmula exacta y tolerancia vi
 | Regla | Qué verifica | Bloquea el registro |
 |---|---|---|
 | R1 | La tanda arrancó en 0.0 (se reseteó el medidor) | No |
-| R2 | El totalizador inicial coincide con el final de la carga anterior | No |
+| R2 | El totalizador inicial coincide con el final de la carga anterior (bandera diferenciada si viene por debajo: `SALTO_TOTALIZADOR_NEGATIVO`) | No |
 | R3 | La tanda final coincide con lo que subió el totalizador (±1 gal) | No |
-| R4 | El totalizador nunca retrocede | No, pero marca inconsistente |
+| R4 | El totalizador avanza — separa `TOTALIZADOR_RETROCEDE` de `TOTALIZADOR_SIN_AVANCE`, cada uno con su mensaje | No, pero marca inconsistente |
 | R5 | Hubo despacho real (tanda final > 0) | No, pero marca inconsistente |
 | R6 | Los galones no exceden ~115% de la capacidad del tanque del equipo | No |
 | R7 | El contador del equipo (horómetro/odómetro) no retrocede | No |
-| R8 | El salto del contador del equipo es plausible en el tiempo transcurrido | No |
-| R9 | Existen las dos fotos, tomadas con cámara en vivo | **Sí** |
-| R10 | El GPS está dentro de la geocerca de la sede | No |
+| R8 | El salto del contador es plausible en el **tiempo calendario transcurrido** desde la última carga del equipo | No |
+| R9 | Existen las dos fotos, tomadas con cámara en vivo (exento `papel_retro`; las correcciones sí las requieren) | **Sí** |
+| R10 | El GPS está dentro de la geocerca; sin GPS emite la bandera informativa `SIN_GPS` | No |
 | R11 | No hay otra carga del mismo equipo en los últimos 3 minutos | No |
 | R12 | La duración de la carga es plausible (20 s – 60 min) | No |
+
+### Precisiones aprobadas sobre las reglas (31 de julio de 2026)
+
+Resoluciones del propietario del producto a las ambigüedades detectadas al implementar el dominio en la Etapa 1. **Donde difieran de la tabla del §7 de la especificación técnica, estas precisiones son la definición vigente.** El código de `packages/dominio` y sus pruebas las implementan tal cual:
+
+- **R8 — plausibilidad por tiempo calendario, no por límite fijo.** El salto del contador no se compara contra 24 h / 800 km planos, sino contra el tiempo transcurrido desde la última carga del equipo: un horómetro no puede acumular más horas que las horas calendario transcurridas, y un odómetro no puede acumular más kilómetros que los que caben en ese tiempo a velocidad máxima plausible (constante de negocio: **100 km/h**, derivada al implementar — ajustable si el propietario define otra). El objetivo es detectar saltos imposibles, no penalizar equipos que pasan días sin abastecer. Sin fecha de última carga, la regla no se evalúa.
+- **R2 — salto negativo diferenciado.** Un totalizador inicial por debajo del último conocido genera `SALTO_TOTALIZADOR_NEGATIVO` (no `SALTO_TOTALIZADOR`), para que la UI muestre un mensaje distinto al del salto positivo.
+- **R4 — dos casos separados.** `TOTALIZADOR_SIN_AVANCE` (el totalizador no se movió) y `TOTALIZADOR_RETROCEDE` (retrocedió de verdad), cada uno con su mensaje. Ambos clasifican la carga como inconsistente y bloquean el avance.
+- **R9 — alcance por origen.** Los registros con `origen='papel_retro'` quedan exentos de fotografías obligatorias (no tienen fotos de cámara en vivo por definición). Las correcciones (`origen='correccion'`) **sí** las requieren. La falta de fotos clasifica la carga como **inconsistente**.
+- **R10 — bandera informativa `SIN_GPS`.** Cuando no hay coordenadas del dispositivo, o la sede no tiene geocerca configurada, se emite `SIN_GPS`: no bloquea la operación ni cambia el estado de la carga — solo deja constancia de que la geocerca no pudo validarse. (Introduce la clase de marca `info`, que no afecta el estado.)
+- **R11 — puntos de referencia explícitos.** La ventana de 3 minutos se mide entre `finalizada_en` de la carga anterior del equipo e `iniciada_en` de la nueva.
+- **Vuelta del totalizador en 999999.** La heurística para distinguir una vuelta legítima de un retroceso usa el máximo físico por carga (9999.9 gal, el tope del registro de tanda del Fill-Rite): si el avance interpretado con vuelta cabe en una sola carga, es vuelta; si no, es retroceso. Aceptada como decisión de negocio.
 
 ## 7. Arquitectura
 
