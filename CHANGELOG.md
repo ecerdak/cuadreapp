@@ -60,3 +60,13 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 
 ### Decidido
 - DEC-012: **Observabilidad por defecto** — trazabilidad completa por middleware, sin fotos/tokens/datos sensibles; `request_id` en cada respuesta.
+
+## [Etapa 1 — PWA] — Flujo del conductor aprobado
+
+### Agregado
+- `apps/pwa`: los 7 pasos del flujo del conductor con UI guiada exclusivamente por el resultado del dominio; cola offline en Dexie con contexto local encadenado (cargas consecutivas en modo avión no marcan saltos falsos); sincronizador con backoff exponencial (tope 5 min) y recuperación automática al volver la señal; cliente del `POST /api/v1/cargas` idempotente. 13 pruebas con fake-indexeddb.
+
+## [Etapa S — Seguridad e Identidad] (en curso)
+
+### Decidido
+- DEC-013: **Security First** — ninguna funcionalidad nueva accede a la API sin autenticación; Supabase Auth mediada por la API; la PWA nunca almacena credenciales (solo tokens); autorización siempre vía RBAC propio en la API; `POST /api/v1/cargas` queda protegido. Propuesta de arquitectura de detalle en revisión antes de implementar.
