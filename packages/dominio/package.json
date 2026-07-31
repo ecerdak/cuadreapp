@@ -2,5 +2,18 @@
   "name": "@cuadreapp/dominio",
   "version": "0.0.0",
   "private": true,
-  "description": "Reglas de validacion R1-R12 y calculos de negocio. TypeScript puro, sin dependencias de entorno: se importa desde apps/pwa y desde apps/api por igual."
+  "description": "Reglas de validacion R1-R12 y calculos de negocio. TypeScript puro, sin dependencias de entorno: se importa desde apps/pwa y desde apps/api por igual.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:cobertura": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.4"
+  }
 }
