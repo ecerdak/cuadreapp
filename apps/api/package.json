@@ -1,0 +1,6 @@
+{
+  "name": "@cuadreapp/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "API propia de CuadreApp: única vía de escritura del sistema, revalida R1-R12 contra el dato real de la base. Desplegada en Railway."
+}

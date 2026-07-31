@@ -1,0 +1,6 @@
+{
+  "name": "@cuadreapp/dominio",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reglas de validacion R1-R12 y calculos de negocio. TypeScript puro, sin dependencias de entorno: se importa desde apps/pwa y desde apps/api por igual."
+}

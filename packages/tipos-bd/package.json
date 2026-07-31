@@ -1,0 +1,6 @@
+{
+  "name": "@cuadreapp/tipos-bd",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tipos de TypeScript generados a partir del esquema de Supabase (supabase gen types typescript). No se editan a mano."
+}

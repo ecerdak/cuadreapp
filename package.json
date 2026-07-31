@@ -1,0 +1,10 @@
+{
+  "name": "cuadreapp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Control de despacho de combustible en planta de clientes industriales de Lubryco S.A.S.",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
