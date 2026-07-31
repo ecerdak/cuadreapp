@@ -32,18 +32,22 @@ Los dos primeros documentos no se duplican entre sí a propósito: el Product Bi
 
 CuadreApp es un producto completamente independiente. No depende de ningún sistema externo (incluido "StationOS", que a efectos de este proyecto no existe). Cualquier integración futura es únicamente vía una API REST propia y versionada — nunca compartiendo tablas, código, autenticación ni repositorio. Detalle en `docs/PRODUCT_BIBLE.md` §7.
 
-## Arquitectura y hosting (decisiones cerradas)
+## Arquitectura (congelada — no proponer cambios estructurales sin decisión nueva del usuario)
 
-- **Hosting:** PWA/dashboard en **Vercel**; API propia en **Railway**; base de datos y autenticación en **Supabase**. Tres proveedores, responsabilidad separada, ninguno atado a otro.
-- **Autenticación y autorización:** Supabase Auth resuelve identidad. Los roles y permisos son **RBAC propio** modelado en tablas del dominio (`roles`, `usuarios`, `dispositivos`) — nunca custom claims de Supabase ni roles nativos de Postgres como fuente de autorización.
-- **Autoridad de escritura:** toda inserción a `cargas` pasa por un único endpoint de la API propia (Railway), nunca por escritura directa del cliente a la base de datos.
-- **Monorepo:** pnpm workspaces desde el inicio — `apps/pwa` (cliente, Vercel), `apps/api` (servidor, Railway), `packages/dominio` (reglas R1–R12 y cálculos, sin dependencias de entorno), `packages/tipos-bd` (tipos generados de Supabase), `supabase/` (migraciones, RLS, seed).
-- **Preparado para Expo EAS:** `packages/dominio` es TypeScript puro sin dependencias de navegador; si en el futuro se migra de PWA a React Native, se reutiliza sin cambios y el nuevo cliente consume la misma API de Railway.
+- **API First (DEC-009):** toda funcionalidad de negocio se implementa primero en la API. La PWA nunca accede directamente a Supabase para operaciones de negocio — solamente consume la API. Supabase es infraestructura (Postgres, Auth, Storage). La API es la única autoridad para validaciones, reglas de negocio, escritura, auditoría y permisos. RLS queda como segunda línea de defensa, no como camino de acceso del cliente.
+- **Versionado de la API (DEC-008):** todos los endpoints bajo `/api/v1/` desde el primer día. Versiones futuras conviven sin romper compatibilidad; una versión solo se retira cuando ningún cliente activo la consume.
+- **Hosting (DEC-005):** PWA/dashboard en **Vercel**; API propia en **Railway**; base de datos y autenticación en **Supabase**. Tres proveedores, responsabilidad separada, ninguno atado a otro.
+- **Autenticación y autorización (DEC-004):** Supabase Auth resuelve identidad; la PWA presenta ese token a la API. Los roles y permisos son **RBAC propio** modelado en tablas del dominio (`roles`, `usuarios`, `dispositivos`) — nunca custom claims de Supabase ni roles nativos de Postgres como fuente de autorización.
+- **Monorepo (DEC-006):** pnpm workspaces — `apps/pwa` (cliente, Vercel), `apps/api` (servidor, Railway), `packages/dominio` (reglas R1–R12 y cálculos, sin dependencias de entorno), `packages/tipos-bd` (tipos generados de Supabase), `supabase/` (migraciones, RLS, seed).
+- **Reglas de dependencias (DEC-007):** solo `apps/* → packages/*`, nunca al revés; `packages/tipos-bd` es hoja y `packages/dominio` solo depende de ella; `apps/pwa` y `apps/api` jamás se importan entre sí — se comunican únicamente por HTTP. Grafo de paquetes siempre acíclico.
+- **Plataforma del cliente (DEC-001, revisada):** la PWA es la plataforma del **MVP**, no una decisión permanente. Al cerrar el MVP se hace una evaluación técnica PWA vs. React Native + Expo. Todo lo anterior (dominio portable, API como única puerta) existe para que esa migración, si ocurre, tenga el menor impacto posible.
 
-Detalle y razones completas en `docs/PRODUCT_BIBLE.md` §7 y §9 (DEC-004, DEC-005, DEC-006).
+Detalle y razones completas en `docs/PRODUCT_BIBLE.md` §7 y §9 (DEC-001 a DEC-009).
 
 ## Estado actual
 
-**Etapa 0 implementada, verificación pendiente.** Esquema, RLS, trigger y seed de demostración escritos en `supabase/`. El entorno de desarrollo no tenía Docker ni Postgres nativo disponible para correr `supabase start` y ejecutar `supabase/verificacion_etapa0.sql` — revisado a mano con cuidado (sintaxis balanceada, dependencias de FK en orden), pero no corrido contra una base de datos real. Correr ese script es lo primero que hay que hacer antes de dar la Etapa 0 por cerrada de verdad.
+**Arquitectura congelada; Etapa 0 implementada, verificación pendiente.** Esquema, RLS, trigger y seed de demostración escritos en `supabase/`. El entorno de desarrollo no tenía Docker ni Postgres nativo disponible para correr `supabase start` y ejecutar `supabase/verificacion_etapa0.sql` — revisado a mano con cuidado (sintaxis balanceada, dependencias de FK en orden), pero no corrido contra una base de datos real. Correr ese script es lo primero que hay que hacer antes de dar la Etapa 0 por cerrada de verdad.
 
 `usuarios` y `dispositivos` quedaron con esquema y RLS, pero sin filas sembradas: requieren cuentas reales de Supabase Auth, que se crean en las Etapas 1–2.
+
+Nota sobre RLS y DEC-009: las políticas RLS de la Etapa 0 se escribieron antes de formalizar API First. Siguen siendo correctas — quedan como segunda línea de defensa y donde vive la regla de privacidad — pero el camino de lectura del cliente en la Etapa 1+ es la API, no consultas directas de la PWA a Supabase.
