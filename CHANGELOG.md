@@ -40,3 +40,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - DEC-010: **Tests First** — toda regla de negocio en `packages/dominio` se escribe con pruebas primero (rojo → implementación → verde → refactor → documentación); cada regla R1–R12 con pruebas unitarias independientes; casos límite de la especificación obligatorios; toda corrección futura empieza con una prueba que reproduzca el problema.
 
 Con este registro la arquitectura queda congelada. Cualquier cambio estructural posterior requiere una decisión nueva en `docs/PRODUCT_BIBLE.md` §9.
+
+## [Etapa 1 — Dominio] — R1–R12 aprobadas y congeladas
+
+### Agregado
+- `@cuadreapp/dominio`: las 12 reglas de validación como funciones puras independientes más `validarCarga`, con ciclo Tests First completo (rojo → verde), 77 pruebas y cobertura 100% de `validacion.ts`. Casos límite obligatorios del §13 cubiertos.
+- Catálogo de banderas ampliado a 15: se agregan `SALTO_TOTALIZADOR_NEGATIVO`, `TOTALIZADOR_SIN_AVANCE` y `SIN_GPS` (clase `info`, no afecta el estado).
+
+### Decidido
+- Precisiones aprobadas sobre R2, R4, R8, R9, R10, R11 y la vuelta del totalizador — registradas en `docs/PRODUCT_BIBLE.md` §6; donde difieran de la especificación técnica §7, las precisiones mandan.
+- **Reglas de negocio congeladas** (31-jul-2026): cualquier modificación futura requiere una nueva prueba, actualización del Product Bible, y una nueva DEC si cambia el comportamiento.
+- DEC-011: **Thin API** — la API es solo un orquestador (autenticación, autorización, validación estructural, invocar dominio, persistencia, auditoría, respuesta HTTP); nunca contiene, duplica ni reinterpreta reglas de negocio.

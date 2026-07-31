@@ -41,6 +41,8 @@ Además:
 
 Las ambigüedades de R1–R12 detectadas en la Etapa 1 fueron resueltas por el propietario del producto y están registradas en `docs/PRODUCT_BIBLE.md` §6 («Precisiones aprobadas sobre las reglas»). **Donde difieran de la especificación técnica §7, las precisiones mandan.** Puntos clave: R8 valida contra tiempo calendario transcurrido (no límites fijos); R2 distingue `SALTO_TOTALIZADOR_NEGATIVO`; R4 separa `TOTALIZADOR_SIN_AVANCE` de `TOTALIZADOR_RETROCEDE`; R10 emite `SIN_GPS` informativa (clase `info`, no afecta el estado); `papel_retro` exento de fotos, correcciones no.
 
+**Las reglas de negocio están congeladas desde el 31-jul-2026.** Cualquier modificación requiere: una nueva prueba, una actualización del Product Bible, y una nueva DEC si cambia el comportamiento. La API nunca las duplica ni las reinterpreta (DEC-011).
+
 ## Convenciones de código (para cuando se apruebe escribir código)
 
 - Todo en español: nombres de tablas, columnas, variables de dominio, textos de UI.
@@ -58,6 +60,7 @@ CuadreApp es un producto completamente independiente. No depende de ningún sist
 
 - **API First (DEC-009):** toda funcionalidad de negocio se implementa primero en la API. La PWA nunca accede directamente a Supabase para operaciones de negocio — solamente consume la API. Supabase es infraestructura (Postgres, Auth, Storage). La API es la única autoridad para validaciones, reglas de negocio, escritura, auditoría y permisos. RLS queda como segunda línea de defensa, no como camino de acceso del cliente.
 - **Versionado de la API (DEC-008):** todos los endpoints bajo `/api/v1/` desde el primer día. Versiones futuras conviven sin romper compatibilidad; una versión solo se retira cuando ningún cliente activo la consume.
+- **Thin API (DEC-011):** la API es únicamente un orquestador: autenticación, autorización, validación estructural de entrada, invocar `packages/dominio`, persistencia, auditoría y respuesta HTTP. Nunca contiene, duplica ni reinterpreta reglas de negocio. Si una regla cambia, solo cambia en `packages/dominio`.
 - **Hosting (DEC-005):** PWA/dashboard en **Vercel**; API propia en **Railway**; base de datos y autenticación en **Supabase**. Tres proveedores, responsabilidad separada, ninguno atado a otro.
 - **Autenticación y autorización (DEC-004):** Supabase Auth resuelve identidad; la PWA presenta ese token a la API. Los roles y permisos son **RBAC propio** modelado en tablas del dominio (`roles`, `usuarios`, `dispositivos`) — nunca custom claims de Supabase ni roles nativos de Postgres como fuente de autorización.
 - **Monorepo (DEC-006):** pnpm workspaces — `apps/pwa` (cliente, Vercel), `apps/api` (servidor, Railway), `packages/dominio` (reglas R1–R12 y cálculos, sin dependencias de entorno), `packages/tipos-bd` (tipos generados de Supabase), `supabase/` (migraciones, RLS, seed).
@@ -68,8 +71,8 @@ Detalle y razones completas en `docs/PRODUCT_BIBLE.md` §7 y §9 (DEC-001 a DEC-
 
 ## Estado actual
 
-**Arquitectura congelada; Etapa 0 implementada, verificación pendiente.** Esquema, RLS, trigger y seed de demostración escritos en `supabase/`. El entorno de desarrollo no tenía Docker ni Postgres nativo disponible para correr `supabase start` y ejecutar `supabase/verificacion_etapa0.sql` — revisado a mano con cuidado (sintaxis balanceada, dependencias de FK en orden), pero no corrido contra una base de datos real. Correr ese script es lo primero que hay que hacer antes de dar la Etapa 0 por cerrada de verdad.
+**Dominio R1–R12 cerrado, aprobado y congelado (31-jul-2026).** `@cuadreapp/dominio` con 77 pruebas y cobertura 100% de `validacion.ts`. En construcción: `apps/api` con `POST /api/v1/cargas` (thin, DEC-011). Pendientes de fases posteriores: autenticación, dashboard, PWA.
 
-`usuarios` y `dispositivos` quedaron con esquema y RLS, pero sin filas sembradas: requieren cuentas reales de Supabase Auth, que se crean en las Etapas 1–2.
+**Etapa 0 implementada, verificación pendiente.** El entorno de desarrollo no tiene Docker ni Postgres nativo para correr `supabase start` y ejecutar `supabase/verificacion_etapa0.sql` — revisado a mano, no corrido contra una base real. `usuarios` y `dispositivos` con esquema y RLS pero sin filas sembradas (requieren cuentas reales de Supabase Auth).
 
-Nota sobre RLS y DEC-009: las políticas RLS de la Etapa 0 se escribieron antes de formalizar API First. Siguen siendo correctas — quedan como segunda línea de defensa y donde vive la regla de privacidad — pero el camino de lectura del cliente en la Etapa 1+ es la API, no consultas directas de la PWA a Supabase.
+Nota sobre RLS y DEC-009: las políticas RLS de la Etapa 0 se escribieron antes de formalizar API First. Siguen siendo correctas — quedan como segunda línea de defensa y donde vive la regla de privacidad — pero el camino de acceso del cliente es la API, no consultas directas de la PWA a Supabase.
