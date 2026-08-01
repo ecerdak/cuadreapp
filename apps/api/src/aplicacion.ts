@@ -55,7 +55,9 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
     const codigo = error.statusCode && error.statusCode < 500 ? error.statusCode : 500;
     return respuesta
       .status(codigo)
-      .send(codigo === 500 ? { error: "ERROR_INTERNO" } : { error: error.code ?? "SOLICITUD_RECHAZADA" });
+      .send(
+        codigo === 500 ? { error: "ERROR_INTERNO" } : { error: error.code ?? "SOLICITUD_RECHAZADA" },
+      );
   });
 
   // Liveness: el proceso responde. Sin dependencias externas.
@@ -84,7 +86,10 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
       proveedor: dependencias.proveedorIdentidad,
       repositorioSeguridad: dependencias.repositorioSeguridad,
     });
-    registrarRutaCatalogo(rutas, { repositorioSeguridad: dependencias.repositorioSeguridad, autenticar });
+    registrarRutaCatalogo(rutas, {
+      repositorioSeguridad: dependencias.repositorioSeguridad,
+      autenticar,
+    });
     registrarRutaFotos(rutas, { almacen: dependencias.almacenFotos, autenticar });
     registrarRutaCargas(rutas, dependencias.repositorio, autenticar);
   });

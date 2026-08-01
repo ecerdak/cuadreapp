@@ -47,7 +47,7 @@ Tras asignar el dominio real de la API, **fijar `connect-src` de la CSP** (`apps
 
 ## 4. Verificación
 
-- **Local/CI (sin infraestructura):** `pnpm verificar` — lint, formato, fronteras DEC-007, typecheck y 153 pruebas.
+- **Local/CI (sin infraestructura):** `pnpm verificar` — lint, formato, fronteras DEC-007, typecheck y 154 pruebas.
 - **E2E (infraestructura real):**
   ```bash
   E2E_DATABASE_URL=postgres://... \

@@ -4,6 +4,10 @@
 
 export type NivelRegistro = "info" | "advertencia" | "error";
 
-export function registrar(nivel: NivelRegistro, mensaje: string, datos: Record<string, unknown> = {}): void {
+export function registrar(
+  nivel: NivelRegistro,
+  mensaje: string,
+  datos: Record<string, unknown> = {},
+): void {
   console.log(JSON.stringify({ nivel, mensaje, timestamp: new Date().toISOString(), ...datos }));
 }

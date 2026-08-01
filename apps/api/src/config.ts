@@ -21,7 +21,9 @@ const esquema = z.object({
 
 export type Configuracion = z.infer<typeof esquema>;
 
-export function cargarConfiguracion(env: Record<string, string | undefined> = process.env): Configuracion {
+export function cargarConfiguracion(
+  env: Record<string, string | undefined> = process.env,
+): Configuracion {
   const resultado = esquema.safeParse(env);
   if (!resultado.success) {
     const problemas = resultado.error.issues

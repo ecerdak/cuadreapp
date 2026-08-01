@@ -79,4 +79,16 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 
 ### Pendiente
 - Verificación de punta a punta contra un proyecto real de Supabase (Auth, Storage y Postgres) y despliegue a Railway/Vercel: este entorno no tiene Docker ni infraestructura activa.
-- CSP estricta y rate limiting del login: registrados como endurecimiento de despliegue, junto con la configuración de hosting.
+
+## [Etapa H — Hardening de Producción]
+
+### Agregado
+- Calidad automatizada: ESLint 9 + Prettier en todo el monorepo; dependency-cruiser convierte DEC-007 en chequeo de máquina; pipeline de CI (lint, formato, fronteras, typecheck, pruebas, build); script `pnpm verificar`.
+- Hardening de la API: variables de entorno tipadas/validadas (zod, fallo de arranque con nombre exacto), rate limiting por IP en login/refresh/enrolar (10/min), headers de seguridad (helmet), `/salud` (liveness) y `/listo` (readiness con verificación de base), logging estructurado del ciclo de vida, manejador de errores sin fuga de detalle, apagado ordenado ante SIGTERM. 9 pruebas nuevas.
+- Migración del bucket privado `fotos-cargas` (2 MB, solo webp, sin acceso de Data API).
+- Suite E2E condicionada a credenciales reales (`pnpm --filter @cuadreapp/api e2e`): trigger de la Etapa 0 con repositorios reales, catálogo, identidad de dispositivo en GoTrue y escritura al bucket. Sin credenciales queda en skipped, nunca en falso verde.
+- Configuración de despliegue: `railway.json` (healthcheck `/listo`) y `apps/pwa/vercel.json` (CSP estricta + headers + SPA).
+- `docs/OPERACIONES.md`: topología, variables, puesta en marcha, verificación, respaldos (RPO/RTO) y recuperación.
+
+### Pendiente
+- Ejecutar sobre infraestructura viva: despliegues de prueba, E2E real, backups activos y fijar el `connect-src` de la CSP al dominio real de la API. Es el primer paso del piloto (ver Production Readiness Report).
