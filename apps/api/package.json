@@ -8,6 +8,7 @@
     "dev": "tsx watch src/servidor.ts",
     "start": "tsx src/servidor.ts",
     "test": "vitest run",
+    "e2e": "vitest run src/e2e/flujo.e2e.test.ts --config vitest.e2e.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
