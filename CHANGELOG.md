@@ -69,4 +69,5 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 ## [Etapa S — Seguridad e Identidad] (en curso)
 
 ### Decidido
-- DEC-013: **Security First** — ninguna funcionalidad nueva accede a la API sin autenticación; Supabase Auth mediada por la API; la PWA nunca almacena credenciales (solo tokens); autorización siempre vía RBAC propio en la API; `POST /api/v1/cargas` queda protegido. Propuesta de arquitectura de detalle en revisión antes de implementar.
+- DEC-013: **Security First** — ninguna funcionalidad nueva accede a la API sin autenticación; Supabase Auth mediada por la API; la PWA nunca almacena credenciales (solo tokens); autorización siempre vía RBAC propio en la API; `POST /api/v1/cargas` queda protegido.
+- DEC-014: **TokenStore** — abstracción única de tokens en la PWA (access en memoria, refresh local con rotación; limitación del navegador documentada; SecureStore al migrar a React Native sin tocar el resto del código) + un único cliente HTTP para todo acceso a la API. Ningún componente React toca tokens.
