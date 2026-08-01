@@ -13,11 +13,15 @@
 import pg from "pg";
 import type {
   CargaPersistida,
+  CatalogoSede,
+  CodigoEnrolamientoValido,
   ContextoRegistro,
   NuevaCarga,
   NuevaFoto,
   RepositorioCargas,
+  RepositorioSeguridad,
 } from "./tipos.js";
+import type { SesionAutenticada } from "../seguridad/tipos.js";
 import type { Bandera, EstadoCarga, TipoMedidor } from "@cuadreapp/dominio";
 
 // pg entrega los numeric como texto para no perder precisión.
@@ -147,5 +151,137 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
     } finally {
       cliente.release();
     }
+  }
+}
+
+export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
+  constructor(private readonly pool: pg.Pool) {}
+
+  async obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null> {
+    const resultado = await this.pool.query(
+      `select u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo as rol,
+              coalesce(array_agg(rp.permiso_codigo) filter (where rp.permiso_codigo is not null), '{}') as permisos
+       from usuarios u
+       join roles r on r.id = u.rol_id
+       left join rol_permisos rp on rp.rol_id = u.rol_id
+       where u.id = $1 and u.activo
+       group by u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo`,
+      [usuarioId],
+    );
+    const fila = resultado.rows[0];
+    if (!fila) return null;
+    return {
+      usuarioId: fila.id,
+      nombre: fila.nombre,
+      rol: fila.rol,
+      clienteId: fila.cliente_id,
+      sedeId: fila.sede_id,
+      permisos: fila.permisos,
+    };
+  }
+
+  async validarCodigoEnrolamiento(codigo: string, ahora: Date): Promise<CodigoEnrolamientoValido | null> {
+    const resultado = await this.pool.query(
+      `select c.id, c.sede_id, s.cliente_id
+       from codigos_enrolamiento c
+       join sedes s on s.id = c.sede_id
+       where c.codigo = $1 and c.usado_en is null and c.expira_en > $2`,
+      [codigo, ahora.toISOString()],
+    );
+    const fila = resultado.rows[0];
+    if (!fila) return null;
+    return { id: fila.id, sedeId: fila.sede_id, clienteId: fila.cliente_id };
+  }
+
+  async registrarDispositivoEnrolado(datos: {
+    usuarioId: string;
+    codigoId: string;
+    sedeId: string;
+    clienteId: string;
+    nombre: string | null;
+  }): Promise<void> {
+    const cliente = await this.pool.connect();
+    try {
+      await cliente.query("begin");
+      await cliente.query(
+        `insert into usuarios (id, cliente_id, sede_id, rol_id, nombre, activo)
+         values ($1, $2, $3, (select id from roles where codigo = 'dispositivo'), $4, true)`,
+        [datos.usuarioId, datos.clienteId, datos.sedeId, datos.nombre ?? "Dispositivo de planta"],
+      );
+      const dispositivo = await cliente.query(
+        `insert into dispositivos (sede_id, usuario_id, nombre, enrolado_en, activo)
+         values ($1, $2, $3, now(), true)
+         returning id`,
+        [datos.sedeId, datos.usuarioId, datos.nombre],
+      );
+      // Consumo condicionado a que siga sin usar: dos enrolamientos
+      // simultáneos con el mismo código no pueden pasar ambos.
+      const consumo = await cliente.query(
+        `update codigos_enrolamiento
+         set usado_en = now(), dispositivo_id = $2
+         where id = $1 and usado_en is null`,
+        [datos.codigoId, dispositivo.rows[0].id],
+      );
+      if (consumo.rowCount !== 1) throw new Error("código de enrolamiento ya consumido");
+      await cliente.query("commit");
+    } catch (error) {
+      await cliente.query("rollback");
+      throw error;
+    } finally {
+      cliente.release();
+    }
+  }
+
+  async obtenerCatalogo(clienteId: string, sedeId: string | null): Promise<CatalogoSede | null> {
+    const sede = await this.pool.query(
+      sedeId
+        ? `select id, nombre, lat, lng, radio_geocerca_m from sedes where id = $1 and cliente_id = $2`
+        : `select id, nombre, lat, lng, radio_geocerca_m from sedes where cliente_id = $1 limit 1`,
+      sedeId ? [sedeId, clienteId] : [clienteId],
+    );
+    const filaSede = sede.rows[0];
+    if (!filaSede) return null;
+
+    const [dispensadores, equipos, conductores] = await Promise.all([
+      this.pool.query(
+        `select id, nombre, tot_actual_gal, tolerancia_tanda_gal
+         from dispensadores where sede_id = $1 and activo`,
+        [filaSede.id],
+      ),
+      this.pool.query(
+        `select id, codigo_interno, descripcion, tipo_medidor, ultima_lectura, capacidad_tanque_gal
+         from equipos where cliente_id = $1 and activo order by codigo_interno`,
+        [clienteId],
+      ),
+      this.pool.query(
+        `select id, nombre, codigo, pin_hash from conductores where cliente_id = $1 and activo order by codigo`,
+        [clienteId],
+      ),
+    ]);
+
+    return {
+      sede: {
+        id: filaSede.id,
+        nombre: filaSede.nombre,
+        lat: numeroONulo(filaSede.lat),
+        lng: numeroONulo(filaSede.lng),
+        radio_geocerca_m: Number(filaSede.radio_geocerca_m),
+      },
+      dispensadores: dispensadores.rows.map((d) => ({
+        id: d.id,
+        nombre: d.nombre,
+        tot_actual_gal: Number(d.tot_actual_gal),
+        tolerancia_tanda_gal: Number(d.tolerancia_tanda_gal),
+      })),
+      equipos: equipos.rows.map((e) => ({
+        id: e.id,
+        codigo_interno: e.codigo_interno,
+        descripcion: e.descripcion,
+        tipo_medidor: e.tipo_medidor,
+        ultima_lectura: numeroONulo(e.ultima_lectura),
+        capacidad_tanque_gal: numeroONulo(e.capacidad_tanque_gal),
+      })),
+      conductores: conductores.rows,
+    };
   }
 }

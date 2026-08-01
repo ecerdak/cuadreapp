@@ -4,6 +4,7 @@
 
 import Dexie, { type EntityTable } from "dexie";
 import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
+import type { CatalogoRemoto, PerfilMe } from "../datos/contratos";
 
 /** Cuerpo exacto del POST /api/v1/cargas (contrato snake_case de la API). */
 export interface PayloadCarga {
@@ -72,10 +73,24 @@ export interface ContextoLocal {
   ultimaCargaFinalizadaEn?: string | null;
 }
 
+/** Identidad y catálogo cacheados para operar 100% offline (Etapa S).
+ *  Aquí NUNCA hay tokens: esos viven solo en TokenStore (DEC-014). */
+export interface PerfilCacheado {
+  clave: string; // "perfil"
+  datos: PerfilMe;
+}
+
+export interface CatalogoCacheado {
+  clave: string; // "catalogo"
+  datos: CatalogoRemoto;
+}
+
 export type BdLocal = Dexie & {
   cargas: EntityTable<CargaLocal, "id">;
   fotos: EntityTable<FotoLocal, "id">;
   contexto: EntityTable<ContextoLocal, "clave">;
+  perfil: EntityTable<PerfilCacheado, "clave">;
+  catalogo: EntityTable<CatalogoCacheado, "clave">;
 };
 
 export function crearBd(nombre = "cuadreapp"): BdLocal {
@@ -84,6 +99,10 @@ export function crearBd(nombre = "cuadreapp"): BdLocal {
     cargas: "id, sincronizacion, creadaEn",
     fotos: "id, cargaId",
     contexto: "clave",
+  });
+  bd.version(2).stores({
+    perfil: "clave",
+    catalogo: "clave",
   });
   return bd;
 }

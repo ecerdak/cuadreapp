@@ -74,7 +74,7 @@ Detalle y razones completas en `docs/PRODUCT_BIBLE.md` §7 y §9 (DEC-001 a DEC-
 
 ## Estado actual
 
-**Dominio congelado; API y PWA aprobadas (109 pruebas en verde).** Etapa actual: **Seguridad e Identidad** (DEC-013) — propuesta de arquitectura en revisión del propietario del producto; no implementar hasta su aprobación. El Dashboard queda pospuesto hasta después de esta etapa. La PWA usa `@cuadreapp/dominio` para feedback inmediato pero nunca reescribe reglas; el veredicto del servidor es la autoridad.
+**Etapa S (Seguridad e Identidad) implementada — 145 pruebas en verde.** API con autenticación JWT + RBAC contra la base, endpoints de auth/enrolamiento/catálogo/fotos, y `POST /api/v1/cargas` protegido con alcance de sede. PWA con TokenStore (DEC-014), ClienteHttp único, enrolamiento de dispositivo, PIN offline (bcrypt) y sincronizador que sube fotos primero y borra blobs tras aceptación. Pendiente: verificación E2E contra Supabase real y despliegue; CSP estricta y rate limiting del login se configuran con el hosting. El Dashboard NO está iniciado, por instrucción del propietario del producto. La PWA usa `@cuadreapp/dominio` para feedback inmediato pero nunca reescribe reglas; el veredicto del servidor es la autoridad.
 
 **Etapa 0 implementada, verificación pendiente.** El entorno de desarrollo no tiene Docker ni Postgres nativo para correr `supabase start` y ejecutar `supabase/verificacion_etapa0.sql` — revisado a mano, no corrido contra una base real. `usuarios` y `dispositivos` con esquema y RLS pero sin filas sembradas (requieren cuentas reales de Supabase Auth).
 

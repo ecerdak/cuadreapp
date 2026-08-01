@@ -1,7 +1,7 @@
 # Product Bible — CuadreApp
 
-**Versión:** 1.9 — 31 de julio de 2026
-**Estado del proyecto:** Etapa **Seguridad e Identidad** en implementación — arquitectura aprobada por el propietario del producto con el ajuste de [DEC-014](#decisiones) (TokenStore). Dashboard pospuesto hasta después de esta etapa.
+**Versión:** 2.0 — 1 de agosto de 2026
+**Estado del proyecto:** Etapa **Seguridad e Identidad implementada** (145 pruebas en verde en el monorepo). Pendiente: verificación de punta a punta contra un proyecto real de Supabase (Auth + Storage + Postgres) y despliegue. Dashboard pospuesto — no iniciado por instrucción del propietario del producto.
 **Propietario del producto:** Lubryco S.A.S. — Buga, Valle del Cauca
 **Cliente piloto:** Industrias Alimenticias El Trébol S.A.S. (Panela Trébol)
 
@@ -148,7 +148,7 @@ Esto es un principio de arquitectura, no un detalle de implementación pendiente
 |---|---|---|---|
 | **0** | Esquema Supabase + RLS + seed con equipos reales de El Trébol | **Implementada, verificación pendiente** — tablas, RLS y trigger escritos (`supabase/migrations/`); seed de *demostración* (no el inventario real, que sigue pendiente); el entorno de desarrollo no tenía Docker/Postgres disponible para correr `supabase/verificacion_etapa0.sql` | Un `insert` de carga desde SQL dispara triggers y actualiza `tot_actual_gal` — script listo en `supabase/verificacion_etapa0.sql`, revisado a mano, no ejecutado todavía |
 | **1** | Flujo de conductor completo, offline, con R1–R12 validadas contra la API propia (Railway) | **Aprobada** — dominio congelado; API y PWA aprobadas (captura, cola offline, sincronización con recuperación automática). La corrida física del criterio queda pendiente de tener base de datos y hosting activos | 10 cargas registradas en modo avión y sincronizadas al recuperar señal |
-| **S** *(insertada 31-jul-2026)* | **Seguridad e Identidad** ([DEC-013](#decisiones)): Supabase Auth mediada por la API, JWT, middleware de autenticación y de autorización RBAC, Storage de fotografías, endpoints de login/refresh/logout/`me`, enrolamiento de dispositivo y catálogo inicial (equipos, conductores, dispensadores, sedes) | **En implementación** — arquitectura aprobada con el ajuste de [DEC-014](#decisiones) (TokenStore) | `POST /api/v1/cargas` protegido; una carga con sus fotos sube de punta a punta con sesión de dispositivo |
+| **S** *(insertada 31-jul-2026)* | **Seguridad e Identidad** ([DEC-013](#decisiones)): Supabase Auth mediada por la API, JWT, middleware de autenticación y de autorización RBAC, Storage de fotografías, endpoints de login/refresh/logout/`me`, enrolamiento de dispositivo y catálogo inicial (equipos, conductores, dispensadores, sedes) | **Implementada** (1-ago-2026) con [DEC-014](#decisiones) — la verificación contra un proyecto real de Supabase queda pendiente de infraestructura activa | `POST /api/v1/cargas` protegido; una carga con sus fotos sube de punta a punta con sesión de dispositivo |
 | **2** | Dashboard del cliente, 4 pestañas | Pendiente | Reproduce el diseño aprobado (`docs/mockups/`) con datos reales |
 | **3** | Entregas de Lubryco + balance + alerta de reorden | Pendiente | La alerta salta con la autonomía calculada |
 | **4** | Vista Lubryco multicliente | Pendiente | Rol `comercial_lubryco` activo sobre vistas agregadas. Sin integración a ningún sistema externo — CuadreApp es autónomo (ver [DEC-002](#decisiones)) |

@@ -1,20 +1,26 @@
-// Máquina de estados del flujo del conductor (spec §8.1, 7 pasos).
-// Orquesta captura → validación del dominio → cola offline. La única
-// autoridad de negocio que este archivo invoca es validarCarga; la UI
-// obedece sus salidas (bloqueaCierre, bloqueaAvance, exigeNota) sin
-// reinterpretarlas.
+// Raíz de la PWA: primero el estado de la SESIÓN del dispositivo
+// (Etapa S), después la máquina de estados del flujo del conductor
+// (spec §8.1, 7 pasos). Ningún componente toca tokens (DEC-014): la
+// sesión se maneja vía ServicioSesion y el catálogo llega cacheado en
+// Dexie. La única autoridad de negocio invocada es el dominio.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { validarCarga, type ContextoValidacion, type RegistroCarga } from "@cuadreapp/dominio";
 import type { BdLocal, PayloadCarga } from "./offline/bd";
 import { contarPendientes, encolarCarga, obtenerContextoValidacion } from "./offline/cola";
 import { procesarPendientes, type ClienteApi } from "./offline/sincronizador";
-import { CATALOGO_DEMO, type ConductorCatalogo, type EquipoCatalogo } from "./datos/catalogo";
+import {
+  catalogoLocalDesdeRemoto,
+  type CatalogoLocal,
+  type ConductorCatalogo,
+  type EquipoCatalogo,
+} from "./datos/catalogo";
+import type { ServicioSesion } from "./seguridad/sesion";
 import { capturarGps, type PosicionCapturada } from "./captura/gps";
 import { aNumero, formatearGal } from "./ui/numeros";
 import { MENSAJES_BANDERA } from "./ui/mensajes";
-import { Aviso } from "./ui/basicos";
+import { Aviso, BotonPrincipal, Pantalla } from "./ui/basicos";
 import { obtenerDeviceId, VERSION_APP } from "./config";
 import { Inicio } from "./pantallas/Inicio";
 import { Equipo } from "./pantallas/Equipo";
@@ -23,7 +29,10 @@ import { AntesDeCargar } from "./pantallas/AntesDeCargar";
 import { Cargando } from "./pantallas/Cargando";
 import { DespuesDeCargar } from "./pantallas/DespuesDeCargar";
 import { Listo } from "./pantallas/Listo";
+import { Enrolar } from "./pantallas/Enrolar";
 import { marcasAntesDeCargar } from "./flujo/en-vivo";
+
+type EstadoSesion = "cargando" | "sin_enrolar" | "activa" | "offline" | "vencida";
 
 type Paso = "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo";
 
@@ -64,13 +73,31 @@ const borradorVacio = (): Borrador => ({
   finalizadaEn: null,
 });
 
-export function App(props: { bd: BdLocal; api: ClienteApi }) {
-  const { bd, api } = props;
+export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesion }) {
+  const { bd, api, sesion } = props;
+
+  const [estadoSesion, setEstadoSesion] = useState<EstadoSesion>("cargando");
   const [paso, setPaso] = useState<Paso>("inicio");
   const [borrador, setBorrador] = useState<Borrador>(borradorVacio);
   const [contexto, setContexto] = useState<ContextoValidacion | null>(null);
   const [idReciente, setIdReciente] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+
+  // Recuperación de sesión al abrir + escucha de "sesión vencida" que
+  // emite el cliente HTTP único cuando el refresh es rechazado.
+  useEffect(() => {
+    void sesion.recuperar().then((estado) => {
+      setEstadoSesion(estado === "sin_sesion" ? "sin_enrolar" : estado === "offline" ? "offline" : "activa");
+    });
+    const alVencer = () => setEstadoSesion("vencida");
+    window.addEventListener("cuadreapp:sesion-vencida", alVencer);
+    return () => window.removeEventListener("cuadreapp:sesion-vencida", alVencer);
+  }, [sesion]);
+
+  const catalogoCacheado = useLiveQuery(() => bd.catalogo.get("catalogo"));
+  const catalogo: CatalogoLocal | null = catalogoCacheado
+    ? catalogoLocalDesdeRemoto(catalogoCacheado.datos)
+    : null;
 
   const hoy = new Date().toISOString().slice(0, 10);
   const cargasHoy =
@@ -88,21 +115,74 @@ export function App(props: { bd: BdLocal; api: ClienteApi }) {
 
   const cambiar = (cambios: Partial<Borrador>) => setBorrador((actual) => ({ ...actual, ...cambios }));
 
+  /* ============ Puertas de sesión (antes del flujo de carga) ============ */
+
+  if (estadoSesion === "cargando") {
+    return (
+      <Pantalla titulo="CuadreApp">
+        <p className="text-[#8AA0B6]">Recuperando sesión…</p>
+      </Pantalla>
+    );
+  }
+
+  if (estadoSesion === "sin_enrolar" || estadoSesion === "vencida") {
+    return (
+      <>
+        {estadoSesion === "vencida" ? (
+          <div className="mx-auto max-w-md p-4 pb-0">
+            <Aviso tipo="advertencia">
+              La sesión de este dispositivo venció o fue revocada. Las cargas guardadas siguen en el
+              equipo y se subirán al re-enrolar.
+            </Aviso>
+          </div>
+        ) : null}
+        <Enrolar
+          onEnrolar={async (codigo, nombre) => {
+            const resultado = await sesion.enrolar(codigo, nombre);
+            if (resultado.ok) setEstadoSesion("activa");
+            return resultado.ok ? { ok: true } : { ok: false, detalle: resultado.detalle };
+          }}
+        />
+      </>
+    );
+  }
+
+  if (!catalogo) {
+    return (
+      <Pantalla titulo="Falta el catálogo">
+        <p className="text-[#8AA0B6]">
+          Este dispositivo aún no tiene el catálogo de la estación (equipos y conductores). Se
+          necesita señal una vez para descargarlo.
+        </p>
+        <BotonPrincipal
+          onClick={() =>
+            void sesion.refrescarCatalogo().then((ok) => {
+              if (!ok) setAviso("No se pudo descargar el catálogo. Revisa la señal.");
+            })
+          }
+        >
+          Reintentar
+        </BotonPrincipal>
+        {aviso ? <Aviso tipo="advertencia">{aviso}</Aviso> : null}
+      </Pantalla>
+    );
+  }
+
+  /* ============ Flujo del conductor (7 pasos) ============ */
+
   async function seleccionarEquipo(equipo: EquipoCatalogo) {
     const contextoNuevo = await obtenerContextoValidacion(
       bd,
-      CATALOGO_DEMO.dispensador,
+      catalogo!.dispensador,
       equipo,
-      CATALOGO_DEMO.sede,
+      catalogo!.sede,
     );
     setContexto(contextoNuevo);
     cambiar({ equipo, totInicial: formatearGal(contextoNuevo.dispensador.totActualGal) });
     setPaso("conductor");
-    // GPS en paralelo: si no hay señal, el dominio emitirá SIN_GPS.
     void capturarGps().then((gps) => cambiar({ gps }));
   }
 
-  /** ¿El dominio exige nota con lo capturado hasta ahora? (R1) */
   const exigeNota = (() => {
     if (!contexto) return false;
     const tanda = aNumero(borrador.tandaInicial);
@@ -150,7 +230,13 @@ export function App(props: { bd: BdLocal; api: ClienteApi }) {
       return;
     }
     if (veredicto.bloqueaAvance) {
-      setAviso(MENSAJES_BANDERA[veredicto.banderas.includes("TOTALIZADOR_RETROCEDE") ? "TOTALIZADOR_RETROCEDE" : "TOTALIZADOR_SIN_AVANCE"]);
+      setAviso(
+        MENSAJES_BANDERA[
+          veredicto.banderas.includes("TOTALIZADOR_RETROCEDE")
+            ? "TOTALIZADOR_RETROCEDE"
+            : "TOTALIZADOR_SIN_AVANCE"
+        ],
+      );
       return;
     }
     if (veredicto.exigeNota && borrador.nota.trim() === "") {
@@ -161,7 +247,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi }) {
     const id = crypto.randomUUID();
     const payload: PayloadCarga = {
       id,
-      dispensador_id: CATALOGO_DEMO.dispensador.id,
+      dispensador_id: catalogo!.dispensador.id,
       equipo_id: borrador.equipo.id,
       conductor_id: borrador.conductor.id,
       tanda_inicial_gal: tandaInicial,
@@ -175,6 +261,8 @@ export function App(props: { bd: BdLocal; api: ClienteApi }) {
       lng: borrador.gps?.lng ?? null,
       precision_gps_m: borrador.gps?.precision ?? null,
       origen: "app",
+      // Rutas tentativas: la ruta REAL la decide la API al subir cada
+      // foto y el sincronizador la confirma antes de registrar la carga.
       foto_inicial_path: borrador.fotoInicial ? `cargas/${id}/inicial.webp` : null,
       foto_final_path: borrador.fotoFinal ? `cargas/${id}/final.webp` : null,
       notas: borrador.nota.trim() === "" ? null : borrador.nota.trim(),
@@ -219,11 +307,11 @@ export function App(props: { bd: BdLocal; api: ClienteApi }) {
         />
       )}
 
-      {paso === "equipo" && <Equipo equipos={CATALOGO_DEMO.equipos} onSeleccionar={seleccionarEquipo} />}
+      {paso === "equipo" && <Equipo equipos={catalogo.equipos} onSeleccionar={seleccionarEquipo} />}
 
       {paso === "conductor" && (
         <Conductor
-          conductores={CATALOGO_DEMO.conductores}
+          conductores={catalogo.conductores}
           onIdentificado={(conductor) => {
             cambiar({ conductor });
             setPaso("antes");

@@ -66,8 +66,17 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 ### Agregado
 - `apps/pwa`: los 7 pasos del flujo del conductor con UI guiada exclusivamente por el resultado del dominio; cola offline en Dexie con contexto local encadenado (cargas consecutivas en modo avión no marcan saltos falsos); sincronizador con backoff exponencial (tope 5 min) y recuperación automática al volver la señal; cliente del `POST /api/v1/cargas` idempotente. 13 pruebas con fake-indexeddb.
 
-## [Etapa S — Seguridad e Identidad] (en curso)
+## [Etapa S — Seguridad e Identidad]
 
 ### Decidido
 - DEC-013: **Security First** — ninguna funcionalidad nueva accede a la API sin autenticación; Supabase Auth mediada por la API; la PWA nunca almacena credenciales (solo tokens); autorización siempre vía RBAC propio en la API; `POST /api/v1/cargas` queda protegido.
 - DEC-014: **TokenStore** — abstracción única de tokens en la PWA (access en memoria, refresh local con rotación; limitación del navegador documentada; SecureStore al migrar a React Native sin tocar el resto del código) + un único cliente HTTP para todo acceso a la API. Ningún componente React toca tokens.
+
+### Agregado
+- Migración `20260731110000_seguridad.sql`: catálogo RBAC en base (`permisos`, `rol_permisos`) y `codigos_enrolamiento` de un solo uso, con RLS denegado por defecto.
+- API: middleware de autenticación (verificación local de firma JWT) y de autorización RBAC resuelto contra la base; endpoints `auth/login`, `auth/refresh`, `auth/logout`, `me`, `dispositivos/enrolar`, `catalogo` y `cargas/:id/fotos/:momento`; `POST /api/v1/cargas` protegido con verificación de alcance de sede; observabilidad ahora con `usuario_id`. Proveedor de identidad (GoTrue) y almacén de fotos (Storage) detrás de interfaces inyectables. 39 pruebas en la API.
+- PWA: `TokenStore` con access solo en memoria y refresh local; `ClienteHttp` único (renovación single-flight con margen de 60 s, un solo reintento ante 401, clasificación de errores); `ServicioSesion` (enrolar, recuperación al abrir, catálogo cacheado, cierre que preserva la cola); verificación offline del PIN contra `pin_hash` (bcrypt); el sincronizador sube las fotos primero, confirma las rutas que decide la API y borra los blobs tras la aceptación (spec §10.3/§10.6); pantallas de enrolamiento y sesión vencida. 29 pruebas en la PWA.
+
+### Pendiente
+- Verificación de punta a punta contra un proyecto real de Supabase (Auth, Storage y Postgres) y despliegue a Railway/Vercel: este entorno no tiene Docker ni infraestructura activa.
+- CSP estricta y rate limiting del login: registrados como endurecimiento de despliegue, junto con la configuración de hosting.

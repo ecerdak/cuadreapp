@@ -11,10 +11,15 @@
 import type { FastifyInstance } from "fastify";
 import { validarCarga, type RegistroCarga } from "@cuadreapp/dominio";
 import { esquemaCargaEntrante } from "../esquemas/carga.js";
+import { exigirPermiso, type PreManejador } from "../seguridad/autenticacion.js";
 import type { NuevaFoto, RepositorioCargas } from "../repositorio/tipos.js";
 
-export function registrarRutaCargas(app: FastifyInstance, repositorio: RepositorioCargas): void {
-  app.post("/api/v1/cargas", async (solicitud, respuesta) => {
+export function registrarRutaCargas(
+  app: FastifyInstance,
+  repositorio: RepositorioCargas,
+  autenticar: PreManejador,
+): void {
+  app.post("/api/v1/cargas", { preHandler: [autenticar, exigirPermiso("cargas.registrar")] }, async (solicitud, respuesta) => {
     // 1. Validación estructural (forma y rangos; nada de negocio).
     const analisis = esquemaCargaEntrante.safeParse(solicitud.body);
     if (!analisis.success) {
@@ -57,6 +62,18 @@ export function registrarRutaCargas(app: FastifyInstance, repositorio: Repositor
         error: "REFERENCIA_NO_ENCONTRADA",
         detalle: "dispensador, equipo o conductor inexistente, inactivo o de otro cliente",
       });
+    }
+
+    // Alcance de la sesión (DEC-013): un dispositivo solo registra en
+    // su sede; un usuario de cliente, solo en su cliente. El tenant lo
+    // decide la sesión, jamás el cuerpo de la petición.
+    const sesion = solicitud.sesion!;
+    if (
+      (sesion.sedeId !== null && contexto.sedeId !== sesion.sedeId) ||
+      (sesion.clienteId !== null && contexto.clienteId !== sesion.clienteId)
+    ) {
+      solicitud.observable.resultado = "fuera_de_alcance";
+      return respuesta.status(403).send({ error: "FUERA_DE_ALCANCE" });
     }
 
     // 4. La única decisión de negocio: el dominio.

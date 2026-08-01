@@ -70,3 +70,52 @@ export interface RepositorioCargas {
   }): Promise<ContextoRegistro | null>;
   insertarCarga(carga: NuevaCarga, fotos: NuevaFoto[]): Promise<void>;
 }
+
+// ============ Seguridad e identidad (Etapa S) ============
+
+import type { SesionAutenticada } from "../seguridad/tipos.js";
+
+export interface CodigoEnrolamientoValido {
+  id: string;
+  sedeId: string;
+  clienteId: string;
+}
+
+export interface CatalogoSede {
+  sede: { id: string; nombre: string; lat: number | null; lng: number | null; radio_geocerca_m: number };
+  dispensadores: Array<{
+    id: string;
+    nombre: string;
+    tot_actual_gal: number;
+    tolerancia_tanda_gal: number;
+  }>;
+  equipos: Array<{
+    id: string;
+    codigo_interno: string;
+    descripcion: string | null;
+    tipo_medidor: string;
+    ultima_lectura: number | null;
+    capacidad_tanque_gal: number | null;
+  }>;
+  /** Incluye pin_hash (bcrypt) para la verificación offline en el
+   *  dispositivo enrolado — decisión aprobada en la Etapa S: el PIN
+   *  identifica, no protege (spec §5). */
+  conductores: Array<{ id: string; nombre: string; codigo: string; pin_hash: string }>;
+}
+
+export interface RepositorioSeguridad {
+  /** Resuelve identidad + rol + alcance + permisos del RBAC propio.
+   *  null si el usuario no existe o está inactivo. */
+  obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null>;
+  /** null si el código no existe, expiró o ya fue usado. */
+  validarCodigoEnrolamiento(codigo: string, ahora: Date): Promise<CodigoEnrolamientoValido | null>;
+  /** Crea usuarios (rol dispositivo) + dispositivos y consume el código. */
+  registrarDispositivoEnrolado(datos: {
+    usuarioId: string;
+    codigoId: string;
+    sedeId: string;
+    clienteId: string;
+    nombre: string | null;
+  }): Promise<void>;
+  obtenerCatalogo(clienteId: string, sedeId: string | null): Promise<CatalogoSede | null>;
+}
