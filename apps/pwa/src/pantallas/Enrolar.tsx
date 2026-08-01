@@ -6,7 +6,10 @@ import { useState } from "react";
 import { Aviso, BotonPrincipal, Pantalla } from "../ui/basicos";
 
 export function Enrolar(props: {
-  onEnrolar: (codigo: string, nombreDispositivo: string | null) => Promise<{ ok: boolean; detalle?: string }>;
+  onEnrolar: (
+    codigo: string,
+    nombreDispositivo: string | null,
+  ) => Promise<{ ok: boolean; detalle?: string }>;
 }) {
   const [codigo, setCodigo] = useState("");
   const [nombre, setNombre] = useState("");
@@ -24,7 +27,8 @@ export function Enrolar(props: {
   return (
     <Pantalla titulo="Enrolar este dispositivo">
       <p className="text-[#8AA0B6]">
-        Este celular se enrola una sola vez a la estación. Pídele el código de enrolamiento al supervisor.
+        Este celular se enrola una sola vez a la estación. Pídele el código de enrolamiento al
+        supervisor.
       </p>
       <label className="block">
         <span className="mb-1 block text-sm font-semibold uppercase tracking-wide text-[#8AA0B6]">
@@ -49,7 +53,10 @@ export function Enrolar(props: {
         />
       </label>
       {error ? <Aviso tipo="inconsistente">{error}</Aviso> : null}
-      <BotonPrincipal onClick={() => void confirmar()} deshabilitado={codigo.trim().length < 6 || enviando}>
+      <BotonPrincipal
+        onClick={() => void confirmar()}
+        deshabilitado={codigo.trim().length < 6 || enviando}
+      >
         {enviando ? "Enrolando…" : "Enrolar"}
       </BotonPrincipal>
     </Pantalla>

@@ -9,15 +9,18 @@ import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
 
 export const MENSAJES_BANDERA: Record<Bandera, string> = {
   TANDA_NO_RESETEADA: "La tanda no arrancó en 0,0. Escribe una nota explicando por qué.",
-  SALTO_TOTALIZADOR: "El medidor arrancó más arriba de lo esperado. ¿Alguien cargó sin registrar? Puedes seguir; queda anotado.",
-  SALTO_TOTALIZADOR_NEGATIVO: "El medidor arrancó más abajo del último valor registrado. Revisa el número; queda anotado.",
+  SALTO_TOTALIZADOR:
+    "El medidor arrancó más arriba de lo esperado. ¿Alguien cargó sin registrar? Puedes seguir; queda anotado.",
+  SALTO_TOTALIZADOR_NEGATIVO:
+    "El medidor arrancó más abajo del último valor registrado. Revisa el número; queda anotado.",
   TANDA_NO_CUADRA: "La tanda no cuadra con lo que subió el totalizador. Revisa los números.",
   TOTALIZADOR_RETROCEDE: "El totalizador no puede ir hacia atrás. Revisa la lectura final.",
   TOTALIZADOR_SIN_AVANCE: "El totalizador no se movió. Revisa la lectura final.",
   SIN_DESPACHO: "La tanda final está en 0: no se registró despacho.",
   EXCEDE_CAPACIDAD: "Los galones superan la capacidad del tanque de este equipo. Queda anotado.",
   CONTADOR_RETROCEDE: "El horómetro/odómetro está por debajo de la última lectura. Queda anotado.",
-  SALTO_CONTADOR: "El salto del horómetro/odómetro no es posible en el tiempo transcurrido. Queda anotado.",
+  SALTO_CONTADOR:
+    "El salto del horómetro/odómetro no es posible en el tiempo transcurrido. Queda anotado.",
   FOTO_FALTANTE: "Faltan las fotos del medidor. Sin las dos fotos no se puede cerrar el registro.",
   FUERA_DE_SEDE: "El GPS marca fuera de la estación. Queda anotado.",
   SIN_GPS: "No se pudo verificar la ubicación (sin GPS). Solo informativo.",

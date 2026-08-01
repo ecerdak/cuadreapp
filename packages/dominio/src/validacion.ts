@@ -114,7 +114,8 @@ export function reglaR6(registro: RegistroCarga, contexto: ContextoValidacion): 
 /** R7 — el horómetro/odómetro del equipo no retrocede. */
 export function reglaR7(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
   const { tipoMedidor, ultimaLectura } = contexto.equipo;
-  if (tipoMedidor === "ninguno" || ultimaLectura === null || registro.lecturaEquipo === null) return null;
+  if (tipoMedidor === "ninguno" || ultimaLectura === null || registro.lecturaEquipo === null)
+    return null;
   if (enDecimas(registro.lecturaEquipo) >= enDecimas(ultimaLectura)) return null;
   return { bandera: "CONTADOR_RETROCEDE", clase: "advertencia" };
 }
@@ -128,13 +129,17 @@ export function reglaR7(registro: RegistroCarga, contexto: ContextoValidacion): 
  *  abastecer. Sin fecha de última carga no hay referencia y no se evalúa. */
 export function reglaR8(registro: RegistroCarga, contexto: ContextoValidacion): MarcaRegla | null {
   const { tipoMedidor, ultimaLectura, ultimaCargaFinalizadaEn } = contexto.equipo;
-  if (tipoMedidor === "ninguno" || ultimaLectura === null || registro.lecturaEquipo === null) return null;
+  if (tipoMedidor === "ninguno" || ultimaLectura === null || registro.lecturaEquipo === null)
+    return null;
   if (ultimaCargaFinalizadaEn === null) return null;
 
   const salto = enDecimas(registro.lecturaEquipo) - enDecimas(ultimaLectura);
   if (salto < 0) return null; // el retroceso es asunto de R7
 
-  const horasTranscurridas = Math.max(0, (enMs(registro.iniciadaEn) - enMs(ultimaCargaFinalizadaEn)) / 3_600_000);
+  const horasTranscurridas = Math.max(
+    0,
+    (enMs(registro.iniciadaEn) - enMs(ultimaCargaFinalizadaEn)) / 3_600_000,
+  );
   const maximoPlausible =
     tipoMedidor === "horometro"
       ? horasTranscurridas
@@ -197,7 +202,10 @@ export function reglaR12(registro: RegistroCarga): MarcaRegla | null {
 
 /** Evalúa R1–R12 en orden y compone el resultado según §7:
  *  inconsistente > advertencia > ok. */
-export function validarCarga(registro: RegistroCarga, contexto: ContextoValidacion): ResultadoValidacion {
+export function validarCarga(
+  registro: RegistroCarga,
+  contexto: ContextoValidacion,
+): ResultadoValidacion {
   const marcas: MarcaRegla[] = [
     reglaR1(registro),
     reglaR2(registro, contexto),

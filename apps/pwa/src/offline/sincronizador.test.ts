@@ -76,10 +76,12 @@ interface ApiFalsa extends ClienteApi {
   llamadasFoto: Array<{ cargaId: string; momento: string }>;
 }
 
-function apiFalsa(opciones: {
-  carga?: RespuestaApi;
-  foto?: RespuestaFoto | ((cargaId: string, momento: string) => RespuestaFoto);
-} = {}): ApiFalsa {
+function apiFalsa(
+  opciones: {
+    carga?: RespuestaApi;
+    foto?: RespuestaFoto | ((cargaId: string, momento: string) => RespuestaFoto);
+  } = {},
+): ApiFalsa {
   const llamadasCarga: PayloadCarga[] = [];
   const llamadasFoto: Array<{ cargaId: string; momento: string }> = [];
   return {
@@ -175,7 +177,11 @@ describe("sincronizador — cargas sin fotos", () => {
 
   it("RECUPERACIÓN: al volver la señal, toda la cola se vacía en orden", async () => {
     const { bd, ids } = await bdConCargas(3);
-    await procesarPendientes(bd, apiFalsa({ carga: { tipo: "reintentable", detalle: "sin conexión" } }), () => new Date("2026-07-31T10:00:00.000Z"));
+    await procesarPendientes(
+      bd,
+      apiFalsa({ carga: { tipo: "reintentable", detalle: "sin conexión" } }),
+      () => new Date("2026-07-31T10:00:00.000Z"),
+    );
 
     const conRed = apiFalsa();
     const resumen = await procesarPendientes(bd, conRed, () => new Date("2026-07-31T10:00:05.000Z"));
@@ -220,7 +226,11 @@ describe("sincronizador — evidencia fotográfica (fotos primero, spec §10.3)"
 
   it("los reintentos de foto son idempotentes: al recuperar señal sube todo y termina sincronizada", async () => {
     const { bd, ids } = await bdConCargas(1, true);
-    await procesarPendientes(bd, apiFalsa({ foto: { tipo: "reintentable", detalle: "sin red" } }), () => new Date("2026-07-31T10:00:00.000Z"));
+    await procesarPendientes(
+      bd,
+      apiFalsa({ foto: { tipo: "reintentable", detalle: "sin red" } }),
+      () => new Date("2026-07-31T10:00:00.000Z"),
+    );
 
     const conRed = apiFalsa();
     const resumen = await procesarPendientes(bd, conRed, () => new Date("2026-07-31T10:00:05.000Z"));

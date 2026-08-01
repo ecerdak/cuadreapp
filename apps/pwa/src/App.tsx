@@ -87,7 +87,9 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   // emite el cliente HTTP único cuando el refresh es rechazado.
   useEffect(() => {
     void sesion.recuperar().then((estado) => {
-      setEstadoSesion(estado === "sin_sesion" ? "sin_enrolar" : estado === "offline" ? "offline" : "activa");
+      setEstadoSesion(
+        estado === "sin_sesion" ? "sin_enrolar" : estado === "offline" ? "offline" : "activa",
+      );
     });
     const alVencer = () => setEstadoSesion("vencida");
     window.addEventListener("cuadreapp:sesion-vencida", alVencer);
@@ -151,8 +153,8 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     return (
       <Pantalla titulo="Falta el catálogo">
         <p className="text-[#8AA0B6]">
-          Este dispositivo aún no tiene el catálogo de la estación (equipos y conductores). Se
-          necesita señal una vez para descargarlo.
+          Este dispositivo aún no tiene el catálogo de la estación (equipos y conductores). Se necesita
+          señal una vez para descargarlo.
         </p>
         <BotonPrincipal
           onClick={() =>

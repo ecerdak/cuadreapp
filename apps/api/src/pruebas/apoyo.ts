@@ -101,7 +101,9 @@ export class RepositorioSeguridadFalso implements RepositorioSeguridad {
     return this.sesiones.get(usuarioId) ?? null;
   }
 
-  async validarCodigoEnrolamiento(codigo: string): Promise<{ id: string; sedeId: string; clienteId: string } | null> {
+  async validarCodigoEnrolamiento(
+    codigo: string,
+  ): Promise<{ id: string; sedeId: string; clienteId: string } | null> {
     return codigo === "CODIGO-VALIDO-123" ? this.codigoValido : null;
   }
 

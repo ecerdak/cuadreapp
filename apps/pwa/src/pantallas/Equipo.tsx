@@ -7,7 +7,10 @@ import { useState } from "react";
 import type { EquipoCatalogo } from "../datos/catalogo";
 import { Pantalla } from "../ui/basicos";
 
-export function Equipo(props: { equipos: EquipoCatalogo[]; onSeleccionar: (equipo: EquipoCatalogo) => void }) {
+export function Equipo(props: {
+  equipos: EquipoCatalogo[];
+  onSeleccionar: (equipo: EquipoCatalogo) => void;
+}) {
   const [busqueda, setBusqueda] = useState("");
   const filtrados = props.equipos.filter(
     (equipo) =>

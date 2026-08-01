@@ -46,7 +46,10 @@ export function crearClienteApi(http: ClienteHttp): ClienteApi {
         };
       }
       if (respuesta.status >= 400 && respuesta.status < 500) {
-        return { tipo: "rechazo_definitivo", detalle: `HTTP ${respuesta.status}: ${await respuesta.text()}` };
+        return {
+          tipo: "rechazo_definitivo",
+          detalle: `HTTP ${respuesta.status}: ${await respuesta.text()}`,
+        };
       }
       return { tipo: "reintentable", detalle: `HTTP ${respuesta.status}` };
     },

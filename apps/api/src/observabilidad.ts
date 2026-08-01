@@ -54,7 +54,10 @@ const emitirAConsola: EmisorEventos = (evento) => {
   console.log(JSON.stringify(evento));
 };
 
-export function registrarObservabilidad(app: FastifyInstance, emitir: EmisorEventos = emitirAConsola): void {
+export function registrarObservabilidad(
+  app: FastifyInstance,
+  emitir: EmisorEventos = emitirAConsola,
+): void {
   app.addHook("onRequest", async (solicitud, respuesta) => {
     solicitud.idSolicitud = randomUUID();
     solicitud.inicioNs = process.hrtime.bigint();

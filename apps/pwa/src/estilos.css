@@ -8,6 +8,9 @@
 body {
   background-color: #070d13;
   color: #e7eef6;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-tap-highlight-color: transparent;
 }

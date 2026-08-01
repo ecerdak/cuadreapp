@@ -9,9 +9,10 @@ interface LlamadaRegistrada {
   autorizacion: string | undefined;
 }
 
-function crearFetchFalso(
-  manejar: (url: string, init: RequestInit, numero: number) => Response,
-): { fetchFn: typeof fetch; llamadas: LlamadaRegistrada[] } {
+function crearFetchFalso(manejar: (url: string, init: RequestInit, numero: number) => Response): {
+  fetchFn: typeof fetch;
+  llamadas: LlamadaRegistrada[];
+} {
   const llamadas: LlamadaRegistrada[] = [];
   const fetchFn = (async (entrada: RequestInfo | URL, init?: RequestInit) => {
     const url = String(entrada);
@@ -23,7 +24,10 @@ function crearFetchFalso(
 }
 
 const respuestaJson = (estado: number, cuerpo: unknown) =>
-  new Response(JSON.stringify(cuerpo), { status: estado, headers: { "content-type": "application/json" } });
+  new Response(JSON.stringify(cuerpo), {
+    status: estado,
+    headers: { "content-type": "application/json" },
+  });
 
 const tokensNuevos = { access_token: "acc-nuevo", refresh_token: "ref-nuevo", expira_en_s: 3600 };
 
@@ -50,7 +54,9 @@ describe("ClienteHttp — el único camino a la API (DEC-014)", () => {
       refresh: "ref-1",
     });
     const { fetchFn, llamadas } = crearFetchFalso((url) =>
-      url.endsWith("/auth/refresh") ? respuestaJson(200, tokensNuevos) : respuestaJson(200, { ok: true }),
+      url.endsWith("/auth/refresh")
+        ? respuestaJson(200, tokensNuevos)
+        : respuestaJson(200, { ok: true }),
     );
     const http = new ClienteHttp(URL, tokens, { fetchFn });
 
@@ -78,7 +84,9 @@ describe("ClienteHttp — el único camino a la API (DEC-014)", () => {
   it("la renovación es single-flight: dos peticiones concurrentes comparten UN refresh", async () => {
     const tokens = new TokenStoreMemoria({ access: null, refresh: "ref-1" });
     const { fetchFn, llamadas } = crearFetchFalso((url) =>
-      url.endsWith("/auth/refresh") ? respuestaJson(200, tokensNuevos) : respuestaJson(200, { ok: true }),
+      url.endsWith("/auth/refresh")
+        ? respuestaJson(200, tokensNuevos)
+        : respuestaJson(200, { ok: true }),
     );
     const http = new ClienteHttp(URL, tokens, { fetchFn });
 

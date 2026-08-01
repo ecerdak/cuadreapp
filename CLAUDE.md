@@ -8,7 +8,7 @@ Antes de tocar cualquier cosa, leer en este orden:
 2. `docs/ESPEC_App_Cuadre_Lubryco.md` — especificación técnica: esquema de datos, reglas de validación R1–R12, cálculos, flujos de pantalla exactos. Fuente de verdad técnica.
 3. `docs/mockups/` — mockups interactivos de referencia para la UI (conductor y dashboard), ya aprobados como guía visual.
 
-Los dos primeros documentos no se duplican entre sí a propósito: el Product Bible explica el *por qué* y enlaza al *cómo* exacto en la especificación técnica. Si algo cambia, se actualiza en su documento correspondiente, no se copia al otro.
+Los dos primeros documentos no se duplican entre sí a propósito: el Product Bible explica el _por qué_ y enlaza al _cómo_ exacto en la especificación técnica. Si algo cambia, se actualiza en su documento correspondiente, no se copia al otro.
 
 ## Reglas de trabajo en este repositorio
 
@@ -62,7 +62,7 @@ CuadreApp es un producto completamente independiente. No depende de ningún sist
 - **Versionado de la API (DEC-008):** todos los endpoints bajo `/api/v1/` desde el primer día. Versiones futuras conviven sin romper compatibilidad; una versión solo se retira cuando ningún cliente activo la consume.
 - **Thin API (DEC-011):** la API es únicamente un orquestador: autenticación, autorización, validación estructural de entrada, invocar `packages/dominio`, persistencia, auditoría y respuesta HTTP. Nunca contiene, duplica ni reinterpreta reglas de negocio. Si una regla cambia, solo cambia en `packages/dominio`.
 - **Observabilidad por defecto (DEC-012):** middleware único en la API — cada petición registra request_id, timestamp, cliente/sede/usuario, endpoint, duración, resultado, estado HTTP, errores, banderas del dominio y versiones de API y dominio. Nunca fotos, tokens ni datos sensibles. Toda respuesta lleva el `request_id` (cuerpo + encabezado `x-request-id`).
-- **Security First (DEC-013):** ninguna funcionalidad nueva accede a la API sin autenticación (excepciones: `GET /salud` y los endpoints que *son* la autenticación). Supabase Auth mediada por la API — la PWA nunca habla directo con Supabase Auth ni almacena credenciales. Autorización siempre en la API vía RBAC propio. Ninguna regla de negocio migra fuera de `packages/dominio`.
+- **Security First (DEC-013):** ninguna funcionalidad nueva accede a la API sin autenticación (excepciones: `GET /salud` y los endpoints que _son_ la autenticación). Supabase Auth mediada por la API — la PWA nunca habla directo con Supabase Auth ni almacena credenciales. Autorización siempre en la API vía RBAC propio. Ninguna regla de negocio migra fuera de `packages/dominio`.
 - **TokenStore y cliente HTTP único (DEC-014):** en la PWA todo acceso a tokens pasa por la abstracción `TokenStore` (access en memoria, refresh en almacenamiento local con rotación; SecureStore al migrar a React Native — sin tocar el resto del código) y todo acceso a la API pasa por un único cliente HTTP (tokens, renovación, reintentos, errores, observabilidad). Ningún componente React toca tokens.
 - **Hosting (DEC-005):** PWA/dashboard en **Vercel**; API propia en **Railway**; base de datos y autenticación en **Supabase**. Tres proveedores, responsabilidad separada, ninguno atado a otro.
 - **Autenticación y autorización (DEC-004):** Supabase Auth resuelve identidad; la PWA presenta ese token a la API. Los roles y permisos son **RBAC propio** modelado en tablas del dominio (`roles`, `usuarios`, `dispositivos`) — nunca custom claims de Supabase ni roles nativos de Postgres como fuente de autorización.

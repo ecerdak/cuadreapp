@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { armarAplicacion, crearToken, cuerpoCargaBase, ID_CLIENTE, ID_DISPOSITIVO_USUARIO, ID_SEDE } from "./pruebas/apoyo.js";
+import {
+  armarAplicacion,
+  crearToken,
+  cuerpoCargaBase,
+  ID_CLIENTE,
+  ID_DISPOSITIVO_USUARIO,
+  ID_SEDE,
+} from "./pruebas/apoyo.js";
 
 describe("Observabilidad por defecto (DEC-012)", () => {
   it("toda respuesta incluye el request_id en el cuerpo y en el encabezado, y coinciden", async () => {
@@ -18,9 +25,19 @@ describe("Observabilidad por defecto (DEC-012)", () => {
     const evento = eventos[0]!;
     expect(Object.keys(evento).sort()).toEqual(
       [
-        "request_id", "timestamp", "endpoint", "estado_http", "duracion_ms",
-        "resultado", "errores", "cliente_id", "sede_id", "usuario_id",
-        "banderas", "version_api", "version_dominio",
+        "request_id",
+        "timestamp",
+        "endpoint",
+        "estado_http",
+        "duracion_ms",
+        "resultado",
+        "errores",
+        "cliente_id",
+        "sede_id",
+        "usuario_id",
+        "banderas",
+        "version_api",
+        "version_dominio",
       ].sort(),
     );
     expect(evento.endpoint).toBe("GET /salud");

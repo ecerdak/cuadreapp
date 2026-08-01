@@ -32,7 +32,9 @@ export function registrarRutaEnrolamiento(
     );
     if (!codigo) {
       solicitud.observable.resultado = "codigo_invalido";
-      return respuesta.status(401).send({ error: "CODIGO_INVALIDO", detalle: "inexistente, vencido o ya usado" });
+      return respuesta
+        .status(401)
+        .send({ error: "CODIGO_INVALIDO", detalle: "inexistente, vencido o ya usado" });
     }
 
     const identidad = await dependencias.proveedor.crearIdentidadDispositivo();

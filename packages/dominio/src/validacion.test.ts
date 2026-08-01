@@ -41,11 +41,13 @@ function registroBase(cambios: Partial<RegistroCarga> = {}): RegistroCarga {
   };
 }
 
-function contextoBase(cambios: {
-  dispensador?: Partial<ContextoValidacion["dispensador"]>;
-  equipo?: Partial<ContextoValidacion["equipo"]>;
-  sede?: Partial<ContextoValidacion["sede"]>;
-} = {}): ContextoValidacion {
+function contextoBase(
+  cambios: {
+    dispensador?: Partial<ContextoValidacion["dispensador"]>;
+    equipo?: Partial<ContextoValidacion["equipo"]>;
+    sede?: Partial<ContextoValidacion["sede"]>;
+  } = {},
+): ContextoValidacion {
   return {
     dispensador: { totActualGal: 1847.0, toleranciaTandaGal: 1.0, ...cambios.dispensador },
     equipo: {
@@ -89,7 +91,12 @@ describe("R2 — totalizador inicial vs. último conocido (SALTO_TOTALIZADOR)", 
   });
 
   it("pasa aunque los valores vengan con representación flotante distinta (1847.0 vs 1847)", () => {
-    expect(reglaR2(registroBase({ totInicialGal: 1847 }), contextoBase({ dispensador: { totActualGal: 1847.0 } }))).toBeNull();
+    expect(
+      reglaR2(
+        registroBase({ totInicialGal: 1847 }),
+        contextoBase({ dispensador: { totActualGal: 1847.0 } }),
+      ),
+    ).toBeNull();
   });
 
   it("marca inconsistente con salto de +18 gal y calcula gal_no_registrados", () => {
@@ -263,7 +270,9 @@ describe("R6 — plausibilidad contra la capacidad del tanque del equipo (EXCEDE
   });
 
   it("pasa exactamente en el límite (capacidad 80 × 1.15 = 92.0)", () => {
-    expect(reglaR6(registroBase({ tandaFinalGal: 92.0, totFinalGal: 1939.0 }), contextoBase())).toBeNull();
+    expect(
+      reglaR6(registroBase({ tandaFinalGal: 92.0, totFinalGal: 1939.0 }), contextoBase()),
+    ).toBeNull();
   });
 
   it("marca advertencia apenas se pasa del límite (92.1)", () => {
@@ -273,7 +282,10 @@ describe("R6 — plausibilidad contra la capacidad del tanque del equipo (EXCEDE
 
   it("no aplica si el equipo no tiene capacidad conocida", () => {
     expect(
-      reglaR6(registroBase({ tandaFinalGal: 500.0 }), contextoBase({ equipo: { capacidadTanqueGal: null } })),
+      reglaR6(
+        registroBase({ tandaFinalGal: 500.0 }),
+        contextoBase({ equipo: { capacidadTanqueGal: null } }),
+      ),
     ).toBeNull();
   });
 });
@@ -370,7 +382,11 @@ describe("R9 — las dos fotos de cámara en vivo (FOTO_FALTANTE)", () => {
 
   it("marca y bloquea el cierre si falta la foto inicial", () => {
     const marca = reglaR9(registroBase({ fotoInicial: false }));
-    expect(marca).toMatchObject({ bandera: "FOTO_FALTANTE", clase: "inconsistente", bloqueaCierre: true });
+    expect(marca).toMatchObject({
+      bandera: "FOTO_FALTANTE",
+      clase: "inconsistente",
+      bloqueaCierre: true,
+    });
   });
 
   it("marca si falta la foto final", () => {
@@ -378,11 +394,15 @@ describe("R9 — las dos fotos de cámara en vivo (FOTO_FALTANTE)", () => {
   });
 
   it("marca si faltan ambas", () => {
-    expect(reglaR9(registroBase({ fotoInicial: false, fotoFinal: false }))?.bandera).toBe("FOTO_FALTANTE");
+    expect(reglaR9(registroBase({ fotoInicial: false, fotoFinal: false }))?.bandera).toBe(
+      "FOTO_FALTANTE",
+    );
   });
 
   it("no aplica a registros retroactivos de papel (origen papel_retro, sin fotos por definición)", () => {
-    expect(reglaR9(registroBase({ origen: "papel_retro", fotoInicial: false, fotoFinal: false }))).toBeNull();
+    expect(
+      reglaR9(registroBase({ origen: "papel_retro", fotoInicial: false, fotoFinal: false })),
+    ).toBeNull();
   });
 
   it("las correcciones SÍ requieren fotos (precisión aprobada)", () => {
@@ -433,7 +453,9 @@ describe("R11 — sin otra carga del mismo equipo en 3 minutos (POSIBLE_DUPLICAD
   });
 
   it("no aplica si el equipo no tiene cargas previas", () => {
-    expect(reglaR11(registroBase(), contextoBase({ equipo: { ultimaCargaFinalizadaEn: null } }))).toBeNull();
+    expect(
+      reglaR11(registroBase(), contextoBase({ equipo: { ultimaCargaFinalizadaEn: null } })),
+    ).toBeNull();
   });
 });
 
@@ -458,7 +480,9 @@ describe("R12 — duración plausible de la carga (TIEMPO_ATIPICO)", () => {
   });
 
   it("marca con 61 minutos", () => {
-    expect(reglaR12(registroBase({ finalizadaEn: "2026-07-31T10:01:00-05:00" }))?.bandera).toBe("TIEMPO_ATIPICO");
+    expect(reglaR12(registroBase({ finalizadaEn: "2026-07-31T10:01:00-05:00" }))?.bandera).toBe(
+      "TIEMPO_ATIPICO",
+    );
   });
 });
 
@@ -480,14 +504,20 @@ describe("validarCarga — orquestación y estado resultante (§7)", () => {
   it("solo advertencias → estado 'advertencia' (R1 exige nota)", () => {
     // Tanda sin resetear (0.5). La tanda final 42.0 vs delta 42.5 queda
     // dentro de la tolerancia de R3, así que la única bandera es R1.
-    const resultado = validarCarga(registroBase({ tandaInicialGal: 0.5, tandaFinalGal: 42.0 }), contextoBase());
+    const resultado = validarCarga(
+      registroBase({ tandaInicialGal: 0.5, tandaFinalGal: 42.0 }),
+      contextoBase(),
+    );
     expect(resultado.estado).toBe("advertencia");
     expect(resultado.banderas).toEqual(["TANDA_NO_RESETEADA"]);
     expect(resultado.exigeNota).toBe(true);
   });
 
   it("cualquier bandera inconsistente → estado 'inconsistente'", () => {
-    const resultado = validarCarga(registroBase({ tandaFinalGal: 0.0, totFinalGal: 1847.5 }), contextoBase());
+    const resultado = validarCarga(
+      registroBase({ tandaFinalGal: 0.0, totFinalGal: 1847.5 }),
+      contextoBase(),
+    );
     expect(resultado.estado).toBe("inconsistente");
     expect(resultado.banderas).toContain("SIN_DESPACHO");
   });
@@ -537,7 +567,11 @@ describe("validarCarga — orquestación y estado resultante (§7)", () => {
       }),
       contextoBase(),
     );
-    expect(resultado.banderas).toEqual(["TANDA_NO_RESETEADA", "SALTO_TOTALIZADOR", "CONTADOR_RETROCEDE"]);
+    expect(resultado.banderas).toEqual([
+      "TANDA_NO_RESETEADA",
+      "SALTO_TOTALIZADOR",
+      "CONTADOR_RETROCEDE",
+    ]);
   });
 
   it("una vuelta completa del totalizador en 999999 pasa limpia de punta a punta (caso límite obligatorio §13)", () => {

@@ -18,7 +18,12 @@ export interface PerfilMe {
 
 export interface CatalogoRemoto {
   sede: { id: string; nombre: string; lat: number | null; lng: number | null; radio_geocerca_m: number };
-  dispensadores: Array<{ id: string; nombre: string; tot_actual_gal: number; tolerancia_tanda_gal: number }>;
+  dispensadores: Array<{
+    id: string;
+    nombre: string;
+    tot_actual_gal: number;
+    tolerancia_tanda_gal: number;
+  }>;
   equipos: Array<{
     id: string;
     codigo_interno: string;

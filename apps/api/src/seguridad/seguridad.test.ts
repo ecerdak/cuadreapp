@@ -12,7 +12,11 @@ import {
 describe("Middleware de autenticación (DEC-013)", () => {
   it("rechaza el POST de cargas sin token", async () => {
     const { app, repositorio } = armarAplicacion();
-    const respuesta = await app.inject({ method: "POST", url: "/api/v1/cargas", payload: cuerpoCargaBase() });
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas",
+      payload: cuerpoCargaBase(),
+    });
     expect(respuesta.statusCode).toBe(401);
     expect(respuesta.json().error).toBe("NO_AUTENTICADO");
     expect(repositorio.inserciones).toHaveLength(0);

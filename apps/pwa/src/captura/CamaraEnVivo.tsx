@@ -44,7 +44,11 @@ export function CamaraEnVivo(props: {
             : "border-dashed border-[#5B90C4] bg-[#121C25] text-[#5B90C4]"
         }`}
       >
-        {procesando ? "Procesando…" : props.hayFoto ? `✓ ${props.etiqueta} tomada — re-tomar` : `📷 ${props.etiqueta}`}
+        {procesando
+          ? "Procesando…"
+          : props.hayFoto
+            ? `✓ ${props.etiqueta} tomada — re-tomar`
+            : `📷 ${props.etiqueta}`}
       </button>
     </div>
   );

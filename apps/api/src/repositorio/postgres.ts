@@ -127,21 +127,41 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
            $24, $25, $26
          )`,
         [
-          carga.id, carga.cliente_id, carga.sede_id, carga.dispensador_id, carga.equipo_id, carga.conductor_id,
-          carga.tanda_inicial_gal, carga.tot_inicial_gal, carga.tanda_final_gal, carga.tot_final_gal, carga.galones,
-          carga.lectura_equipo, carga.tipo_lectura,
-          carga.iniciada_en, carga.finalizada_en,
-          carga.lat, carga.lng, carga.precision_gps_m, carga.dentro_geocerca,
-          carga.origen, carga.estado, JSON.stringify(carga.banderas), carga.gal_no_registrados,
-          carga.notas, carga.device_id, carga.version_app,
+          carga.id,
+          carga.cliente_id,
+          carga.sede_id,
+          carga.dispensador_id,
+          carga.equipo_id,
+          carga.conductor_id,
+          carga.tanda_inicial_gal,
+          carga.tot_inicial_gal,
+          carga.tanda_final_gal,
+          carga.tot_final_gal,
+          carga.galones,
+          carga.lectura_equipo,
+          carga.tipo_lectura,
+          carga.iniciada_en,
+          carga.finalizada_en,
+          carga.lat,
+          carga.lng,
+          carga.precision_gps_m,
+          carga.dentro_geocerca,
+          carga.origen,
+          carga.estado,
+          JSON.stringify(carga.banderas),
+          carga.gal_no_registrados,
+          carga.notas,
+          carga.device_id,
+          carga.version_app,
         ],
       );
 
       for (const foto of fotos) {
-        await cliente.query(
-          `insert into fotos (carga_id, momento, storage_path) values ($1, $2, $3)`,
-          [foto.carga_id, foto.momento, foto.storage_path],
-        );
+        await cliente.query(`insert into fotos (carga_id, momento, storage_path) values ($1, $2, $3)`, [
+          foto.carga_id,
+          foto.momento,
+          foto.storage_path,
+        ]);
       }
 
       await cliente.query("commit");
@@ -180,7 +200,10 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
     };
   }
 
-  async validarCodigoEnrolamiento(codigo: string, ahora: Date): Promise<CodigoEnrolamientoValido | null> {
+  async validarCodigoEnrolamiento(
+    codigo: string,
+    ahora: Date,
+  ): Promise<CodigoEnrolamientoValido | null> {
     const resultado = await this.pool.query(
       `select c.id, c.sede_id, s.cliente_id
        from codigos_enrolamiento c

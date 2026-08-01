@@ -31,9 +31,17 @@ export function AntesDeCargar(props: {
     <Pantalla titulo="Antes de cargar">
       <p className="text-lg">Deja la tanda en 0,0 y toma la foto del medidor.</p>
 
-      <CamaraEnVivo etiqueta="Foto del medidor (inicial)" hayFoto={props.fotoInicial} onFoto={props.onFoto} />
+      <CamaraEnVivo
+        etiqueta="Foto del medidor (inicial)"
+        hayFoto={props.fotoInicial}
+        onFoto={props.onFoto}
+      />
 
-      <CampoNumerico etiqueta="Tanda (debe ser 0,0)" valor={props.tandaInicial} onCambio={props.onTandaInicial} />
+      <CampoNumerico
+        etiqueta="Tanda (debe ser 0,0)"
+        valor={props.tandaInicial}
+        onCambio={props.onTandaInicial}
+      />
       <CampoNumerico
         etiqueta="Totalizador"
         valor={props.totInicial}

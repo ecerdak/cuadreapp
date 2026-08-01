@@ -32,7 +32,9 @@ export function registrarRutaFotos(
       const bytes = solicitud.body;
       if (!Buffer.isBuffer(bytes) || bytes.length === 0 || bytes.length > BYTES_MAXIMOS) {
         solicitud.observable.resultado = "invalido";
-        return respuesta.status(400).send({ error: "FOTO_INVALIDA", detalle: "se espera image/webp de hasta 2 MB" });
+        return respuesta
+          .status(400)
+          .send({ error: "FOTO_INVALIDA", detalle: "se espera image/webp de hasta 2 MB" });
       }
 
       const sesion = solicitud.sesion!;

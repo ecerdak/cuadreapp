@@ -12,7 +12,11 @@ interface ConfiguracionSupabase {
   claveServiceRole: string;
 }
 
-function aTokens(cuerpo: { access_token: string; refresh_token: string; expires_in: number }): TokensEmitidos {
+function aTokens(cuerpo: {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}): TokensEmitidos {
   return {
     access_token: cuerpo.access_token,
     refresh_token: cuerpo.refresh_token,

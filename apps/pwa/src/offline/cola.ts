@@ -18,7 +18,10 @@ export interface EntradaCola {
   payload: PayloadCarga;
   veredicto: ResultadoValidacion;
   resumen: CargaLocal["resumen"];
-  fotos: { inicial: { bytes: ArrayBuffer; tipo: string } | null; final: { bytes: ArrayBuffer; tipo: string } | null };
+  fotos: {
+    inicial: { bytes: ArrayBuffer; tipo: string } | null;
+    final: { bytes: ArrayBuffer; tipo: string } | null;
+  };
   creadaEn?: string;
 }
 
@@ -95,14 +98,20 @@ export async function obtenerContextoValidacion(
 export async function pendientesListas(bd: BdLocal, ahora: Date): Promise<CargaLocal[]> {
   const pendientes = await bd.cargas.where("sincronizacion").equals("pendiente").sortBy("creadaEn");
   const limite = ahora.toISOString();
-  return pendientes.filter((carga) => carga.proximoIntentoEn === null || carga.proximoIntentoEn <= limite);
+  return pendientes.filter(
+    (carga) => carga.proximoIntentoEn === null || carga.proximoIntentoEn <= limite,
+  );
 }
 
 export async function contarPendientes(bd: BdLocal): Promise<number> {
   return bd.cargas.where("sincronizacion").equals("pendiente").count();
 }
 
-export async function marcarSincronizada(bd: BdLocal, id: string, veredicto: VeredictoServidor): Promise<void> {
+export async function marcarSincronizada(
+  bd: BdLocal,
+  id: string,
+  veredicto: VeredictoServidor,
+): Promise<void> {
   await bd.cargas.update(id, {
     sincronizacion: "sincronizada",
     veredictoServidor: veredicto,
@@ -115,7 +124,12 @@ export async function marcarErrorDefinitivo(bd: BdLocal, id: string, detalle: st
   await bd.cargas.update(id, { sincronizacion: "error_definitivo", ultimoError: detalle });
 }
 
-export async function registrarFalloReintentable(bd: BdLocal, id: string, detalle: string, ahora: Date): Promise<void> {
+export async function registrarFalloReintentable(
+  bd: BdLocal,
+  id: string,
+  detalle: string,
+  ahora: Date,
+): Promise<void> {
   const carga = await bd.cargas.get(id);
   if (!carga) return;
   const intentos = carga.intentos + 1;

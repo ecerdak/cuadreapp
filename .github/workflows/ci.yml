@@ -1,0 +1,47 @@
+# CI de CuadreApp (Etapa H). Todo push y PR pasa por: lint, formato,
+# fronteras del monorepo (DEC-007), typecheck, pruebas y build de la
+# PWA. El despliegue NO es automático todavía: Railway y Vercel
+# despliegan desde sus integraciones de Git cuando se conecten
+# (docs/OPERACIONES.md).
+
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  verificacion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        # La versión de pnpm sale del campo packageManager del package.json raíz.
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Formato
+        run: pnpm formato:verificar
+
+      - name: Fronteras del monorepo (DEC-007)
+        run: pnpm fronteras
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Pruebas
+        run: pnpm -r test
+
+      - name: Build de la PWA
+        run: pnpm --filter @cuadreapp/pwa build

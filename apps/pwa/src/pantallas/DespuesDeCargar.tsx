@@ -35,7 +35,8 @@ export function DespuesDeCargar(props: {
   const totFinal = aNumero(props.totFinal);
   const lectura = props.equipo.tipoMedidor === "ninguno" ? null : aNumero(props.lecturaEquipo);
 
-  const completo = tandaInicial !== null && totInicial !== null && tandaFinal !== null && totFinal !== null;
+  const completo =
+    tandaInicial !== null && totInicial !== null && tandaFinal !== null && totFinal !== null;
   const marcas = completo
     ? marcasDespuesDeCargar(
         {
@@ -53,7 +54,11 @@ export function DespuesDeCargar(props: {
 
   return (
     <Pantalla titulo="Después de cargar">
-      <CamaraEnVivo etiqueta="Foto del medidor (final)" hayFoto={props.fotoFinal} onFoto={props.onFoto} />
+      <CamaraEnVivo
+        etiqueta="Foto del medidor (final)"
+        hayFoto={props.fotoFinal}
+        onFoto={props.onFoto}
+      />
 
       <CampoNumerico etiqueta="Tanda final" valor={props.tandaFinal} onCambio={props.onTandaFinal} />
       <CampoNumerico etiqueta="Totalizador final" valor={props.totFinal} onCambio={props.onTotFinal} />
