@@ -21,7 +21,10 @@ export function registrarRutasAuth(
 ): void {
   const { autenticar } = dependencias;
 
-  app.post("/api/v1/auth/login", async (solicitud, respuesta) => {
+  // Superficie de fuerza bruta: límites estrictos por IP (Etapa H).
+  const limiteAuth = { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } };
+
+  app.post("/api/v1/auth/login", limiteAuth, async (solicitud, respuesta) => {
     const analisis = esquemaLogin.safeParse(solicitud.body);
     if (!analisis.success) {
       solicitud.observable.resultado = "invalido";
@@ -42,7 +45,7 @@ export function registrarRutasAuth(
     return respuesta.status(200).send(tokens);
   });
 
-  app.post("/api/v1/auth/refresh", async (solicitud, respuesta) => {
+  app.post("/api/v1/auth/refresh", limiteAuth, async (solicitud, respuesta) => {
     const analisis = esquemaRefresh.safeParse(solicitud.body);
     if (!analisis.success) {
       solicitud.observable.resultado = "invalido";

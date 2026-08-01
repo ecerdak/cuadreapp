@@ -1,49 +1,63 @@
-// Punto de entrada real (Railway). Composición: pool de Postgres +
-// repositorios + proveedor de identidad y almacén de fotos de Supabase
-// + aplicación.
+// Punto de entrada real (Railway). Composición: configuración validada
+// + pool de Postgres + repositorios + adaptadores de Supabase +
+// aplicación, con readiness real y apagado ordenado.
 
 import pg from "pg";
+import { cargarConfiguracion } from "./config.js";
+import { registrar } from "./registro.js";
 import { construirAplicacion } from "./aplicacion.js";
 import { RepositorioCargasPostgres, RepositorioSeguridadPostgres } from "./repositorio/postgres.js";
 import { AlmacenFotosSupabase, ProveedorIdentidadSupabase } from "./seguridad/supabase.js";
 
-const requeridas = [
-  "DATABASE_URL",
-  "SUPABASE_URL",
-  "SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "SUPABASE_JWT_SECRET",
-] as const;
-
-const faltantes = requeridas.filter((nombre) => !process.env[nombre]);
-if (faltantes.length > 0) {
-  console.error(`Faltan variables de entorno: ${faltantes.join(", ")}`);
+let config;
+try {
+  config = cargarConfiguracion();
+} catch (error) {
+  registrar("error", "La API no puede arrancar", { detalle: String(error) });
   process.exit(1);
 }
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new pg.Pool({ connectionString: config.DATABASE_URL });
 const configSupabase = {
-  url: process.env.SUPABASE_URL!,
-  claveAnon: process.env.SUPABASE_ANON_KEY!,
-  claveServiceRole: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  url: config.SUPABASE_URL,
+  claveAnon: config.SUPABASE_ANON_KEY,
+  claveServiceRole: config.SUPABASE_SERVICE_ROLE_KEY,
 };
 
 const app = construirAplicacion({
   repositorio: new RepositorioCargasPostgres(pool),
   repositorioSeguridad: new RepositorioSeguridadPostgres(pool),
   proveedorIdentidad: new ProveedorIdentidadSupabase(configSupabase),
-  almacenFotos: new AlmacenFotosSupabase(configSupabase, process.env.BUCKET_FOTOS ?? "fotos-cargas"),
-  secretoJwt: process.env.SUPABASE_JWT_SECRET!,
+  almacenFotos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_FOTOS),
+  secretoJwt: config.SUPABASE_JWT_SECRET,
+  verificarListo: async () => {
+    try {
+      await pool.query("select 1");
+      return { baseDatos: true };
+    } catch {
+      return { baseDatos: false };
+    }
+  },
 });
 
-const puerto = Number(process.env.PORT ?? 3000);
-
 app
-  .listen({ port: puerto, host: "0.0.0.0" })
+  .listen({ port: config.PORT, host: "0.0.0.0" })
   .then((direccion) => {
-    console.log(`API de CuadreApp escuchando en ${direccion}`);
+    registrar("info", "API de CuadreApp escuchando", { direccion });
   })
   .catch((error) => {
-    console.error("No se pudo iniciar la API:", error);
+    registrar("error", "No se pudo iniciar la API", { detalle: String(error) });
     process.exit(1);
   });
+
+// Apagado ordenado (Railway envía SIGTERM en cada despliegue): se dejan
+// terminar las peticiones en vuelo y se cierra el pool.
+for (const senal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(senal, () => {
+    registrar("info", "Apagando la API", { senal });
+    void app
+      .close()
+      .then(() => pool.end())
+      .then(() => process.exit(0));
+  });
+}

@@ -19,7 +19,10 @@ export function registrarRutaEnrolamiento(
   app: FastifyInstance,
   dependencias: { proveedor: ProveedorIdentidad; repositorioSeguridad: RepositorioSeguridad },
 ): void {
-  app.post("/api/v1/dispositivos/enrolar", async (solicitud, respuesta) => {
+  // Superficie de adivinación de códigos: límite estricto por IP (Etapa H).
+  const limite = { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } };
+
+  app.post("/api/v1/dispositivos/enrolar", limite, async (solicitud, respuesta) => {
     const analisis = esquemaEnrolar.safeParse(solicitud.body);
     if (!analisis.success) {
       solicitud.observable.resultado = "invalido";
