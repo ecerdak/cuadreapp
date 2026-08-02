@@ -67,10 +67,12 @@ export interface FotoLocal {
  *  app mantiene para validar offline (el totalizador solo avanza, igual
  *  que el trigger de la base). El servidor revalida y es la autoridad. */
 export interface ContextoLocal {
-  clave: string; // `dispensador:{id}` | `equipo:{id}`
+  clave: string; // `dispensador:{id}` | `equipo:{id}` | `meta:*`
   totActualGal?: number;
   ultimaLectura?: number | null;
   ultimaCargaFinalizadaEn?: string | null;
+  /** Metadatos simples (p. ej. meta:ultima-sync). */
+  valor?: string;
 }
 
 /** Identidad y catálogo cacheados para operar 100% offline (Etapa S).

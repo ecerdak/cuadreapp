@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { crearBd } from "./offline/bd";
 import { iniciarSincronizador } from "./offline/sincronizador";
+import { iniciarEstadoSync, sincronizarConEstado } from "./offline/estado-sync";
 import { crearClienteApi } from "./datos/api";
 import { ClienteHttp } from "./datos/cliente-http";
 import { TokenStoreNavegador } from "./seguridad/token-store";
@@ -23,6 +24,7 @@ const sesion = new ServicioSesion(http, tokenStore, bd);
 
 // Recuperación automática: evento 'online' + tic periódico, mientras
 // la app esté abierta (iOS Safari no tiene Background Sync).
-iniciarSincronizador(bd, api);
+iniciarEstadoSync(bd);
+iniciarSincronizador(bd, api, { procesar: sincronizarConEstado });
 
 createRoot(document.getElementById("raiz")!).render(<App bd={bd} api={api} sesion={sesion} />);

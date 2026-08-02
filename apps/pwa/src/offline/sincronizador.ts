@@ -70,10 +70,13 @@ export async function procesarPendientes(
   bd: BdLocal,
   api: ClienteApi,
   ahora: () => Date = () => new Date(),
+  alProgresar?: (actual: number, total: number) => void,
 ): Promise<ResumenSincronizacion> {
   const resumen: ResumenSincronizacion = { sincronizadas: 0, reintentables: 0, definitivas: 0 };
 
-  for (const carga of await pendientesListas(bd, ahora())) {
+  const listas = await pendientesListas(bd, ahora());
+  let procesadas = 0;
+  for (const carga of listas) {
     const fotos = await subirFotosDeCarga(bd, api, carga);
     if (fotos === "reintentable") {
       await registrarFalloReintentable(bd, carga.id, "fallo subiendo evidencia", ahora());
@@ -100,8 +103,12 @@ export async function procesarPendientes(
     } else {
       await registrarFalloReintentable(bd, carga.id, respuesta.detalle, ahora());
       resumen.reintentables += 1;
+      procesadas += 1;
+      alProgresar?.(procesadas, listas.length);
       break;
     }
+    procesadas += 1;
+    alProgresar?.(procesadas, listas.length);
   }
 
   return resumen;
@@ -110,16 +117,21 @@ export async function procesarPendientes(
 export function iniciarSincronizador(
   bd: BdLocal,
   api: ClienteApi,
-  opciones: { intervaloMs?: number } = {},
+  opciones: {
+    intervaloMs?: number;
+    /** Permite envolver el procesamiento (p. ej. con reporte de estado). */
+    procesar?: (bd: BdLocal, api: ClienteApi) => Promise<ResumenSincronizacion>;
+  } = {},
 ): { detener(): void } {
   const intervaloMs = opciones.intervaloMs ?? 15_000;
+  const procesar = opciones.procesar ?? ((b, a) => procesarPendientes(b, a));
   let procesando = false;
 
   const tic = async () => {
     if (procesando) return;
     procesando = true;
     try {
-      await procesarPendientes(bd, api);
+      await procesar(bd, api);
     } finally {
       procesando = false;
     }

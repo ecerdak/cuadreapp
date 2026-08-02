@@ -1,7 +1,9 @@
 // [1] INICIO (spec §8.1): una sola decisión. Debajo, las cargas de hoy
 // y el chip de sincronización siempre visible.
 
+import { useSyncExternalStore } from "react";
 import type { CargaLocal } from "../offline/bd";
+import { obtenerEstadoSync, suscribirEstadoSync } from "../offline/estado-sync";
 import { ETIQUETA_ESTADO } from "../ui/mensajes";
 import { formatearGal } from "../ui/numeros";
 import { BotonPrincipal, Pantalla } from "../ui/basicos";
@@ -56,6 +58,15 @@ export function Inicio(props: {
 }
 
 function ChipSincronizacion(props: { pendientes: number; errores: number }) {
+  const estado = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
+
+  if (estado.sincronizando && estado.sincronizando.total > 0) {
+    return (
+      <div className="rounded-full bg-sky-900 px-4 py-2 text-center text-sm font-semibold text-sky-200">
+        Sincronizando {estado.sincronizando.actual} de {estado.sincronizando.total}…
+      </div>
+    );
+  }
   if (props.errores > 0) {
     return (
       <div className="rounded-full bg-red-900 px-4 py-2 text-center text-sm font-semibold text-red-200">
@@ -66,13 +77,25 @@ function ChipSincronizacion(props: { pendientes: number; errores: number }) {
   if (props.pendientes > 0) {
     return (
       <div className="rounded-full bg-amber-900 px-4 py-2 text-center text-sm font-semibold text-amber-200">
-        En cola: {props.pendientes} — se sube cuando haya señal
+        {estado.conectado
+          ? `En cola: ${props.pendientes} — subiendo apenas se pueda`
+          : `Sin conexión — ${props.pendientes} en cola; se subirán al volver la señal`}
+      </div>
+    );
+  }
+  if (!estado.conectado) {
+    return (
+      <div className="rounded-full bg-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-200">
+        Trabajando offline — todo lo que registres queda guardado en el teléfono
       </div>
     );
   }
   return (
     <div className="rounded-full bg-emerald-900 px-4 py-2 text-center text-sm font-semibold text-emerald-200">
       Todo sincronizado
+      {estado.ultimaSincronizacionEn
+        ? ` · último envío ${new Date(estado.ultimaSincronizacionEn).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}`
+        : ""}
     </div>
   );
 }

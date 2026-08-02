@@ -4,12 +4,13 @@
 // sesión se maneja vía ServicioSesion y el catálogo llega cacheado en
 // Dexie. La única autoridad de negocio invocada es el dominio.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { validarCarga, type ContextoValidacion, type RegistroCarga } from "@cuadreapp/dominio";
 import type { BdLocal, PayloadCarga } from "./offline/bd";
 import { contarPendientes, encolarCarga, obtenerContextoValidacion } from "./offline/cola";
-import { procesarPendientes, type ClienteApi } from "./offline/sincronizador";
+import type { ClienteApi } from "./offline/sincronizador";
+import { obtenerEstadoSync, sincronizarConEstado, suscribirEstadoSync } from "./offline/estado-sync";
 import {
   catalogoLocalDesdeRemoto,
   type CatalogoLocal,
@@ -85,6 +86,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [idReciente, setIdReciente] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
+  const estadoSync = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
 
   // RC1-A3: si el navegador niega la persistencia, la cola puede
   // purgarse — el conductor debe saberlo.
@@ -295,11 +297,19 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
 
     setIdReciente(id);
     setPaso("listo");
-    void procesarPendientes(bd, api); // intento inmediato; sin señal, la cola espera al sincronizador
+    void sincronizarConEstado(bd, api); // intento inmediato; sin señal, la cola espera al sincronizador
   }
 
   return (
     <>
+      {estadoSync.actualizacionLista ? (
+        <div className="mx-auto max-w-md p-4 pb-0">
+          <Aviso tipo="info">
+            Actualización lista. Cierra y vuelve a abrir la app para aplicarla — tus datos no se
+            tocan.
+          </Aviso>
+        </div>
+      ) : null}
       {aviso ? (
         <div className="mx-auto max-w-md p-4 pb-0">
           <Aviso tipo="advertencia">{aviso}</Aviso>
