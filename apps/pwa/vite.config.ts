@@ -21,7 +21,16 @@ export default defineConfig({
         display: "standalone",
         background_color: "#0B1219",
         theme_color: "#4A7CAB",
-        icons: [],
+        icons: [
+          { src: "/iconos/icono-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/iconos/icono-512.png", sizes: "512x512", type: "image/png" },
+          {
+            src: "/iconos/icono-mascara-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
       },
     }),
   ],
