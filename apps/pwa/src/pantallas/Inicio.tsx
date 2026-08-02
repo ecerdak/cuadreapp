@@ -15,6 +15,7 @@ export function Inicio(props: {
   erroresDefinitivos: number;
   almacenEnRiesgo?: boolean;
   onEmpezar: () => void;
+  onDiagnostico?: () => void;
 }) {
   return (
     <Pantalla titulo="CuadreApp">
@@ -53,6 +54,16 @@ export function Inicio(props: {
           );
         })}
       </ul>
+
+      {props.onDiagnostico ? (
+        <button
+          type="button"
+          onClick={props.onDiagnostico}
+          className="mt-4 text-center text-xs text-[#5B90C4] underline"
+        >
+          Diagnóstico del dispositivo
+        </button>
+      ) : null}
     </Pantalla>
   );
 }

@@ -59,7 +59,10 @@ export async function cargarEstadoInicial(bd: BdLocal): Promise<void> {
 /** Sincroniza reportando progreso al estado y persistiendo la última
  *  sincronización exitosa. Es el camino que usan la app y el
  *  sincronizador periódico. */
-export async function sincronizarConEstado(bd: BdLocal, api: ClienteApi): Promise<ResumenSincronizacion> {
+export async function sincronizarConEstado(
+  bd: BdLocal,
+  api: ClienteApi,
+): Promise<ResumenSincronizacion> {
   const total = (await pendientesListas(bd, new Date())).length;
   if (total > 0) emitir({ sincronizando: { actual: 0, total } });
 

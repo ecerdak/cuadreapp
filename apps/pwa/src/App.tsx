@@ -34,11 +34,13 @@ import { Cargando } from "./pantallas/Cargando";
 import { DespuesDeCargar } from "./pantallas/DespuesDeCargar";
 import { Listo } from "./pantallas/Listo";
 import { Enrolar } from "./pantallas/Enrolar";
+import { Diagnostico } from "./pantallas/Diagnostico";
 import { marcasAntesDeCargar } from "./flujo/en-vivo";
 
 type EstadoSesion = "cargando" | "sin_enrolar" | "activa" | "offline" | "vencida";
 
-type Paso = "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo";
+type Paso =
+  "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo" | "diagnostico";
 
 interface Foto {
   bytes: ArrayBuffer;
@@ -149,7 +151,6 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       }
       setRestauracionLista(true);
     });
-    // eslint-disable-line react-hooks/exhaustive-deps
   }, [restauracionLista, estadoSesion, catalogo === null]);
 
   // Persistir el borrador en cada cambio durante la captura; limpiarlo al
@@ -349,8 +350,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       {estadoSync.actualizacionLista ? (
         <div className="mx-auto max-w-md p-4 pb-0">
           <Aviso tipo="info">
-            Actualización lista. Cierra y vuelve a abrir la app para aplicarla — tus datos no se
-            tocan.
+            Actualización lista. Cierra y vuelve a abrir la app para aplicarla — tus datos no se tocan.
           </Aviso>
         </div>
       ) : null}
@@ -366,6 +366,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           pendientes={pendientes}
           erroresDefinitivos={erroresDefinitivos}
           almacenEnRiesgo={almacenEnRiesgo}
+          onDiagnostico={() => setPaso("diagnostico")}
           onEmpezar={() => {
             setBorrador(borradorVacio());
             setAviso(null);
@@ -433,6 +434,8 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           onGuardar={() => void guardar()}
         />
       )}
+
+      {paso === "diagnostico" && <Diagnostico bd={bd} onVolver={() => setPaso("inicio")} />}
 
       {paso === "listo" && (
         <Listo
