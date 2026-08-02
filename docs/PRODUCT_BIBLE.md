@@ -1,7 +1,7 @@
 # Product Bible — CuadreApp
 
-**Versión:** 2.3 — 1 de agosto de 2026
-**Estado del proyecto:** MVP funcional aprobado (dominio + API + PWA + Dashboard con datos simulados; 169 pruebas). Fase **RC1** en curso: auditoría de liberación emitida (`docs/RC1_RELEASE_AUDIT.md`) con veredicto **NO-GO 68/100** y camino explícito a >90. Sin funcionalidades nuevas hasta cerrar RC1.
+**Versión:** 2.4 — 1 de agosto de 2026
+**Estado del proyecto:** MVP funcional aprobado (dominio + API + PWA + Dashboard con datos simulados; 169 pruebas). Fase **RC1** en curso bajo el plan oficial `docs/ROADMAP_RC1_TO_GO.md` (fases A–E, de 68/100 a ~95/100): correcciones críticas → infraestructura real → integración del Dashboard → piloto interno → preparación del cliente. Sin funcionalidades nuevas.
 **Propietario del producto:** Lubryco S.A.S. — Buga, Valle del Cauca
 **Cliente piloto:** Industrias Alimenticias El Trébol S.A.S. (Panela Trébol)
 
