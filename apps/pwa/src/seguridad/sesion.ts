@@ -6,6 +6,7 @@
 import type { BdLocal } from "../offline/bd";
 import type { TokenStore } from "./token-store";
 import { ClienteHttp, ErrorSesionVencida } from "../datos/cliente-http";
+import { solicitarAlmacenamientoPersistente } from "./persistencia";
 import type { PerfilMe } from "../datos/contratos";
 
 export type EstadoRecuperacion = "activa" | "offline" | "sin_sesion";
@@ -60,6 +61,8 @@ export class ServicioSesion {
     }
 
     await this.tokens.guardar(await respuesta.json());
+    // RC1-A3: el dispositivo queda oficial — proteger la cola offline.
+    await solicitarAlmacenamientoPersistente();
     await this.recuperar();
     return { ok: true };
   }

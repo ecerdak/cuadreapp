@@ -10,6 +10,7 @@ export function Inicio(props: {
   cargasHoy: CargaLocal[];
   pendientes: number;
   erroresDefinitivos: number;
+  almacenEnRiesgo?: boolean;
   onEmpezar: () => void;
 }) {
   return (
@@ -17,6 +18,13 @@ export function Inicio(props: {
       <BotonPrincipal onClick={props.onEmpezar}>Cargar combustible</BotonPrincipal>
 
       <ChipSincronizacion pendientes={props.pendientes} errores={props.erroresDefinitivos} />
+
+      {props.almacenEnRiesgo ? (
+        <div className="rounded-xl border border-amber-600 bg-amber-950 p-3 text-sm text-amber-200">
+          El navegador no garantiza conservar los datos de este dispositivo. No borres los datos del
+          navegador: las cargas sin subir se perderían.
+        </div>
+      ) : null}
 
       <h2 className="mt-2 text-sm font-semibold uppercase tracking-wide text-[#8AA0B6]">
         Tus cargas de hoy: {props.cargasHoy.length}

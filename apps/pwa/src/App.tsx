@@ -17,6 +17,7 @@ import {
   type EquipoCatalogo,
 } from "./datos/catalogo";
 import type { ServicioSesion } from "./seguridad/sesion";
+import { almacenamientoEsPersistente } from "./seguridad/persistencia";
 import { capturarGps, type PosicionCapturada } from "./captura/gps";
 import { aNumero, formatearGal } from "./ui/numeros";
 import { fechaLocalDe, fechaLocalHoy } from "./ui/fechas";
@@ -83,6 +84,13 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [contexto, setContexto] = useState<ContextoValidacion | null>(null);
   const [idReciente, setIdReciente] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
+
+  // RC1-A3: si el navegador niega la persistencia, la cola puede
+  // purgarse — el conductor debe saberlo.
+  useEffect(() => {
+    void almacenamientoEsPersistente().then((estado) => setAlmacenEnRiesgo(estado === false));
+  }, []);
 
   // Recuperación de sesión al abrir + escucha de "sesión vencida" que
   // emite el cliente HTTP único cuando el refresh es rechazado.
@@ -303,6 +311,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           cargasHoy={cargasHoy}
           pendientes={pendientes}
           erroresDefinitivos={erroresDefinitivos}
+          almacenEnRiesgo={almacenEnRiesgo}
           onEmpezar={() => {
             setBorrador(borradorVacio());
             setAviso(null);
