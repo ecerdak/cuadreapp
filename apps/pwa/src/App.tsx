@@ -4,7 +4,7 @@
 // sesión se maneja vía ServicioSesion y el catálogo llega cacheado en
 // Dexie. La única autoridad de negocio invocada es el dominio.
 
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { validarCarga, type ContextoValidacion, type RegistroCarga } from "@cuadreapp/dominio";
 import type { BdLocal, PayloadCarga } from "./offline/bd";
@@ -38,6 +38,7 @@ import { Listo } from "./pantallas/Listo";
 import { Enrolar } from "./pantallas/Enrolar";
 import { Diagnostico } from "./pantallas/Diagnostico";
 import { marcasAntesDeCargar } from "./flujo/en-vivo";
+import { adaptadorNavegador, decidirBackDelSistema, instalarControlDeAtras } from "./flujo/historial";
 import {
   CONFIRMACIONES,
   decidirAtras,
@@ -115,6 +116,14 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     return () => clearTimeout(temporizador);
   }, []);
 
+  // Back físico / gesto del sistema: se comporta EXACTAMENTE igual que
+  // el botón visual (flujo/historial.ts). La decisión usa estado fresco
+  // vía ref; el control se instala una sola vez.
+  const backRef = useRef<() => "permanecer" | "liberar">(() => "liberar");
+  useEffect(() => {
+    return instalarControlDeAtras(adaptadorNavegador(window), () => backRef.current());
+  }, []);
+
   // RC1-A3: si el navegador niega la persistencia, la cola puede
   // purgarse — el conductor debe saberlo.
   useEffect(() => {
@@ -181,6 +190,33 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       ejecutar();
     }
   }
+
+  /** Volver al inicio desde Listo: flujo cerrado, jamás se reabre. */
+  function volverAlInicio() {
+    setBorrador(borradorVacio());
+    setIdReciente(null);
+    setAviso(null);
+    setPaso("inicio");
+  }
+
+  // El Back del sistema decide con el estado de ESTE render.
+  backRef.current = () => {
+    const decision = decidirBackDelSistema({
+      puertaActiva:
+        !splashVista ||
+        estadoSesion === "cargando" ||
+        estadoSesion === "sin_enrolar" ||
+        estadoSesion === "vencida" ||
+        catalogo === null,
+      paso,
+      guardando,
+      confirmacionAbierta: confirmacion !== null,
+    });
+    if (decision.accion === "cerrar_confirmacion") setConfirmacion(null);
+    else if (decision.accion === "salir_de_listo") volverAlInicio();
+    else if (decision.accion === "atras") atras();
+    return decision.resultado;
+  };
 
   /** Confirmación de equipo: cambiar de equipo invalida lo dependiente. */
   function alConfirmarEquipo(equipo: EquipoCatalogo) {
@@ -569,12 +605,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
         <Listo
           carga={cargaReciente}
           equipoDescripcion={borrador.equipo?.descripcion}
-          onOtraCarga={() => {
-            setBorrador(borradorVacio());
-            setIdReciente(null);
-            setAviso(null);
-            setPaso("inicio");
-          }}
+          onOtraCarga={volverAlInicio}
         />
       )}
     </>,
