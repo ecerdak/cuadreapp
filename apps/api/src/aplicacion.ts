@@ -14,6 +14,7 @@ import { registrarRutaCatalogo } from "./rutas/catalogo.js";
 import { registrarRutaFotos } from "./rutas/fotos.js";
 import { registrarObservabilidad, type EmisorEventos } from "./observabilidad.js";
 import { crearAutenticacion } from "./seguridad/autenticacion.js";
+import type { JWTVerifyGetKey } from "jose";
 import type { AlmacenFotos, ProveedorIdentidad } from "./seguridad/tipos.js";
 import type { RepositorioCargas, RepositorioSeguridad } from "./repositorio/tipos.js";
 
@@ -24,6 +25,8 @@ export interface Dependencias {
   almacenFotos: AlmacenFotos;
   /** Secreto HS256 del proyecto de Supabase para verificar los JWT localmente. */
   secretoJwt: string;
+  /** JWKS del proyecto: obligatorio con proyectos que firman ES256/RS256. */
+  jwks?: JWTVerifyGetKey;
   /** DEC-012: destino de los eventos de observabilidad. Por defecto, stdout estructurado. */
   emitirEvento?: EmisorEventos;
   /** Readiness (Etapa H): estado de las dependencias externas. Sin verificador, /listo responde 200 básico. */
@@ -103,6 +106,7 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
     const autenticar = crearAutenticacion({
       secretoJwt: dependencias.secretoJwt,
       repositorio: dependencias.repositorioSeguridad,
+      jwks: dependencias.jwks,
     });
 
     registrarRutasAuth(rutas, { proveedor: dependencias.proveedorIdentidad, autenticar });

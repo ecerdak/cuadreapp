@@ -349,3 +349,50 @@ describe("POST /api/v1/cargas/:id/fotos/:momento", () => {
     expect(respuesta.statusCode).toBe(401);
   });
 });
+
+describe("Verificación de tokens ES256 vía JWKS (proyectos nuevos de Supabase)", () => {
+  it("un token firmado con ES256 se verifica contra el JWKS y la sesión funciona", async () => {
+    const { generateKeyPair, exportJWK, SignJWT } = await import("jose");
+    const { createLocalJWKSet } = await import("jose");
+    const par = await generateKeyPair("ES256");
+    const jwkPublica = { ...(await exportJWK(par.publicKey)), alg: "ES256", use: "sig" };
+    const jwks = createLocalJWKSet({ keys: [jwkPublica] });
+
+    const { app } = armarAplicacion({ jwks });
+    const token = await new SignJWT({ sub: ID_DISPOSITIVO_USUARIO })
+      .setProtectedHeader({ alg: "ES256" })
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(par.privateKey);
+
+    const respuesta = await app.inject({
+      method: "GET",
+      url: "/api/v1/me",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(respuesta.statusCode).toBe(200);
+    expect(respuesta.json().rol).toBe("dispositivo");
+  });
+
+  it("un token ES256 firmado con OTRA clave es rechazado", async () => {
+    const { generateKeyPair, exportJWK, SignJWT, createLocalJWKSet } = await import("jose");
+    const legitima = await generateKeyPair("ES256");
+    const atacante = await generateKeyPair("ES256");
+    const jwks = createLocalJWKSet({
+      keys: [{ ...(await exportJWK(legitima.publicKey)), alg: "ES256", use: "sig" }],
+    });
+
+    const { app } = armarAplicacion({ jwks });
+    const token = await new SignJWT({ sub: ID_DISPOSITIVO_USUARIO })
+      .setProtectedHeader({ alg: "ES256" })
+      .setExpirationTime("1h")
+      .sign(atacante.privateKey);
+
+    const respuesta = await app.inject({
+      method: "GET",
+      url: "/api/v1/me",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(respuesta.statusCode).toBe(401);
+  });
+});

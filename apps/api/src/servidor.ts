@@ -3,6 +3,7 @@
 // aplicación, con readiness real y apagado ordenado.
 
 import pg from "pg";
+import { createRemoteJWKSet } from "jose";
 import { cargarConfiguracion } from "./config.js";
 import { registrar } from "./registro.js";
 import { construirAplicacion } from "./aplicacion.js";
@@ -30,6 +31,7 @@ const app = construirAplicacion({
   proveedorIdentidad: new ProveedorIdentidadSupabase(configSupabase),
   almacenFotos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_FOTOS),
   secretoJwt: config.SUPABASE_JWT_SECRET,
+  jwks: createRemoteJWKSet(new URL(`${config.SUPABASE_URL}/auth/v1/.well-known/jwks.json`)),
   origenesCors: config.CORS_ORIGENES?.split(",").map((origen) => origen.trim()),
   verificarListo: async () => {
     try {

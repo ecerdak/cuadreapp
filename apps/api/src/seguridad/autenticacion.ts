@@ -3,8 +3,14 @@
 // sesión contra el RBAC propio en la base — nunca contra claims del
 // token (DEC-004). Dar de baja un usuario o dispositivo surte efecto
 // en la siguiente petición, sin esperar expiración de tokens.
+//
+// Cierre de infraestructura: los proyectos nuevos de Supabase firman
+// con claves ASIMÉTRICAS (ES256, publicadas por JWKS); los legados,
+// con el secreto compartido HS256. Se decide por el header del token:
+// HS256 → secreto; ES256/RS256 → JWKS (jose cachea las claves, sin
+// viaje de red por petición).
 
-import { jwtVerify } from "jose";
+import { decodeProtectedHeader, jwtVerify, type JWTVerifyGetKey } from "jose";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { SesionAutenticada } from "./tipos.js";
 import type { RepositorioSeguridad } from "../repositorio/tipos.js";
@@ -20,6 +26,8 @@ export type PreManejador = (solicitud: FastifyRequest, respuesta: FastifyReply) 
 export function crearAutenticacion(opciones: {
   secretoJwt: string;
   repositorio: RepositorioSeguridad;
+  /** JWKS del proyecto (createRemoteJWKSet en producción; local en pruebas). */
+  jwks?: JWTVerifyGetKey;
 }): PreManejador {
   const clave = new TextEncoder().encode(opciones.secretoJwt);
 
@@ -32,7 +40,16 @@ export function crearAutenticacion(opciones: {
 
     let usuarioId: string;
     try {
-      const { payload } = await jwtVerify(encabezado.slice("Bearer ".length), clave);
+      const token = encabezado.slice("Bearer ".length);
+      const alg = decodeProtectedHeader(token).alg;
+      const { payload } =
+        alg === "HS256"
+          ? await jwtVerify(token, clave)
+          : opciones.jwks
+            ? await jwtVerify(token, opciones.jwks)
+            : (() => {
+                throw new Error(`token ${alg} sin JWKS configurado`);
+              })();
       if (typeof payload.sub !== "string") throw new Error("token sin sub");
       usuarioId = payload.sub;
     } catch {
