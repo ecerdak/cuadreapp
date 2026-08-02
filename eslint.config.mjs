@@ -14,6 +14,11 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
+    // Scripts de herramientas: corren en Node, no en el navegador.
+    files: ["**/herramientas/**/*.mjs"],
+    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+  },
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
