@@ -45,3 +45,6 @@ jobs:
 
       - name: Build de la PWA
         run: pnpm --filter @cuadreapp/pwa build
+
+      - name: Build del Dashboard
+        run: pnpm --filter @cuadreapp/dashboard build

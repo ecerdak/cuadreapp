@@ -35,7 +35,7 @@ export function useConsulta<T>(cargar: () => Promise<T>, dependencias: unknown[]
     return () => {
       activo = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Las dependencias las declara quien llama; `version` fuerza el recargar.
   }, [...dependencias, version]);
 
   const recargar = useCallback(() => setVersion((v) => v + 1), []);

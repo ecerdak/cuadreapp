@@ -11,18 +11,11 @@ module.exports = {
       to: { path: "^apps" },
     },
     {
-      name: "pwa-jamas-importa-api",
-      comment: "DEC-007(c): las apps se comunican solo por HTTP",
+      name: "apps-jamas-entre-si",
+      comment: "DEC-007(c) + DEC-015: las apps se comunican solo por HTTP, nunca por imports",
       severity: "error",
-      from: { path: "^apps/pwa" },
-      to: { path: "^apps/api" },
-    },
-    {
-      name: "api-jamas-importa-pwa",
-      comment: "DEC-007(c): las apps se comunican solo por HTTP",
-      severity: "error",
-      from: { path: "^apps/api" },
-      to: { path: "^apps/pwa" },
+      from: { path: "^apps/([^/]+)/" },
+      to: { path: "^apps/(?!$1/)" },
     },
     {
       name: "tipos-bd-es-hoja",

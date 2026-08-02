@@ -26,11 +26,46 @@ export interface EquipoSimulado {
 }
 
 export const EQUIPOS_SIMULADOS: EquipoSimulado[] = [
-  { codigo: "T-01", descripcion: "Tractor Massey Ferguson 4275", tipoMedidor: "horometro", capacidadTanqueGal: 80, lecturaInicial: 2310.0, medianaHistorica: 6.0 },
-  { codigo: "T-04", descripcion: "Tractor Massey Ferguson 4292", tipoMedidor: "horometro", capacidadTanqueGal: 80, lecturaInicial: 1086.5, medianaHistorica: 6.4 },
-  { codigo: "AL-01", descripcion: "Alzadora Bell 1745", tipoMedidor: "horometro", capacidadTanqueGal: 100, lecturaInicial: 5120.0, medianaHistorica: 8.8 },
-  { codigo: "C-01", descripcion: "Camión Kodiak", tipoMedidor: "odometro", capacidadTanqueGal: 150, lecturaInicial: 184200.0, medianaHistorica: 0.34 },
-  { codigo: "P-01", descripcion: "Pickup Toyota Hilux", tipoMedidor: "odometro", capacidadTanqueGal: 60, lecturaInicial: 96500.0, medianaHistorica: 0.11 },
+  {
+    codigo: "T-01",
+    descripcion: "Tractor Massey Ferguson 4275",
+    tipoMedidor: "horometro",
+    capacidadTanqueGal: 80,
+    lecturaInicial: 2310.0,
+    medianaHistorica: 6.0,
+  },
+  {
+    codigo: "T-04",
+    descripcion: "Tractor Massey Ferguson 4292",
+    tipoMedidor: "horometro",
+    capacidadTanqueGal: 80,
+    lecturaInicial: 1086.5,
+    medianaHistorica: 6.4,
+  },
+  {
+    codigo: "AL-01",
+    descripcion: "Alzadora Bell 1745",
+    tipoMedidor: "horometro",
+    capacidadTanqueGal: 100,
+    lecturaInicial: 5120.0,
+    medianaHistorica: 8.8,
+  },
+  {
+    codigo: "C-01",
+    descripcion: "Camión Kodiak",
+    tipoMedidor: "odometro",
+    capacidadTanqueGal: 150,
+    lecturaInicial: 184200.0,
+    medianaHistorica: 0.34,
+  },
+  {
+    codigo: "P-01",
+    descripcion: "Pickup Toyota Hilux",
+    tipoMedidor: "odometro",
+    capacidadTanqueGal: 60,
+    lecturaInicial: 96500.0,
+    medianaHistorica: 0.11,
+  },
 ];
 
 const CONDUCTORES = ["Duván Bonilla", "Jhon Cortés", "María Fernanda Ríos", "Aníbal Rengifo"];
@@ -135,7 +170,9 @@ function construirCargas(): CargaSimulada[] {
     const fecha = fechaDe(spec.diasAtras);
     const iniciadaEn = `${fecha}T${spec.hora}:00-05:00`;
     const duracionSegundos = 180 + (indice % 5) * 45;
-    const finalizadaEn = new Date(new Date(iniciadaEn).getTime() + duracionSegundos * 1000).toISOString();
+    const finalizadaEn = new Date(
+      new Date(iniciadaEn).getTime() + duracionSegundos * 1000,
+    ).toISOString();
 
     const tandaInicial = spec.tandaInicial ?? 0.0;
     const totInicial = Math.round((totActual + (spec.salto ?? 0)) * 10) / 10;

@@ -159,7 +159,8 @@ export class FuenteSimulada implements FuenteDatosTablero {
           totFinal: carga.totFinal,
         },
         lecturaEquipo: carga.lecturaEquipo,
-        tipoLectura: EQUIPOS_SIMULADOS.find((equipo) => equipo.codigo === carga.equipoCodigo)!.tipoMedidor,
+        tipoLectura: EQUIPOS_SIMULADOS.find((equipo) => equipo.codigo === carga.equipoCodigo)!
+          .tipoMedidor,
         duracionSegundos: carga.duracionSegundos,
         candados: candadosDe(carga),
         galNoRegistrados: carga.galNoRegistrados,
@@ -189,7 +190,7 @@ export class FuenteSimulada implements FuenteDatosTablero {
         const deltaTotal = cargas.reduce((suma, carga) => suma + carga.deltaLectura, 0);
         const rendimiento = deltaTotal > 0 ? galonesTotal / deltaTotal : null;
         const desvioPct =
-          rendimiento !== null ? ((rendimiento / equipo.medianaHistorica - 1) * 100) : null;
+          rendimiento !== null ? (rendimiento / equipo.medianaHistorica - 1) * 100 : null;
         return {
           codigo: equipo.codigo,
           descripcion: equipo.descripcion,
