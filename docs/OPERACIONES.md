@@ -14,15 +14,16 @@ Runbook de despliegue, verificación, respaldo y recuperación. Complementa el P
 
 ### API (Railway) — validadas al arrancar (`apps/api/src/config.ts`); la API se niega a arrancar si falta alguna
 
-| Variable                    | Qué es                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------- |
-| `DATABASE_URL`              | Pooler de Postgres de Supabase (usar el **transaction pooler** para runtime) |
-| `SUPABASE_URL`              | `https://<proyecto>.supabase.co`                                             |
-| `SUPABASE_ANON_KEY`         | Clave anon (grants de GoTrue del lado del servidor)                          |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role — **solo** vive en Railway, jamás en el cliente                 |
-| `SUPABASE_JWT_SECRET`       | Secreto JWT del proyecto (verificación local de firma)                       |
-| `BUCKET_FOTOS`              | Opcional, default `fotos-cargas`                                             |
-| `PORT`                      | La inyecta Railway                                                           |
+| Variable                    | Qué es                                                                                                                                                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`              | Pooler de Postgres de Supabase (usar el **transaction pooler** para runtime)                                                                                                  |
+| `SUPABASE_URL`              | `https://<proyecto>.supabase.co`                                                                                                                                              |
+| `SUPABASE_ANON_KEY`         | Clave anon (grants de GoTrue del lado del servidor)                                                                                                                           |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role — **solo** vive en Railway, jamás en el cliente                                                                                                                  |
+| `SUPABASE_JWT_SECRET`       | Secreto legado HS256. **Los proyectos nuevos firman ES256**: la API verifica automáticamente contra el JWKS del proyecto (`/auth/v1/.well-known/jwks.json`), sin config extra |
+| `BUCKET_FOTOS`              | Opcional, default `fotos-cargas`                                                                                                                                              |
+| `CORS_ORIGENES`             | Opcional: lista separada por comas de orígenes de navegador permitidos; sin ella se permiten los `*.up.railway.app`. Fijarla a los dominios definitivos al salir del piloto   |
+| `PORT`                      | La inyecta Railway                                                                                                                                                            |
 
 ### PWA (Vercel)
 
@@ -31,6 +32,15 @@ Runbook de despliegue, verificación, respaldo y recuperación. Complementa el P
 | `VITE_API_URL` | URL pública de la API en Railway |
 
 Tras asignar el dominio real de la API, **fijar `connect-src` de la CSP** (`apps/pwa/vercel.json`) a ese dominio exacto en vez del comodín `https://*.up.railway.app`.
+
+### 2a. URLs de producción (cierre del 2-ago-2026)
+
+| Servicio  | URL                                                           |
+| --------- | ------------------------------------------------------------- |
+| API       | https://cuadreappapi-production.up.railway.app                |
+| Dashboard | https://cuadreappdashboard-production.up.railway.app          |
+| PWA       | https://cuadreapppwa-production.up.railway.app                |
+| Supabase  | proyecto `cuadreapp-prod` (`ktuyhorglxrvkrzjmdgo`, sa-east-1) |
 
 ### 2b. Frontends servidos desde Railway (estado actual del despliegue)
 

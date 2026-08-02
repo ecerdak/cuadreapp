@@ -115,3 +115,8 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - A4: `bodyLimit` de fotos alineado al contrato de 2 MiB.
 - A5: íconos de instalación (192/512/maskable/apple-touch + favicon SVG) generados desde la marca del mockup.
 - 17 pruebas nuevas, todas rojo→verde. Puntuación RC1: **68 → 72/100**.
+
+### Fase B — cierre de infraestructura real (2-ago-2026)
+- E2E de producción ejecutado de punta a punta con evidencia (14/14): sign-ups cerrados, enrolamiento real contra GoTrue, RBAC desde la base, catálogo con seed, fotos verificadas EN Storage, carga con veredicto del dominio, idempotencia, y el trigger de `tot_actual_gal` avanzando en producción (el criterio de la Etapa 0, por fin verificado en real). Limpieza total: cero rastro del E2E.
+- Tres bugs de producción encontrados y corregidos en el acto: (1) sin CORS, el navegador bloqueaba toda llamada PWA→API — allowlist con `@fastify/cors`, jamás `*`; (2) la PWA compilada apuntaba a localhost — `VITE_API_URL` fijada en Railway; (3) **toda petición autenticada fallaba con 401**: el proyecto firma ES256/JWKS (default de proyectos nuevos de Supabase) y la API solo verificaba HS256 — el middleware ahora decide por el header del token. 6 pruebas nuevas (192 en el monorepo).
+- Pendiente de la Fase B: B10 — backups activos y una restauración de prueba (acción del propietario en el dashboard de Supabase).
