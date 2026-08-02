@@ -18,6 +18,7 @@ export const EXISTENCIA_INICIAL_GAL = 600.0;
 export interface EquipoSimulado {
   codigo: string;
   descripcion: string;
+  categoria: string;
   tipoMedidor: TipoMedidor;
   capacidadTanqueGal: number;
   lecturaInicial: number;
@@ -29,6 +30,7 @@ export const EQUIPOS_SIMULADOS: EquipoSimulado[] = [
   {
     codigo: "T-01",
     descripcion: "Tractor Massey Ferguson 4275",
+    categoria: "Tractor",
     tipoMedidor: "horometro",
     capacidadTanqueGal: 80,
     lecturaInicial: 2310.0,
@@ -37,6 +39,7 @@ export const EQUIPOS_SIMULADOS: EquipoSimulado[] = [
   {
     codigo: "T-04",
     descripcion: "Tractor Massey Ferguson 4292",
+    categoria: "Tractor",
     tipoMedidor: "horometro",
     capacidadTanqueGal: 80,
     lecturaInicial: 1086.5,
@@ -45,6 +48,7 @@ export const EQUIPOS_SIMULADOS: EquipoSimulado[] = [
   {
     codigo: "AL-01",
     descripcion: "Alzadora Bell 1745",
+    categoria: "Alzadora",
     tipoMedidor: "horometro",
     capacidadTanqueGal: 100,
     lecturaInicial: 5120.0,
@@ -53,6 +57,7 @@ export const EQUIPOS_SIMULADOS: EquipoSimulado[] = [
   {
     codigo: "C-01",
     descripcion: "Camión Kodiak",
+    categoria: "Camión",
     tipoMedidor: "odometro",
     capacidadTanqueGal: 150,
     lecturaInicial: 184200.0,
@@ -61,6 +66,7 @@ export const EQUIPOS_SIMULADOS: EquipoSimulado[] = [
   {
     codigo: "P-01",
     descripcion: "Pickup Toyota Hilux",
+    categoria: "Pickup",
     tipoMedidor: "odometro",
     capacidadTanqueGal: 60,
     lecturaInicial: 96500.0,
@@ -242,8 +248,20 @@ export const CARGAS_SIMULADAS: CargaSimulada[] = construirCargas();
 export const TOTALIZADOR_FINAL_GAL = CARGAS_SIMULADAS[CARGAS_SIMULADAS.length - 1]!.totFinal;
 
 export const ENTREGAS_SIMULADAS = [
-  { numeroRemision: "R-4411", fecha: "2026-07-19", galones: 900.0, placaCarrotanque: "WLK-427" },
-  { numeroRemision: "R-4523", fecha: "2026-07-28", galones: 650.0, placaCarrotanque: "WLK-427" },
+  {
+    numeroRemision: "R-4411",
+    fecha: "2026-07-19",
+    galones: 900.0,
+    placaCarrotanque: "WLK-427",
+    recibidoPor: "Aníbal Rengifo",
+  },
+  {
+    numeroRemision: "R-4523",
+    fecha: "2026-07-28",
+    galones: 650.0,
+    placaCarrotanque: "WLK-427",
+    recibidoPor: "Aníbal Rengifo",
+  },
 ];
 
 export function balanceSimulado() {
@@ -272,15 +290,29 @@ export function balanceSimulado() {
   };
 }
 
-export function consumoPorDia14(): Array<{ fecha: string; galones: number }> {
-  const dias: Array<{ fecha: string; galones: number }> = [];
+export function consumoPorDia14(): Array<{ fecha: string; galones: number; parcial?: boolean }> {
+  const dias: Array<{ fecha: string; galones: number; parcial?: boolean }> = [];
   for (let atras = 13; atras >= 0; atras--) {
     const fecha = fechaDe(atras);
     const galones = CARGAS_SIMULADAS.filter((carga) => carga.fecha === fecha).reduce(
       (suma, carga) => suma + carga.galones,
       0,
     );
-    dias.push({ fecha, galones: Math.round(galones * 10) / 10 });
+    // El día de hoy va parcial: el corte es a media mañana (diseño aprobado).
+    dias.push({
+      fecha,
+      galones: Math.round(galones * 10) / 10,
+      ...(atras === 0 ? { parcial: true } : {}),
+    });
   }
   return dias;
+}
+
+/** Galones despachados sin equipo asignado: los saltos positivos del totalizador. */
+export function galSinRegistrar(): number {
+  return (
+    Math.round(
+      CARGAS_SIMULADAS.reduce((suma, carga) => suma + Math.max(0, carga.galNoRegistrados ?? 0), 0) * 10,
+    ) / 10
+  );
 }

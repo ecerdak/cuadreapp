@@ -29,7 +29,13 @@ export interface ResumenHoy {
   existenciaEstimadaGal: number;
   autonomiaDias: number;
   totalizadorGal: number;
-  consumo14d: Array<{ fecha: string; galones: number }>;
+  /** Desglose del panel del totalizador (diseño aprobado). */
+  entregadoTotalGal: number;
+  despachadoTotalGal: number;
+  consumoDiarioGal: number;
+  /** Galones despachados sin equipo asignado (saltos del totalizador). */
+  galSinRegistrarGal: number;
+  consumo14d: Array<{ fecha: string; galones: number; parcial?: boolean }>;
   cargasDeHoy: CargaResumen[];
 }
 
@@ -41,6 +47,9 @@ export interface PaginaCargas {
   veredicto: Veredicto;
   total: number;
   cuadran: number;
+  /** Hechos de la ZonaA del diseño aprobado. */
+  galSinRegistrarGal: number;
+  sinFotoFinal: number;
   cargas: CargaResumen[];
 }
 
@@ -65,7 +74,10 @@ export interface DetalleCarga {
 export interface EquipoResumen {
   codigo: string;
   descripcion: string;
+  categoria: string;
   galones7d: number;
+  /** Uso registrado del período, ya formateado ("90,5 h" / "1.185 km"). */
+  uso: string | null;
   medida: "gal/h" | "gal/km" | null;
   rendimiento: number | null;
   desvioPct: number | null;
@@ -81,6 +93,7 @@ export interface EntregaResumen {
   fecha: string;
   galones: number;
   placaCarrotanque: string;
+  recibidoPor: string;
 }
 
 export interface ResumenSuministro {
@@ -91,6 +104,8 @@ export interface ResumenSuministro {
   existenciaEstimadaGal: number;
   autonomiaDias: number;
   proximaEntregaSugerida: string; // YYYY-MM-DD
+  /** Pedido sugerido para hoy, en galones (diseño aprobado). */
+  pedidoSugeridoGal: number;
 }
 
 export interface FuenteDatosTablero {

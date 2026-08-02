@@ -1,39 +1,79 @@
-// [Pestaña Cargas] Veredicto (X cuadran de Y) + tabla filtrable por
-// estado. El filtro vive en la URL: un enlace a ?estado=inconsistente
-// es compartible. Tabla en escritorio, tarjetas en móvil.
+// [Pestaña Cargas] La composición del diseño aprobado: ZonaA con los
+// hechos y la descarga a Excel, y el maestro-detalle — tabla
+// seleccionable a la izquierda, panel de evidencia (fotos, lecturas,
+// candados) a la derecha. La ruta /cargas/:id selecciona la fila
+// (deep-link conservado). El filtro por estado vive en la URL.
 
-import { Link, useSearchParams } from "react-router-dom";
-import type { EstadoCarga } from "@cuadreapp/dominio";
+import { useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
 import { useFuenteTablero } from "../datos/proveedor";
 import { useConsulta } from "../datos/consulta";
 import {
-  ChipEstado,
+  BotonExcel,
+  Candado,
+  Chip,
   Esqueleto,
   EstadoError,
   EstadoVacio,
-  VeredictoBanner,
+  Eyebrow,
+  Panel,
+  Th,
+  ZonaA,
 } from "../componentes/basicos";
-import { formatearGal } from "../componentes/numeros";
+import { formatearEntero, formatearGal } from "../componentes/numeros";
+import { descargarExcel } from "../datos/excel";
 import { TEMA } from "../tema";
 
 const FILTROS: Array<{ valor: EstadoCarga | "todas"; rotulo: string }> = [
   { valor: "todas", rotulo: "Todas" },
   { valor: "ok", rotulo: "Cuadran" },
-  { valor: "advertencia", rotulo: "Con advertencia" },
+  { valor: "advertencia", rotulo: "Revisar" },
   { valor: "inconsistente", rotulo: "No cuadran" },
 ];
 
+// Mensajes por bandera con tono de supervisor (mejora funcional
+// validada; se muestran en el panel de evidencia).
+const MENSAJE_SUPERVISOR: Partial<Record<Bandera, string>> = {
+  TANDA_NO_RESETEADA: "La tanda no arrancó en 0,0: el conductor dejó nota.",
+  SALTO_TOTALIZADOR:
+    "El totalizador arrancó más arriba de lo esperado. No significa que falte combustible: esos galones ya los contó el medidor — falta saber a qué equipo fueron.",
+  SALTO_TOTALIZADOR_NEGATIVO:
+    "El totalizador arrancó por debajo del último valor registrado: revisar lecturas.",
+  TANDA_NO_CUADRA: "La tanda no coincide con lo que subió el totalizador.",
+  SIN_GPS: "No fue posible verificar la ubicación (sin GPS). Solo informativo.",
+  FUERA_DE_SEDE: "El GPS marcó fuera de la estación.",
+  POSIBLE_DUPLICADO: "Hay otra carga del mismo equipo pocos minutos antes.",
+  TIEMPO_ATIPICO: "La duración de la carga fue atípica.",
+  CONTADOR_RETROCEDE: "El horómetro/odómetro quedó por debajo de la lectura anterior.",
+  SALTO_CONTADOR: "El salto del horómetro/odómetro no es posible en el tiempo transcurrido.",
+  EXCEDE_CAPACIDAD: "Los galones superan la capacidad del tanque del equipo.",
+  FOTO_FALTANTE: "Falta evidencia fotográfica.",
+  TOTALIZADOR_RETROCEDE: "El totalizador retrocedió: lectura imposible.",
+  TOTALIZADOR_SIN_AVANCE: "El totalizador no se movió.",
+};
+
 export function Cargas() {
   const fuente = useFuenteTablero();
+  const navegar = useNavigate();
+  const { id: idSeleccion } = useParams<{ id: string }>();
   const [parametros, setParametros] = useSearchParams();
   const estado = (parametros.get("estado") ?? "todas") as EstadoCarga | "todas";
+  const [exportando, setExportando] = useState(false);
   const { consulta, recargar } = useConsulta(() => fuente.listarCargas({ estado }), [estado]);
 
   if (consulta.estado === "cargando") {
     return (
       <div className="flex flex-col gap-4">
-        <Esqueleto alto={84} />
-        <Esqueleto alto={320} />
+        <Esqueleto alto={140} />
+        <div className="grid gap-4 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <Esqueleto alto={360} />
+          </div>
+          <div className="lg:col-span-2">
+            <Esqueleto alto={360} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -41,103 +81,307 @@ export function Cargas() {
     return <EstadoError detalle={consulta.detalle} onReintentar={recargar} />;
 
   const { datos } = consulta;
-  return (
-    <div className="flex flex-col gap-4">
-      <VeredictoBanner veredicto={datos.veredicto} />
+  const seleccionada = datos.cargas.find((carga) => carga.id === idSeleccion) ?? datos.cargas[0] ?? null;
 
-      <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-2">
-        {FILTROS.map((filtro) => (
-          <button
-            key={filtro.valor}
-            type="button"
-            aria-pressed={estado === filtro.valor}
-            onClick={() => setParametros(filtro.valor === "todas" ? {} : { estado: filtro.valor })}
-            className="rounded-full px-3 py-1.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2"
-            style={{
-              background: estado === filtro.valor ? TEMA.azul : TEMA.panel,
-              color: estado === filtro.valor ? "#000" : TEMA.suave,
-            }}
-          >
-            {filtro.rotulo}
-          </button>
-        ))}
+  const exportar = (alcance: "dia" | "mes") => {
+    if (exportando) return;
+    setExportando(true);
+    void descargarExcel(fuente, alcance).finally(() => setExportando(false));
+  };
+
+  return (
+    <>
+      <ZonaA
+        veredicto={datos.veredicto}
+        titulo="Estado del registro · últimos 14 días"
+        hechos={[
+          {
+            valor: `${datos.cuadran} / ${datos.total}`,
+            etiqueta: "Cargas que cuadran",
+            color: TEMA.verde,
+          },
+          ...(datos.galSinRegistrarGal > 0
+            ? [
+                {
+                  valor: `${formatearEntero(datos.galSinRegistrarGal)} gal`,
+                  etiqueta: "Despachados sin equipo asignado",
+                  color: TEMA.rojo,
+                },
+              ]
+            : []),
+          ...(datos.sinFotoFinal > 0
+            ? [
+                {
+                  valor: String(datos.sinFotoFinal),
+                  etiqueta: "Carga sin foto final",
+                  color: TEMA.ambar,
+                },
+              ]
+            : []),
+        ]}
+        derecha={
+          <div style={{ minWidth: 226 }}>
+            <Eyebrow>Descargar el detalle</Eyebrow>
+            <div className="mt-3 flex flex-col" style={{ gap: 8 }}>
+              <BotonExcel principal onClick={() => exportar("dia")}>
+                {exportando ? "Generando…" : "Día · hoy"}
+              </BotonExcel>
+              <BotonExcel onClick={() => exportar("mes")}>
+                {exportando ? "Generando…" : "Últimos 14 días"}
+              </BotonExcel>
+            </div>
+            <div style={{ fontSize: 10.5, color: TEMA.suave, marginTop: 9, lineHeight: 1.5 }}>
+              El archivo completo trae cinco hojas: cargas, consumo por día, consumo por equipo, entregas
+              y balance.
+            </div>
+          </div>
+        }
+      />
+
+      <div
+        role="group"
+        aria-label="Filtrar por estado"
+        className="mb-4 flex flex-wrap"
+        style={{ gap: 8 }}
+      >
+        {FILTROS.map((filtro) => {
+          const activo = estado === filtro.valor;
+          return (
+            <button
+              key={filtro.valor}
+              type="button"
+              aria-pressed={activo}
+              onClick={() => {
+                navegar(filtro.valor === "todas" ? "/cargas" : `/cargas?estado=${filtro.valor}`);
+                setParametros(filtro.valor === "todas" ? {} : { estado: filtro.valor });
+              }}
+              className="rounded-full font-semibold uppercase focus-visible:outline focus-visible:outline-2"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.08em",
+                padding: "3px 8px",
+                color: activo ? TEMA.texto : TEMA.suave,
+                background: activo ? TEMA.panelAlto : "transparent",
+                border: `1px solid ${activo ? TEMA.linea : TEMA.lineaSuave}`,
+              }}
+            >
+              {filtro.rotulo}
+            </button>
+          );
+        })}
       </div>
 
       {datos.cargas.length === 0 ? (
         <EstadoVacio mensaje="No hay cargas con este filtro" detalle="Prueba con otro estado." />
       ) : (
-        <>
-          {/* Escritorio: tabla completa */}
-          <div className="hidden overflow-x-auto rounded-xl md:block" style={{ background: TEMA.panel }}>
-            <table className="w-full text-sm">
-              <caption className="sr-only">Detalle de cargas de los últimos 14 días</caption>
-              <thead>
-                <tr className="text-left" style={{ color: TEMA.suave }}>
-                  {["Fecha", "Hora", "Equipo", "Conductor", "Galones", "Estado", ""].map((titulo) => (
-                    <th key={titulo} scope="col" className="px-3 py-2.5 font-semibold">
-                      {titulo}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {datos.cargas.map((carga) => (
-                  <tr key={carga.id} style={{ borderTop: `1px solid ${TEMA.linea}` }}>
-                    <td className="px-3 py-2.5 tabular-nums">{carga.fecha}</td>
-                    <td className="px-3 py-2.5 tabular-nums">{carga.hora}</td>
-                    <td className="px-3 py-2.5 font-bold">{carga.equipoCodigo}</td>
-                    <td className="px-3 py-2.5">{carga.conductorNombre}</td>
-                    <td className="px-3 py-2.5 text-right font-bold tabular-nums">
-                      {formatearGal(carga.galones)}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <ChipEstado estado={carga.estado} />
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <Link
-                        to={`/cargas/${carga.id}`}
-                        className="font-semibold focus-visible:outline"
-                        style={{ color: TEMA.azul }}
-                      >
-                        Ver
-                      </Link>
-                    </td>
+        <div className="grid gap-4 lg:grid-cols-5">
+          <Panel className="lg:col-span-3">
+            <div className="px-5 pt-5">
+              <Eyebrow>Últimas cargas · toca una fila para ver la evidencia</Eyebrow>
+            </div>
+            <div className="mt-3 overflow-x-auto px-2 pb-2">
+              <table className="w-full" style={{ borderCollapse: "collapse", minWidth: 520 }}>
+                <caption className="sr-only">Detalle de cargas de los últimos 14 días</caption>
+                <thead>
+                  <tr>
+                    <Th>Fecha</Th>
+                    <Th>Hora</Th>
+                    <Th>Equipo</Th>
+                    <Th>Conductor</Th>
+                    <Th derecha>Galones</Th>
+                    <Th>Estado</Th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {datos.cargas.map((carga) => {
+                    const activa = seleccionada?.id === carga.id;
+                    const celda = {
+                      padding: "10px",
+                      borderBottom: `1px solid ${TEMA.lineaSuave}`,
+                    } as const;
+                    return (
+                      <tr
+                        key={carga.id}
+                        onClick={() =>
+                          navegar(`/cargas/${carga.id}${estado === "todas" ? "" : `?estado=${estado}`}`)
+                        }
+                        className="cursor-pointer"
+                        style={{ background: activa ? TEMA.panelAlto : "transparent" }}
+                      >
+                        <td style={{ ...celda, fontSize: 12, color: TEMA.suave }}>{carga.fecha}</td>
+                        <td className="font-mono" style={{ ...celda, fontSize: 12 }}>
+                          {carga.hora}
+                        </td>
+                        <td className="font-mono font-semibold" style={{ ...celda, fontSize: 13 }}>
+                          {carga.equipoCodigo}
+                        </td>
+                        <td style={{ ...celda, fontSize: 12, color: TEMA.suave }}>
+                          {carga.conductorNombre}
+                        </td>
+                        <td
+                          className="font-mono font-semibold"
+                          style={{ ...celda, fontSize: 13, textAlign: "right" }}
+                        >
+                          {formatearGal(carga.galones)}
+                        </td>
+                        <td style={celda}>
+                          <Chip estado={carga.estado} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
 
-          {/* Móvil: tarjetas */}
-          <ul className="flex flex-col gap-2 md:hidden">
-            {datos.cargas.map((carga) => (
-              <li key={carga.id}>
-                <Link
-                  to={`/cargas/${carga.id}`}
-                  className="block rounded-xl p-3 focus-visible:outline focus-visible:outline-2"
-                  style={{ background: TEMA.panel }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold">{carga.equipoCodigo}</span>
-                    <ChipEstado estado={carga.estado} />
-                  </div>
-                  <div
-                    className="mt-1 flex items-center justify-between text-sm"
-                    style={{ color: TEMA.suave }}
-                  >
-                    <span>
-                      {carga.fecha} · {carga.hora} · {carga.conductorNombre}
-                    </span>
-                    <span className="font-bold tabular-nums" style={{ color: TEMA.texto }}>
-                      {formatearGal(carga.galones)} gal
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
+          {seleccionada ? <PanelEvidencia key={seleccionada.id} id={seleccionada.id} /> : null}
+        </div>
       )}
-    </div>
+    </>
+  );
+}
+
+/* Panel de evidencia del diseño: fotos 2×138, lecturas por foto,
+   verificación automática (candados) y el contador del equipo. */
+function PanelEvidencia(props: { id: string }) {
+  const fuente = useFuenteTablero();
+  const { consulta, recargar } = useConsulta(() => fuente.detalleCarga(props.id), [props.id]);
+
+  if (consulta.estado === "cargando") {
+    return (
+      <div className="lg:col-span-2">
+        <Esqueleto alto={360} />
+      </div>
+    );
+  }
+  if (consulta.estado === "error")
+    return (
+      <div className="lg:col-span-2">
+        <EstadoError detalle={consulta.detalle} onReintentar={recargar} />
+      </div>
+    );
+
+  const { datos } = consulta;
+  const { resumen } = datos;
+  const sinFotoFinal = resumen.banderas.includes("FOTO_FALTANTE");
+  const mensajes = resumen.banderas
+    .map((bandera) => MENSAJE_SUPERVISOR[bandera])
+    .filter((mensaje): mensaje is string => Boolean(mensaje));
+
+  return (
+    <Panel className="p-5 lg:col-span-2" alto>
+      <div className="flex items-start justify-between">
+        <div>
+          <Eyebrow>Evidencia de la carga</Eyebrow>
+          <div className="mt-2 font-semibold" style={{ fontSize: 16 }}>
+            {resumen.equipoCodigo} · {formatearGal(resumen.galones)} gal
+          </div>
+          <div style={{ fontSize: 12, color: TEMA.suave, marginTop: 2 }}>
+            {resumen.equipoDescripcion} · {resumen.conductorNombre} · {resumen.fecha} {resumen.hora}
+          </div>
+        </div>
+        <Chip estado={resumen.estado} />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2" style={{ gap: 10 }}>
+        {(
+          [
+            {
+              rot: "Antes de cargar",
+              foto: datos.fotos.inicial,
+              tanda: datos.lecturas.tandaInicial,
+              tot: datos.lecturas.totInicial,
+            },
+            {
+              rot: "Después de cargar",
+              foto: sinFotoFinal ? null : datos.fotos.final,
+              tanda: datos.lecturas.tandaFinal,
+              tot: datos.lecturas.totFinal,
+            },
+          ] as const
+        ).map((f) => (
+          <div key={f.rot}>
+            <div style={{ fontSize: 11, color: TEMA.suave, marginBottom: 6 }}>{f.rot}</div>
+            <div
+              className="flex items-center justify-center overflow-hidden rounded-md"
+              style={{ height: 138, background: "#0A1017", border: `1px solid ${TEMA.linea}` }}
+            >
+              {f.foto ? (
+                <img
+                  src={f.foto}
+                  alt={`Foto del medidor — ${f.rot.toLowerCase()}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span className="px-3 text-center" style={{ fontSize: 11, color: TEMA.ambar }}>
+                  Sin foto. El conductor cerró la carga sin capturar el medidor.
+                </span>
+              )}
+            </div>
+            <div
+              className="mt-2 flex items-baseline justify-between"
+              style={{ fontSize: 11, color: TEMA.suave }}
+            >
+              <span>Tanda</span>
+              <span className="font-mono font-semibold" style={{ fontSize: 13, color: TEMA.texto }}>
+                {formatearGal(f.tanda)}
+              </span>
+            </div>
+            <div
+              className="flex items-baseline justify-between"
+              style={{ fontSize: 11, color: TEMA.suave }}
+            >
+              <span>Totalizador</span>
+              <span className="font-mono font-semibold" style={{ fontSize: 13, color: TEMA.texto }}>
+                {formatearEntero(f.tot)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 pt-4" style={{ borderTop: `1px solid ${TEMA.linea}` }}>
+        <Eyebrow>Verificación automática</Eyebrow>
+        <div className="mt-3 flex flex-col" style={{ gap: 9 }}>
+          {datos.candados.map((candado) => (
+            <Candado
+              key={candado.nombre}
+              ok={candado.cumple}
+              texto={candado.nombre}
+              detalle={candado.descripcion}
+            />
+          ))}
+        </div>
+        {mensajes.length > 0 ? (
+          <div className="mt-4 flex flex-col" style={{ gap: 6 }}>
+            {mensajes.map((mensaje) => (
+              <div key={mensaje} style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.5 }}>
+                {mensaje}
+                {datos.galNoRegistrados
+                  ? ` Tamaño del salto: ${formatearGal(datos.galNoRegistrados)} gal.`
+                  : ""}
+              </div>
+            ))}
+          </div>
+        ) : null}
+        {datos.lecturaEquipo !== null ? (
+          <div
+            className="mt-4 flex items-baseline justify-between"
+            style={{ fontSize: 11, color: TEMA.suave }}
+          >
+            <span>{datos.tipoLectura === "horometro" ? "Horómetro" : "Odómetro"} del equipo</span>
+            <span className="font-mono font-semibold" style={{ fontSize: 13, color: TEMA.texto }}>
+              {datos.lecturaEquipo.toLocaleString("es-CO", { minimumFractionDigits: 1 })}
+            </span>
+          </div>
+        ) : null}
+        {datos.notas ? (
+          <div className="mt-4" style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.5 }}>
+            <span style={{ color: TEMA.texto }}>Nota del conductor:</span> {datos.notas}
+          </div>
+        ) : null}
+      </div>
+    </Panel>
   );
 }

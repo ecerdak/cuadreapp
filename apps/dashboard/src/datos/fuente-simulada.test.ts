@@ -28,7 +28,8 @@ describe("FuenteSimulada — proyección a los modelos de lectura", () => {
     expect(detalle.candados).toHaveLength(3);
     expect(detalle.candados.find((c) => c.nombre.includes("Continuidad"))!.cumple).toBe(false);
     expect(detalle.candados.filter((c) => c.cumple)).toHaveLength(2);
-    expect(detalle.fotos.inicial).toContain("data:image/svg+xml");
+    // La evidencia simulada usa los assets originales del paquete de diseño.
+    expect(detalle.fotos.inicial).toContain("fillrite-antes");
     expect(detalle.galNoRegistrados).toBe(18.0);
   });
 

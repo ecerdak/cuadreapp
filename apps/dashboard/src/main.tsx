@@ -10,7 +10,6 @@ import { FuenteSimulada } from "./datos/fuente-simulada";
 import { DisposicionTablero } from "./disposicion/DisposicionTablero";
 import { Hoy } from "./paginas/Hoy";
 import { Cargas } from "./paginas/Cargas";
-import { DetalleCarga } from "./paginas/DetalleCarga";
 import { Equipos } from "./paginas/Equipos";
 import { Suministro } from "./paginas/Suministro";
 
@@ -27,7 +26,8 @@ createRoot(document.getElementById("raiz")!).render(
           <Route index element={<Navigate to="/hoy" replace />} />
           <Route path="/hoy" element={<Hoy />} />
           <Route path="/cargas" element={<Cargas />} />
-          <Route path="/cargas/:id" element={<DetalleCarga />} />
+          {/* Deep-link conservado: la evidencia vive en el panel derecho de Cargas. */}
+          <Route path="/cargas/:id" element={<Cargas />} />
           <Route path="/equipos" element={<Equipos />} />
           <Route path="/suministro" element={<Suministro />} />
           <Route path="*" element={<Navigate to="/hoy" replace />} />

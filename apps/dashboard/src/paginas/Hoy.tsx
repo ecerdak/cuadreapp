@@ -1,22 +1,26 @@
-// [Pestaña Hoy] Veredicto del día antes que los datos; existencia en
-// rodillo, autonomía, consumo de 14 días y las cargas de hoy. Única
-// pestaña con polling (60 s, pausado si la pestaña no está visible).
+// [Pestaña Hoy] La composición del diseño aprobado: ZonaA con el
+// veredicto y sus hechos, el panel del totalizador con el Rodillo y el
+// desglose, el gráfico de 14 días y las cargas del día con el borde
+// izquierdo de color. Única pestaña con polling (60 s, pausado si la
+// pestaña no está visible).
 
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useFuenteTablero } from "../datos/proveedor";
 import { useConsulta } from "../datos/consulta";
 import {
-  ChipEstado,
+  Chip,
   Esqueleto,
   EstadoError,
   EstadoVacio,
-  TarjetaMetrica,
-  VeredictoBanner,
+  Eyebrow,
+  Panel,
+  ZonaA,
 } from "../componentes/basicos";
-import { BarrasConsumo, Rodillo } from "../componentes/medidor";
-import { formatearGal } from "../componentes/numeros";
-import { TEMA } from "../tema";
+import { GraficoConsumo, Rodillo } from "../componentes/medidor";
+import { formatearEntero, formatearGal } from "../componentes/numeros";
+import { MEDIDOR } from "../datos/contexto-cliente";
+import { COLOR_ESTADO, TEMA } from "../tema";
 
 export function Hoy() {
   const fuente = useFuenteTablero();
@@ -32,10 +36,12 @@ export function Hoy() {
   if (consulta.estado === "cargando") {
     return (
       <div className="flex flex-col gap-4">
-        <Esqueleto alto={84} />
-        <div className="grid grid-cols-2 gap-4">
-          <Esqueleto alto={96} />
-          <Esqueleto alto={96} />
+        <Esqueleto alto={120} />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Esqueleto alto={220} />
+          <div className="lg:col-span-2">
+            <Esqueleto alto={220} />
+          </div>
         </div>
         <Esqueleto alto={180} />
       </div>
@@ -46,92 +52,136 @@ export function Hoy() {
 
   const { datos } = consulta;
   return (
-    <div className="flex flex-col gap-4">
-      <VeredictoBanner veredicto={datos.veredicto} />
+    <>
+      <ZonaA
+        veredicto={datos.veredicto}
+        titulo="Acción de hoy"
+        hechos={[
+          {
+            valor: `${formatearEntero(datos.existenciaEstimadaGal)} gal`,
+            etiqueta: "Existencia estimada en tanque",
+          },
+          {
+            valor: `${formatearEntero(datos.consumoDiarioGal)} gal/día`,
+            etiqueta: "Consumo promedio, últimos 7 días",
+          },
+          ...(datos.galSinRegistrarGal > 0
+            ? [
+                {
+                  valor: `${formatearEntero(datos.galSinRegistrarGal)} gal`,
+                  etiqueta: "Despachados sin equipo asignado",
+                  color: TEMA.rojo,
+                },
+              ]
+            : []),
+        ]}
+        derecha={
+          <div className="flex flex-col items-end" style={{ gap: 8 }}>
+            <span style={{ fontSize: 11, color: TEMA.suave }}>
+              Actualizado{" "}
+              {consulta.actualizadoEn.toLocaleTimeString("es-CO", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            <button
+              type="button"
+              onClick={recargar}
+              className="rounded-md font-semibold focus-visible:outline focus-visible:outline-2"
+              style={{ background: TEMA.amarillo, color: "#12202C", padding: "12px 20px", fontSize: 14 }}
+            >
+              Actualizar
+            </button>
+          </div>
+        }
+      />
 
-      <div className="flex items-center justify-between text-xs" style={{ color: TEMA.suave }}>
-        <span>
-          Actualizado{" "}
-          {consulta.actualizadoEn.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
-        </span>
-        <button
-          type="button"
-          onClick={recargar}
-          className="rounded px-2 py-1 font-semibold focus-visible:outline"
-          style={{ color: TEMA.azul }}
-        >
-          Actualizar
-        </button>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Panel className="p-5">
+          <Eyebrow>Totalizador del medidor</Eyebrow>
+          <div className="mt-3">
+            <Rodillo valor={datos.totalizadorGal} enteros={6} alto={40} />
+          </div>
+          <div className="mt-3" style={{ fontSize: 12, color: TEMA.suave, lineHeight: 1.6 }}>
+            Galones acumulados desde que se instaló el dispensador el {MEDIDOR.instalado}. Este número no
+            se puede resetear: es la única cifra que no depende de nadie.
+          </div>
+          <div
+            className="mt-4 flex justify-between pt-4"
+            style={{ borderTop: `1px solid ${TEMA.lineaSuave}` }}
+          >
+            <div>
+              <div className="font-mono font-semibold" style={{ fontSize: 15 }}>
+                {formatearEntero(datos.entregadoTotalGal)} gal
+              </div>
+              <div style={{ fontSize: 11, color: TEMA.suave }}>Entregado por Lubryco</div>
+            </div>
+            <div>
+              <div className="font-mono font-semibold" style={{ fontSize: 15 }}>
+                {formatearEntero(datos.despachadoTotalGal)} gal
+              </div>
+              <div style={{ fontSize: 11, color: TEMA.suave }}>Despachado a equipos</div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel className="p-5 lg:col-span-2">
+          <Eyebrow>Consumo diario · últimos 14 días</Eyebrow>
+          <div className="mt-5">
+            <GraficoConsumo dias={datos.consumo14d} />
+          </div>
+          <div className="mt-3" style={{ fontSize: 11, color: TEMA.suave }}>
+            El día de hoy va parcial.
+          </div>
+        </Panel>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TarjetaMetrica
-          rotulo="Existencia estimada"
-          contexto="Estimada por balance — no medida (sin aforo del tanque)"
-        >
-          {formatearGal(datos.existenciaEstimadaGal)} gal
-        </TarjetaMetrica>
-        <TarjetaMetrica rotulo="Autonomía restante" contexto="Al ritmo de los últimos 7 días">
-          {Math.floor(datos.autonomiaDias)} días
-        </TarjetaMetrica>
-      </div>
-
-      <section className="rounded-xl p-4" style={{ background: TEMA.panel }}>
-        <h2
-          className="mb-2 text-xs font-semibold uppercase tracking-wider"
-          style={{ color: TEMA.suave }}
-        >
-          Totalizador del dispensador
-        </h2>
-        <Rodillo valor={datos.totalizadorGal} />
-      </section>
-
-      <section className="rounded-xl p-4" style={{ background: TEMA.panel }}>
-        <h2
-          className="mb-3 text-xs font-semibold uppercase tracking-wider"
-          style={{ color: TEMA.suave }}
-        >
-          Consumo por día · últimos 14 días
-        </h2>
-        <BarrasConsumo dias={datos.consumo14d} />
-      </section>
-
-      <section>
-        <h2
-          className="mb-2 text-xs font-semibold uppercase tracking-wider"
-          style={{ color: TEMA.suave }}
-        >
-          Cargas del día
-        </h2>
+      <Panel className="mt-4 p-5">
+        <Eyebrow>
+          Cargas de hoy · {datos.cargasDeHoy.length} registrada
+          {datos.cargasDeHoy.length === 1 ? "" : "s"}
+        </Eyebrow>
         {datos.cargasDeHoy.length === 0 ? (
-          <EstadoVacio
-            mensaje="Aún no hay cargas hoy"
-            detalle="Las cargas del conductor aparecen aquí apenas sincronizan."
-          />
+          <div className="mt-4">
+            <EstadoVacio
+              mensaje="Aún no hay cargas hoy"
+              detalle="Las cargas del conductor aparecen aquí apenas sincronizan."
+            />
+          </div>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <div className="mt-4 flex flex-col" style={{ gap: 8 }}>
             {datos.cargasDeHoy.map((carga) => (
-              <li key={carga.id}>
-                <Link
-                  to={`/cargas/${carga.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl p-3 focus-visible:outline focus-visible:outline-2"
-                  style={{ background: TEMA.panel }}
+              <Link
+                key={carga.id}
+                to={`/cargas/${carga.id}`}
+                className="flex flex-wrap items-center rounded-md px-3 py-3 focus-visible:outline focus-visible:outline-2"
+                style={{
+                  background: TEMA.panelAlto,
+                  gap: 14,
+                  borderLeft: `2px solid ${COLOR_ESTADO[carga.estado]}`,
+                }}
+              >
+                <span className="font-mono" style={{ fontSize: 12, color: TEMA.suave, width: 42 }}>
+                  {carga.hora}
+                </span>
+                <span className="font-mono font-semibold" style={{ fontSize: 13, width: 54 }}>
+                  {carga.equipoCodigo}
+                </span>
+                <span style={{ fontSize: 12, color: TEMA.suave, flex: 1, minWidth: 150 }}>
+                  {carga.equipoDescripcion} · {carga.conductorNombre}
+                </span>
+                <span
+                  className="font-mono font-semibold"
+                  style={{ fontSize: 14, width: 74, textAlign: "right" }}
                 >
-                  <span className="tabular-nums" style={{ color: TEMA.suave }}>
-                    {carga.hora}
-                  </span>
-                  <span className="font-bold">{carga.equipoCodigo}</span>
-                  <span className="flex-1 truncate text-sm" style={{ color: TEMA.suave }}>
-                    {carga.conductorNombre}
-                  </span>
-                  <span className="font-bold tabular-nums">{formatearGal(carga.galones)} gal</span>
-                  <ChipEstado estado={carga.estado} />
-                </Link>
-              </li>
+                  {formatearGal(carga.galones)} gal
+                </span>
+                <Chip estado={carga.estado} />
+              </Link>
             ))}
-          </ul>
+          </div>
         )}
-      </section>
-    </div>
+      </Panel>
+    </>
   );
 }

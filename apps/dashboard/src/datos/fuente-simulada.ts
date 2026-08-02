@@ -22,20 +22,21 @@ import {
   consumoPorDia14,
   ENTREGAS_SIMULADAS,
   EQUIPOS_SIMULADOS,
+  galSinRegistrar,
   HOY_SIMULADO,
   TOTALIZADOR_FINAL_GAL,
   type CargaSimulada,
 } from "../simulacion/escenario";
+import fotoInicialFillRite from "../marca/assets/fillrite-antes.webp";
+import fotoFinalFillRite from "../marca/assets/fillrite-despues.webp";
 
 export interface OpcionesFuenteSimulada {
   latenciaMs?: [number, number];
   simularError?: boolean;
 }
 
-function fotoSimulada(tanda: number, totalizador: number): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><rect width="640" height="420" fill="#1a2530"/><rect x="120" y="60" width="400" height="120" rx="10" fill="#0c1218" stroke="#3a4a5a" stroke-width="3"/><text x="320" y="135" font-family="monospace" font-size="56" fill="#e8eef5" text-anchor="middle">${tanda.toFixed(1)}</text><rect x="160" y="230" width="320" height="70" rx="6" fill="#0c1218" stroke="#3a4a5a" stroke-width="3"/><text x="320" y="278" font-family="monospace" font-size="34" fill="#cdd8e2" text-anchor="middle">${String(Math.trunc(totalizador)).padStart(6, "0")}</text><text x="320" y="340" font-family="sans-serif" font-size="16" fill="#7d8fa1" text-anchor="middle">FOTO SIMULADA · Fill-Rite 900 · TANDA / TOTAL GALLONS</text></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-}
+// Evidencia simulada: las fotos reales del Fill-Rite 900 del paquete de
+// diseño original (assets importados, no imágenes improvisadas).
 
 function aResumen(carga: CargaSimulada): CargaResumen {
   return {
@@ -114,6 +115,10 @@ export class FuenteSimulada implements FuenteDatosTablero {
         existenciaEstimadaGal: balance.existenciaEstimadaGal,
         autonomiaDias: balance.autonomiaDias,
         totalizadorGal: TOTALIZADOR_FINAL_GAL,
+        entregadoTotalGal: balance.entregadoTotalGal,
+        despachadoTotalGal: balance.despachadoTotalGal,
+        consumoDiarioGal: balance.consumoDiarioGal,
+        galSinRegistrarGal: galSinRegistrar(),
         consumo14d: consumoPorDia14(),
         cargasDeHoy: deHoy.map(aResumen).reverse(),
       };
@@ -130,6 +135,7 @@ export class FuenteSimulada implements FuenteDatosTablero {
           : todas.filter((carga) => carga.estado === filtro.estado);
 
       const noCuadran = todas.length - cuadran;
+      const sinFotoFinal = todas.filter((carga) => carga.banderas.includes("FOTO_FALTANTE")).length;
       return {
         veredicto:
           noCuadran === 0
@@ -141,6 +147,8 @@ export class FuenteSimulada implements FuenteDatosTablero {
               },
         total: todas.length,
         cuadran,
+        galSinRegistrarGal: galSinRegistrar(),
+        sinFotoFinal,
         cargas: filtradas.map(aResumen),
       };
     });
@@ -166,8 +174,8 @@ export class FuenteSimulada implements FuenteDatosTablero {
         galNoRegistrados: carga.galNoRegistrados,
         notas: carga.notas,
         fotos: {
-          inicial: fotoSimulada(carga.tandaInicial, carga.totInicial),
-          final: fotoSimulada(carga.tandaFinal, carga.totFinal),
+          inicial: fotoInicialFillRite,
+          final: fotoFinalFillRite,
         },
       };
     });
@@ -191,10 +199,16 @@ export class FuenteSimulada implements FuenteDatosTablero {
         const rendimiento = deltaTotal > 0 ? galonesTotal / deltaTotal : null;
         const desvioPct =
           rendimiento !== null ? (rendimiento / equipo.medianaHistorica - 1) * 100 : null;
+        const usoValor = Math.round(deltaTotal * 10) / 10;
         return {
           codigo: equipo.codigo,
           descripcion: equipo.descripcion,
+          categoria: equipo.categoria,
           galones7d: Math.round(galones7d * 10) / 10,
+          uso:
+            deltaTotal > 0
+              ? `${usoValor.toLocaleString("es-CO", { minimumFractionDigits: equipo.tipoMedidor === "horometro" ? 1 : 0 })} ${equipo.tipoMedidor === "horometro" ? "h" : "km"}`
+              : null,
           medida: equipo.tipoMedidor === "horometro" ? ("gal/h" as const) : ("gal/km" as const),
           rendimiento: rendimiento !== null ? Math.round(rendimiento * 100) / 100 : null,
           desvioPct: desvioPct !== null ? Math.round(desvioPct * 10) / 10 : null,
@@ -233,6 +247,11 @@ export class FuenteSimulada implements FuenteDatosTablero {
         existenciaEstimadaGal: balance.existenciaEstimadaGal,
         autonomiaDias: balance.autonomiaDias,
         proximaEntregaSugerida: balance.proximaEntregaSugerida,
+        // Pedido sugerido: rellenar hasta ~7 días de consumo, redondeado a 50.
+        pedidoSugeridoGal: Math.max(
+          0,
+          Math.round((balance.consumoDiarioGal * 7 - balance.existenciaEstimadaGal) / 50) * 50,
+        ),
       };
     });
   }
