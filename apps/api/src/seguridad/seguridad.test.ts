@@ -265,6 +265,80 @@ describe("POST /api/v1/cargas/:id/fotos/:momento", () => {
     expect(respuesta.statusCode).toBe(400);
   });
 
+
+  it("A1: acepta image/jpeg (iPhone no exporta webp) y guarda con extensión .jpg", async () => {
+    const { app, almacenFotos } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas/3f8e9a10-1111-4222-8333-444455556666/fotos/inicial",
+      headers: {
+        authorization: `Bearer ${await crearToken(ID_DISPOSITIVO_USUARIO)}`,
+        "content-type": "image/jpeg",
+      },
+      payload: Buffer.from([0xff, 0xd8, 0xff, 0xe0]),
+    });
+    expect(respuesta.statusCode).toBe(201);
+    expect(respuesta.json().storage_path).toMatch(/\/inicial\.jpg$/);
+    expect(almacenFotos.guardadas[0]!.tipo).toBe("image/jpeg");
+  });
+
+  it("A1: acepta image/png y guarda con extensión .png", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas/3f8e9a10-1111-4222-8333-444455556666/fotos/final",
+      headers: {
+        authorization: `Bearer ${await crearToken(ID_DISPOSITIVO_USUARIO)}`,
+        "content-type": "image/png",
+      },
+      payload: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+    });
+    expect(respuesta.statusCode).toBe(201);
+    expect(respuesta.json().storage_path).toMatch(/\/final\.png$/);
+  });
+
+  it("A1: rechaza un tipo no permitido (image/gif)", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas/3f8e9a10-1111-4222-8333-444455556666/fotos/inicial",
+      headers: {
+        authorization: `Bearer ${await crearToken(ID_DISPOSITIVO_USUARIO)}`,
+        "content-type": "image/gif",
+      },
+      payload: Buffer.from([1, 2, 3]),
+    });
+    expect(respuesta.statusCode).toBe(415);
+  });
+
+  it("A4: acepta una foto de 1.5 MiB (el bodyLimit honra el contrato de 2 MB)", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas/3f8e9a10-1111-4222-8333-444455556666/fotos/inicial",
+      headers: {
+        authorization: `Bearer ${await crearToken(ID_DISPOSITIVO_USUARIO)}`,
+        "content-type": "image/webp",
+      },
+      payload: Buffer.alloc(Math.floor(1.5 * 1024 * 1024), 1),
+    });
+    expect(respuesta.statusCode).toBe(201);
+  });
+
+  it("A4: rechaza más de 2 MiB con 413", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas/3f8e9a10-1111-4222-8333-444455556666/fotos/inicial",
+      headers: {
+        authorization: `Bearer ${await crearToken(ID_DISPOSITIVO_USUARIO)}`,
+        "content-type": "image/webp",
+      },
+      payload: Buffer.alloc(Math.floor(2.5 * 1024 * 1024), 1),
+    });
+    expect(respuesta.statusCode).toBe(413);
+  });
+
   it("exige autenticación", async () => {
     const { app } = armarAplicacion();
     const respuesta = await app.inject({
