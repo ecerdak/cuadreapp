@@ -514,7 +514,10 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           onTotInicial={(valor) => cambiar({ totInicial: valor })}
           onFoto={(foto) => cambiar({ fotoInicial: foto })}
           onEmpezarACargar={() => {
-            cambiar({ iniciadaEn: new Date().toISOString() });
+            // Si la carga ya había comenzado (volvió desde Cargando a
+            // corregir), el cronómetro NO se reinicia: R12 mide la
+            // duración real.
+            cambiar({ iniciadaEn: borrador.iniciadaEn ?? new Date().toISOString() });
             setPaso("cargando");
           }}
           onAtras={atras}
