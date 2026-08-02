@@ -92,3 +92,11 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 
 ### Pendiente
 - Ejecutar sobre infraestructura viva: despliegues de prueba, E2E real, backups activos y fijar el `connect-src` de la CSP al dominio real de la API. Es el primer paso del piloto (ver Production Readiness Report).
+
+## [Dashboard — Frontend] (en curso)
+
+### Decidido
+- DEC-015: **PWA y Dashboard son aplicaciones separadas** — `apps/dashboard` con build, despliegue, router, ciclo de vida y configuración propios; comparten únicamente paquetes del monorepo (dominio, tipos-bd, futuro ui, y cliente HTTP/contratos cuando se extraigan a paquete). Reemplaza la ruta `/tablero` dentro de la PWA del spec §4.
+
+### Agregado
+- `docs/DASHBOARD_ARQUITECTURA.md` (v1.1): arquitectura aprobada del Dashboard — módulos, rutas, design system, capa de datos por puertos y adaptadores con `FuenteSimulada`, patrón `Consulta<T>`, responsive y accesibilidad.

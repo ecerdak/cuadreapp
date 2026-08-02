@@ -1,6 +1,6 @@
 # Dashboard Architecture Document — CuadreApp
 
-**Versión:** 1.0 — 1 de agosto de 2026
+**Versión:** 1.1 — 1 de agosto de 2026 (ajustada por DEC-015: el Dashboard es una aplicación separada)
 **Estado:** propuesta en revisión del propietario del producto — sin componentes implementados
 **Alcance:** únicamente frontend, con datos simulados detrás de adaptadores. Sin consumo de la API, sin consultas reales.
 
@@ -8,7 +8,7 @@
 
 ## 1. Restricciones que esta arquitectura hereda (no negociables)
 
-- **El dashboard vive en la misma PWA, ruta `/tablero`** (spec §4, Bible §7): un solo despliegue en Vercel. No es una app nueva del monorepo.
+- **El Dashboard es una aplicación separada: `apps/dashboard`** (DEC-015, que reemplaza al spec §4): build, despliegue en Vercel, router, ciclo de vida y configuración propios. Comparte con la PWA únicamente paquetes del monorepo (`dominio`, `tipos-bd`, futuro `ui`) y, cuando se conecte a la API, el cliente HTTP y los contratos extraídos a un paquete. Las apps jamás se importan entre sí (DEC-007).
 - **La UI nunca recalcula reglas de negocio** (DEC-011/DEC-013): el dashboard _muestra_ veredictos, jamás los deriva. `COLOR_ESTADO`/`TEXTO_ESTADO` mapean estados que vienen dados.
 - **Cuando llegue la conexión real, será API First** (DEC-009): el dashboard no leerá Supabase; leerá endpoints de la API. **Consecuencia clave de esta etapa: el contrato de los adaptadores que definamos aquí se convierte en el contrato de los futuros endpoints de lectura `/api/v1/tablero/*`** — el dashboard diseña primero lo que la API servirá después.
 - **El veredicto antes que los datos** (spec §8.2): cada pestaña abre con una frase que dice qué está pasando y qué hacer. Es el principio rector de la UI, no un adorno.
@@ -28,10 +28,10 @@ Del análisis de `docs/mockups/cuadre_dashboard_trebol.jsx`:
 | `BotonExcel` + `xlsx`                                                                                                                                                                                     | Export a Excel                                                                  | **Pospuesto** a la conexión real (exportar datos simulados sería engañoso)                       |
 | Marca (`Logotipo`, `Placa`, fuentes Google)                                                                                                                                                               | Identidad CuadreApp                                                             | Se adopta, con fuentes **autoalojadas** — la CSP de la Etapa H no permite `fonts.googleapis.com` |
 
-## 3. Módulos (estructura dentro de `apps/pwa`)
+## 3. Módulos (estructura de `apps/dashboard`)
 
 ```
-src/tablero/
+apps/dashboard/src/
   paginas/            Hoy.tsx · Cargas.tsx · DetalleCarga.tsx · Equipos.tsx · Suministro.tsx
   disposicion/        DisposicionTablero.tsx (marco: marca, pestañas, contenido)
   componentes/        design system del tablero (§6)
@@ -44,30 +44,29 @@ src/tablero/
     escenario.ts      generador determinista del escenario de demostración
 ```
 
-El flujo del conductor no se toca. `src/ui/` (básicos, mensajes, números) se comparte; lo específico del tablero vive en `tablero/componentes/`.
+La PWA del conductor no se toca. Los textos y básicos de UI que hoy viven en `apps/pwa/src/ui` NO se importan (DEC-007): el Dashboard tiene los suyos con tono de supervisor, y ambos son candidatos a `packages/ui` cuando exista un tercer consumidor.
 
 ## 4. Rutas y modelo de navegación
 
-Se introduce `react-router-dom` (hasta hoy la PWA es una máquina de estados sin URLs; el tablero exige deep-linking):
+El Dashboard usa `react-router-dom` desde el día uno (la PWA del conductor conserva su máquina de estados, intacta). Al ser una aplicación propia, el prefijo `/tablero` del diseño original se vuelve innecesario — las rutas son de primer nivel:
 
-| Ruta                  | Contenido                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| `/`                   | Flujo del conductor (intacto, sigue siendo la máquina de estados actual)                     |
-| `/tablero`            | Redirige a `/tablero/hoy`                                                                    |
-| `/tablero/hoy`        | Veredicto del día, existencia estimada (Rodillo), autonomía, consumo 14 días, cargas del día |
-| `/tablero/cargas`     | Veredicto (X cuadran de Y), tabla con filtros por estado                                     |
-| `/tablero/cargas/:id` | Detalle: fotos antes/después, 4 lecturas, candados, banderas                                 |
-| `/tablero/equipos`    | Veredicto (quién se salió de su patrón), tabla gal/h·gal/km y desvío %                       |
-| `/tablero/suministro` | Veredicto (última/próxima entrega), remisiones, balance entregado−despachado                 |
+| Ruta          | Contenido                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| `/tablero`    | Redirige a `/hoy`                                                                            |
+| `/hoy`        | Veredicto del día, existencia estimada (Rodillo), autonomía, consumo 14 días, cargas del día |
+| `/cargas`     | Veredicto (X cuadran de Y), tabla con filtros por estado                                     |
+| `/cargas/:id` | Detalle: fotos antes/después, 4 lecturas, candados, banderas                                 |
+| `/equipos`    | Veredicto (quién se salió de su patrón), tabla gal/h·gal/km y desvío %                       |
+| `/suministro` | Veredicto (última/próxima entrega), remisiones, balance entregado−despachado                 |
 
 - **La URL es el estado**: pestaña activa, carga abierta y filtros (`?estado=inconsistente`) viven en la URL — un supervisor puede compartir un enlace a una carga problemática.
-- **Code-splitting obligatorio**: `/tablero/*` se carga con `lazy()` — el celular del conductor jamás descarga el bundle del tablero (spec: gama media, precache del shell no crece).
+- **Bundles independientes por diseño**: la separación física (DEC-015) garantiza que el celular del conductor jamás descarga el tablero — ya no depende de code-splitting. `lazy()` por página queda como optimización opcional dentro del Dashboard.
 - Pestañas como `<nav>` con `aria-current="page"`; en móvil, pestañas fijas abajo (pulgar), en escritorio arriba (mockup).
-- En esta etapa `/tablero` muestra un **banner permanente "Modo demostración — datos simulados"**; el login real llega con la conexión.
+- En esta etapa el Dashboard muestra un **banner permanente "Modo demostración — datos simulados"**; el login real llega con la conexión.
 
 ## 5. Design System
 
-- **Tokens** en `tablero/componentes/tema.ts`, tomados del mockup: fondo `#0B1219`, panel `#111C26`, línea `#22374A`, texto `#E7EEF6`, suave `#8AA0B6`, y la semántica verde `#3FAE7E` / ámbar `#E2A233` / rojo `#E2594C`; marca amarillo `#F5E01B`, azul `#4A7CAB`. Un solo lugar; los componentes no inventan colores.
+- **Tokens** en `apps/dashboard/src/tema.ts`, tomados del mockup: fondo `#0B1219`, panel `#111C26`, línea `#22374A`, texto `#E7EEF6`, suave `#8AA0B6`, y la semántica verde `#3FAE7E` / ámbar `#E2A233` / rojo `#E2594C`; marca amarillo `#F5E01B`, azul `#4A7CAB`. Un solo lugar; los componentes no inventan colores.
 - **Tipografías**: Barlow/Barlow Condensed (UI) y Yellowtail (solo logotipo), **autoalojadas** en `assets/` por la CSP. Si el peso preocupa, fallback documentado a `system-ui` conservando la escala.
 - Los colores semánticos de estado son **los mismos tres** del flujo del conductor: un estado se ve igual en el celular y en el tablero.
 
@@ -128,7 +127,7 @@ type Consulta<T> =
 ## 9. Estrategia de actualización de datos
 
 - **Carga al entrar** a cada ruta + **refresco manual** visible (botón con hora del último dato: "Actualizado 10:42").
-- **Polling suave solo en `/tablero/hoy`** (60 s), pausado con `visibilitychange` cuando la pestaña no está visible. Las demás rutas refrescan al navegar o a mano.
+- **Polling suave solo en `/hoy`** (60 s), pausado con `visibilitychange` cuando la pestaña no está visible. Las demás rutas refrescan al navegar o a mano.
 - Sin caché cliente sofisticada en esta etapa: los modelos de lectura son pequeños; si la fuente real lo pide, la caché se agrega **dentro** del adaptador (los componentes no se enteran).
 - Descartado deliberadamente: websockets/realtime — el ritmo del negocio es ~6 cargas/día; polling sobra y no compromete a la API a nada.
 
