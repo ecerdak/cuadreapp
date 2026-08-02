@@ -32,6 +32,23 @@ Runbook de despliegue, verificación, respaldo y recuperación. Complementa el P
 
 Tras asignar el dominio real de la API, **fijar `connect-src` de la CSP** (`apps/pwa/vercel.json`) a ese dominio exacto en vez del comodín `https://*.up.railway.app`.
 
+### 2b. Frontends servidos desde Railway (estado actual del despliegue)
+
+El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisión operativa del propietario; DEC-005 preveía los frontends en Vercel — pendiente de ratificar o revertir al cerrar RC1). Para servir estáticos en Railway, cada frontend trae su servidor Node propio (`apps/*/servidor.mjs`) con SPA fallback y los mismos headers de seguridad de sus `vercel.json`.
+
+**Configuración de cada servicio en Railway (una sola vez):**
+
+| Servicio               | Settings → Config-as-code file   | Variables                                                       |
+| ---------------------- | -------------------------------- | --------------------------------------------------------------- |
+| `@cuadreapp/api`       | `railway.json` (raíz, ya activo) | las del §2                                                      |
+| `@cuadreapp/dashboard` | `railway.dashboard.json`         | ninguna (fase simulada)                                         |
+| `@cuadreapp/pwa`       | `railway.pwa.json`               | `VITE_API_URL=https://<dominio-público-de-la-api>` (¡en build!) |
+
+- Root Directory de los tres servicios: la raíz del repo (el build necesita el workspace completo de pnpm).
+- Si algún servicio tiene un Custom Start Command puesto a mano en la UI, **bórralo**: manda el archivo de config.
+- Healthcheck de los frontends: `/salud` (lo sirve el propio servidor estático).
+- Tras cambiar `VITE_API_URL` hay que **redesplegar** la PWA: Vite lo incrusta en el build.
+
 ## 3. Puesta en marcha de un entorno (orden)
 
 1. **Supabase:** crear proyecto → `supabase link` → `supabase db push` (aplica las 5 migraciones, incluido el bucket) → aplicar `seed.sql` si es entorno de prueba.

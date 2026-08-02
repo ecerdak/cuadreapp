@@ -14,9 +14,9 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
-    // Scripts de herramientas: corren en Node, no en el navegador.
-    files: ["**/herramientas/**/*.mjs"],
-    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+    // Scripts de herramientas y servidores estáticos: corren en Node.
+    files: ["**/*.mjs"],
+    languageOptions: { globals: { console: "readonly", process: "readonly", URL: "readonly" } },
   },
   {
     rules: {
