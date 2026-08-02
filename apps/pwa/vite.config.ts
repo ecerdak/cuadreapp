@@ -12,6 +12,13 @@ export default defineConfig({
     // iOS Safari): vive en Dexie y sincroniza con la app abierta.
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        // Explícito y verificado por prueba: el shell COMPLETO (incluidos
+        // íconos y manifest) queda precacheado, y toda navegación offline
+        // cae al index.html — la app instalada abre sin red.
+        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
+        navigateFallback: "index.html",
+      },
       manifest: {
         name: "CuadreApp",
         short_name: "Cuadre",

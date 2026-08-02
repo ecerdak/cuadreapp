@@ -5,6 +5,7 @@ import type { CargaLocal } from "../offline/bd";
 import { ETIQUETA_ESTADO } from "../ui/mensajes";
 import { formatearGal } from "../ui/numeros";
 import { BotonPrincipal, Pantalla } from "../ui/basicos";
+import { InstalarApp } from "../instalacion/InstalarApp";
 
 export function Inicio(props: {
   cargasHoy: CargaLocal[];
@@ -18,6 +19,8 @@ export function Inicio(props: {
       <BotonPrincipal onClick={props.onEmpezar}>Cargar combustible</BotonPrincipal>
 
       <ChipSincronizacion pendientes={props.pendientes} errores={props.erroresDefinitivos} />
+
+      <InstalarApp />
 
       {props.almacenEnRiesgo ? (
         <div className="rounded-xl border border-amber-600 bg-amber-950 p-3 text-sm text-amber-200">

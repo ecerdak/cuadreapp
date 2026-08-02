@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { Aviso, BotonPrincipal, Pantalla } from "../ui/basicos";
+import { InstalarApp } from "../instalacion/InstalarApp";
 
 export function Enrolar(props: {
   onEnrolar: (
@@ -26,6 +27,7 @@ export function Enrolar(props: {
 
   return (
     <Pantalla titulo="Enrolar este dispositivo">
+      <InstalarApp />
       <p className="text-[#8AA0B6]">
         Este celular se enrola una sola vez a la estación. Pídele el código de enrolamiento al
         supervisor.
