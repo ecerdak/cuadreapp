@@ -8,7 +8,7 @@ import type { ContextoValidacion } from "@cuadreapp/dominio";
 import { marcasAntesDeCargar } from "../flujo/en-vivo";
 import { aNumero } from "../ui/numeros";
 import { MENSAJES_BANDERA } from "../ui/mensajes";
-import { Aviso, BotonGrande, CampoNum, Teclado, Titulo, escribirTecla } from "../ui/basicos";
+import { Aviso, BotonAtras, BotonGrande, CampoNum, Teclado, Titulo, escribirTecla } from "../ui/basicos";
 import { CamaraEnVivo } from "../captura/CamaraEnVivo";
 
 const entero = (valor: number) => Math.round(valor).toLocaleString("es-CO");
@@ -24,6 +24,7 @@ export function AntesDeCargar(props: {
   onTotInicial: (valor: string) => void;
   onFoto: (foto: Foto) => void;
   onEmpezarACargar: () => void;
+  onAtras?: () => void;
 }) {
   const [campo, setCampo] = useState<"tanda" | "tot">("tot");
   const tanda = aNumero(props.tandaInicial);
@@ -39,6 +40,7 @@ export function AntesDeCargar(props: {
 
   return (
     <>
+      {props.onAtras ? <BotonAtras onClick={props.onAtras} /> : null}
       <Titulo sub="Deja el medidor en 0.0 y toma la foto. Una sola foto muestra los dos números.">
         Antes de cargar
       </Titulo>

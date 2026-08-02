@@ -7,7 +7,7 @@
 import { useState } from "react";
 import type { ConductorCatalogo } from "../datos/catalogo";
 import { verificarPin } from "../seguridad/pin";
-import { Aviso, BotonGrande, CampoNum, Eyebrow, Teclado, Titulo } from "../ui/basicos";
+import { Aviso, BotonAtras, BotonGrande, CampoNum, Eyebrow, Teclado, Titulo } from "../ui/basicos";
 import { APP, C } from "../marca/tokens";
 
 const CLAVE_ULTIMO = "cuadreapp:ultimo_conductor";
@@ -16,6 +16,7 @@ export function Conductor(props: {
   conductores: ConductorCatalogo[];
   equipoRotulo?: string;
   onIdentificado: (conductor: ConductorCatalogo) => void;
+  onAtras?: () => void;
 }) {
   const recordado = props.conductores.find((c) => c.codigo === localStorage.getItem(CLAVE_ULTIMO));
   const [conductor, setConductor] = useState<ConductorCatalogo | null>(recordado ?? null);
@@ -57,6 +58,7 @@ export function Conductor(props: {
   if (!conductor) {
     return (
       <>
+        {props.onAtras ? <BotonAtras onClick={props.onAtras} /> : null}
         <Titulo sub={sub}>Confirma tu clave</Titulo>
         <div className="px-4 pt-5">
           <CampoNum rot="Código de conductor" valor={codigo} activo />
@@ -75,6 +77,7 @@ export function Conductor(props: {
 
   return (
     <>
+      {props.onAtras ? <BotonAtras onClick={props.onAtras} /> : null}
       <Titulo sub={sub}>Confirma tu clave</Titulo>
       <div className="px-4 pt-5">
         <div

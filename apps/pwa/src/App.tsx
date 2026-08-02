@@ -24,7 +24,7 @@ import { capturarGps, type PosicionCapturada } from "./captura/gps";
 import { aNumero, formatearGal } from "./ui/numeros";
 import { fechaLocalDe, fechaLocalHoy } from "./ui/fechas";
 import { MENSAJES_BANDERA } from "./ui/mensajes";
-import { Aviso, BotonGrande, Titulo } from "./ui/basicos";
+import { Aviso, BotonGrande, Confirmacion, Titulo } from "./ui/basicos";
 import { CabezaApp } from "./ui/CabezaApp";
 import { obtenerDeviceId, VERSION_APP } from "./config";
 import { Splash } from "./pantallas/Splash";
@@ -38,6 +38,13 @@ import { Listo } from "./pantallas/Listo";
 import { Enrolar } from "./pantallas/Enrolar";
 import { Diagnostico } from "./pantallas/Diagnostico";
 import { marcasAntesDeCargar } from "./flujo/en-vivo";
+import {
+  CONFIRMACIONES,
+  decidirAtras,
+  hayDatosDependientesDeEquipo,
+  invalidacionPorCambioDeEquipo,
+  type Confirmacion as ConfirmacionPendiente,
+} from "./flujo/navegacion";
 
 type EstadoSesion = "cargando" | "sin_enrolar" | "activa" | "offline" | "vencida";
 
@@ -91,6 +98,11 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [idReciente, setIdReciente] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
+  // Navegación hacia atrás: confirmación pendiente y bloqueo de guardado.
+  const [confirmacion, setConfirmacion] = useState<
+    (ConfirmacionPendiente & { alConfirmar: () => void }) | null
+  >(null);
+  const [guardando, setGuardando] = useState(false);
   const estadoSync = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync, obtenerEstadoSync);
   const [restauracionLista, setRestauracionLista] = useState(false);
 
@@ -143,6 +155,53 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   );
 
   const cambiar = (cambios: Partial<Borrador>) => setBorrador((actual) => ({ ...actual, ...cambios }));
+
+  /* ============ Navegación hacia atrás (flujo/navegacion.ts) ============ */
+
+  const datosDependientes = {
+    conductor: borrador.conductor !== null,
+    fotoInicial: borrador.fotoInicial !== null,
+    fotoFinal: borrador.fotoFinal !== null,
+    lecturas: borrador.tandaFinal !== "" || borrador.totFinal !== "" || borrador.lecturaEquipo !== "",
+    iniciada: borrador.iniciadaEn !== null,
+  };
+
+  /** Retroceso de UN paso, con la confirmación que dicte el modelo. */
+  function atras() {
+    const decision = decidirAtras(paso, datosDependientes, { guardando });
+    if (decision.tipo === "bloqueado") return;
+    const ejecutar = () => {
+      if (decision.limpiar) cambiar(decision.limpiar);
+      setConfirmacion(null);
+      setPaso(decision.destino);
+    };
+    if (decision.confirmar) {
+      setConfirmacion({ ...decision.confirmar, alConfirmar: ejecutar });
+    } else {
+      ejecutar();
+    }
+  }
+
+  /** Confirmación de equipo: cambiar de equipo invalida lo dependiente. */
+  function alConfirmarEquipo(equipo: EquipoCatalogo) {
+    const cambia = borrador.equipo !== null && borrador.equipo.id !== equipo.id;
+    if (!cambia && borrador.equipo) {
+      // Mismo equipo re-confirmado: se conserva todo (incluido el
+      // totalizador que el conductor ya hubiera corregido).
+      setPaso("conductor");
+      return;
+    }
+    const aplicar = () => {
+      if (cambia) cambiar(invalidacionPorCambioDeEquipo());
+      setConfirmacion(null);
+      void seleccionarEquipo(equipo);
+    };
+    if (cambia && hayDatosDependientesDeEquipo(datosDependientes)) {
+      setConfirmacion({ ...CONFIRMACIONES.cambiarEquipo, alConfirmar: aplicar });
+    } else {
+      aplicar();
+    }
+  }
 
   // FASE 5: el borrador sobrevive a que maten la app a mitad de captura.
   // Restaurar una sola vez cuando hay sesión y catálogo.
@@ -270,6 +329,8 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
 
   async function guardar() {
     if (!contexto || !borrador.equipo || !borrador.conductor || !borrador.iniciadaEn) return;
+    if (guardando) return; // un toque = una carga (cero duplicados)
+    setGuardando(true);
     setAviso(null);
 
     const tandaInicial = aNumero(borrador.tandaInicial);
@@ -278,6 +339,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     const totFinal = aNumero(borrador.totFinal);
     if (tandaInicial === null || totInicial === null || tandaFinal === null || totFinal === null) {
       setAviso("Revisa los números: hay campos vacíos o inválidos.");
+      setGuardando(false);
       return;
     }
     const lectura = borrador.equipo.tipoMedidor === "ninguno" ? null : aNumero(borrador.lecturaEquipo);
@@ -302,6 +364,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     const veredicto = validarCarga(registro, contexto);
     if (veredicto.bloqueaCierre) {
       setAviso(MENSAJES_BANDERA.FOTO_FALTANTE);
+      setGuardando(false);
       return;
     }
     if (veredicto.bloqueaAvance) {
@@ -312,10 +375,12 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
             : "TOTALIZADOR_SIN_AVANCE"
         ],
       );
+      setGuardando(false);
       return;
     }
     if (veredicto.exigeNota && borrador.nota.trim() === "") {
       setAviso(MENSAJES_BANDERA.TANDA_NO_RESETEADA);
+      setGuardando(false);
       return;
     }
 
@@ -362,11 +427,13 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       setAviso(
         "No se pudo guardar en el teléfono (¿almacenamiento lleno?). Libera espacio e intenta de nuevo — tu registro sigue en pantalla.",
       );
+      setGuardando(false);
       return;
     }
     await limpiarBorrador(bd);
 
     setIdReciente(id);
+    setGuardando(false);
     setPaso("listo");
     void sincronizarConEstado(bd, api); // intento inmediato; sin señal, la cola espera al sincronizador
   }
@@ -379,6 +446,15 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   return shell(
     paso,
     <>
+      {confirmacion ? (
+        <Confirmacion
+          titulo={confirmacion.titulo}
+          cuerpo={confirmacion.cuerpo}
+          accion={confirmacion.accion}
+          onCancelar={() => setConfirmacion(null)}
+          onConfirmar={confirmacion.alConfirmar}
+        />
+      ) : null}
       {estadoSync.actualizacionLista ? (
         <div className="px-4 pt-4">
           <Aviso
@@ -410,7 +486,9 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
         />
       )}
 
-      {paso === "equipo" && <Equipo equipos={catalogo.equipos} onSeleccionar={seleccionarEquipo} />}
+      {paso === "equipo" && (
+        <Equipo equipos={catalogo.equipos} onSeleccionar={alConfirmarEquipo} onAtras={atras} />
+      )}
 
       {paso === "conductor" && (
         <Conductor
@@ -422,6 +500,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
             cambiar({ conductor });
             setPaso("antes");
           }}
+          onAtras={atras}
         />
       )}
 
@@ -438,6 +517,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
             cambiar({ iniciadaEn: new Date().toISOString() });
             setPaso("cargando");
           }}
+          onAtras={atras}
         />
       )}
 
@@ -452,6 +532,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
             cambiar({ finalizadaEn: new Date().toISOString() });
             setPaso("despues");
           }}
+          onAtras={atras}
         />
       )}
 
@@ -474,6 +555,8 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           onNota={(valor) => cambiar({ nota: valor })}
           onFoto={(foto) => cambiar({ fotoFinal: foto })}
           onGuardar={() => void guardar()}
+          onAtras={atras}
+          guardando={guardando}
         />
       )}
 

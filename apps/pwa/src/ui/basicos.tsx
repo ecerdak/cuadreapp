@@ -184,6 +184,61 @@ export function escribirTecla(actual: string, tecla: string): string {
   return (actual + tecla).slice(0, 8);
 }
 
+/* Control de retroceso del wizard: discreto, alineado a la izquierda,
+   debajo de la cabecera y antes del título. Área táctil generosa. */
+export function BotonAtras(props: { onClick: () => void }) {
+  return (
+    <div className="px-4 pt-3">
+      <button
+        type="button"
+        onClick={props.onClick}
+        aria-label="Volver al paso anterior"
+        style={{ fontSize: 12.5, color: C.azul, padding: "8px 12px 8px 0" }}
+      >
+        ← Atrás
+      </button>
+    </div>
+  );
+}
+
+/* Confirmación modal del wizard: se usa cuando volver invalida
+   información. Cancelar siempre disponible; la acción confirma. */
+export function Confirmacion(props: {
+  titulo: string;
+  cuerpo: string;
+  accion: string;
+  onCancelar: () => void;
+  onConfirmar: () => void;
+}) {
+  return (
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-label={props.titulo}
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      style={{ background: "rgba(4,8,12,.62)" }}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl px-4 py-4"
+        style={{ background: APP.tarjeta, border: `1px solid ${C.linea}` }}
+      >
+        <div className="font-semibold" style={{ fontSize: 16 }}>
+          {props.titulo}
+        </div>
+        <p style={{ fontSize: 12.5, color: C.suave, lineHeight: 1.5, marginTop: 6 }}>{props.cuerpo}</p>
+        <div className="mt-4 flex flex-col" style={{ gap: 8 }}>
+          <BotonGrande chico onClick={props.onConfirmar}>
+            {props.accion}
+          </BotonGrande>
+          <BotonGrande chico tono="gris" onClick={props.onCancelar}>
+            Cancelar
+          </BotonGrande>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* Tarjeta genérica de la app (fondo tarjeta, borde suave). */
 export function Tarjeta(props: { children: ReactNode; className?: string }) {
   return (

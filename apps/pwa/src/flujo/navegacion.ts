@@ -5,14 +5,7 @@
 
 /** Pasos del flujo (los mismos de App.tsx). */
 export type PasoWizard =
-  | "inicio"
-  | "equipo"
-  | "conductor"
-  | "antes"
-  | "cargando"
-  | "despues"
-  | "listo"
-  | "diagnostico";
+  "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo" | "diagnostico";
 
 /**
  * Paso inmediatamente anterior. `null` = no se puede volver:
@@ -93,7 +86,8 @@ export const CONFIRMACIONES = {
   },
   cambiarEquipo: {
     titulo: "¿Cambiar de equipo?",
-    cuerpo: "Si cambias de equipo, se eliminarán el conductor, las lecturas y las fotografías de esta carga.",
+    cuerpo:
+      "Si cambias de equipo, se eliminarán el conductor, las lecturas y las fotografías de esta carga.",
     accion: "Cambiar de equipo",
   },
   volverConCargaIniciada: {

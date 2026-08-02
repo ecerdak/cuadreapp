@@ -4,7 +4,7 @@
 // pierda de vista qué está cargando.
 
 import { useEffect, useState } from "react";
-import { BotonGrande, FilaResumen, Tarjeta, Titulo } from "../ui/basicos";
+import { BotonAtras, BotonGrande, FilaResumen, Tarjeta, Titulo } from "../ui/basicos";
 import { C } from "../marca/tokens";
 
 const entero = (valor: number) => Math.round(valor).toLocaleString("es-CO");
@@ -16,6 +16,7 @@ export function Cargando(props: {
   conductorNombre: string;
   totInicialGal: number | null;
   onTermine: () => void;
+  onAtras?: () => void;
 }) {
   const [ahora, setAhora] = useState(() => Date.now());
 
@@ -30,6 +31,7 @@ export function Cargando(props: {
 
   return (
     <>
+      {props.onAtras ? <BotonAtras onClick={props.onAtras} /> : null}
       <Titulo>Cargando</Titulo>
       <div className="flex flex-col items-center px-4" style={{ paddingTop: 44 }}>
         <div className="font-mono font-bold" style={{ fontSize: 62, letterSpacing: "-0.02em" }}>

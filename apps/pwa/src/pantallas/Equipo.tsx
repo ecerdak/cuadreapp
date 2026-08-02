@@ -6,12 +6,13 @@
 
 import { useState } from "react";
 import type { EquipoCatalogo } from "../datos/catalogo";
-import { BotonGrande, Eyebrow, Titulo } from "../ui/basicos";
+import { BotonAtras, BotonGrande, Eyebrow, Titulo } from "../ui/basicos";
 import { APP, C } from "../marca/tokens";
 
 export function Equipo(props: {
   equipos: EquipoCatalogo[];
   onSeleccionar: (equipo: EquipoCatalogo) => void;
+  onAtras?: () => void;
 }) {
   const [busqueda, setBusqueda] = useState("");
   const [candidato, setCandidato] = useState<EquipoCatalogo | null>(null);
@@ -26,6 +27,8 @@ export function Equipo(props: {
           : null;
     return (
       <>
+        {/* confirmación → volver a la lista (sin perder la búsqueda) */}
+        <BotonAtras onClick={() => setCandidato(null)} />
         <Titulo sub="Confirma que es la máquina que vas a cargar.">¿Qué equipo vas a cargar?</Titulo>
         <div className="px-4 pt-4">
           <div
@@ -71,6 +74,7 @@ export function Equipo(props: {
 
   return (
     <>
+      {props.onAtras ? <BotonAtras onClick={props.onAtras} /> : null}
       <Titulo sub="Busca el código que está en el sticker de la máquina.">
         ¿Qué equipo vas a cargar?
       </Titulo>

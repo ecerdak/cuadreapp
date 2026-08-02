@@ -8,7 +8,16 @@ import type { ContextoValidacion } from "@cuadreapp/dominio";
 import { marcasDespuesDeCargar } from "../flujo/en-vivo";
 import { aNumero, formatearGal } from "../ui/numeros";
 import { MENSAJES_BANDERA } from "../ui/mensajes";
-import { Aviso, BotonGrande, CampoNum, Eyebrow, Teclado, Titulo, escribirTecla } from "../ui/basicos";
+import {
+  Aviso,
+  BotonAtras,
+  BotonGrande,
+  CampoNum,
+  Eyebrow,
+  Teclado,
+  Titulo,
+  escribirTecla,
+} from "../ui/basicos";
 import { CamaraEnVivo } from "../captura/CamaraEnVivo";
 import { APP, C } from "../marca/tokens";
 import type { EquipoCatalogo } from "../datos/catalogo";
@@ -34,6 +43,8 @@ export function DespuesDeCargar(props: {
   onNota: (valor: string) => void;
   onFoto: (foto: Foto) => void;
   onGuardar: () => void;
+  onAtras?: () => void;
+  guardando?: boolean;
 }) {
   const [campo, setCampo] = useState<Campo>("tandaFin");
 
@@ -73,10 +84,11 @@ export function DespuesDeCargar(props: {
     else if (campo === "lectura") props.onLecturaEquipo(escribirTecla(props.lecturaEquipo, tecla));
   };
 
-  const listo = completo && props.fotoFinal !== null;
+  const listo = completo && props.fotoFinal !== null && !props.guardando;
 
   return (
     <>
+      {props.onAtras && !props.guardando ? <BotonAtras onClick={props.onAtras} /> : null}
       <Titulo sub="Toma la foto del cierre y copia los dos números.">Después de cargar</Titulo>
       <div className="pt-4">
         <CamaraEnVivo
@@ -177,7 +189,7 @@ export function DespuesDeCargar(props: {
           }}
           tono={listo ? "primario" : "gris"}
         >
-          Guardar la carga
+          {props.guardando ? "Guardando…" : "Guardar la carga"}
         </BotonGrande>
       </div>
     </>
