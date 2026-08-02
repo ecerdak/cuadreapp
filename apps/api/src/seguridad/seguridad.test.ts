@@ -265,7 +265,6 @@ describe("POST /api/v1/cargas/:id/fotos/:momento", () => {
     expect(respuesta.statusCode).toBe(400);
   });
 
-
   it("A1: acepta image/jpeg (iPhone no exporta webp) y guarda con extensión .jpg", async () => {
     const { app, almacenFotos } = armarAplicacion();
     const respuesta = await app.inject({
