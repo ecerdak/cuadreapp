@@ -1,0 +1,220 @@
+# CuadreApp — Auditoría visual estricta (gap audit)
+
+**Fecha:** 2 de agosto de 2026
+**Fuente de verdad:** `cuadreapp_diseno_original.zip` → `01_mockups_originales/cuadre_app_conductor.jsx` (v5, APROBADA) y `cuadre_dashboard_trebol.jsx` (v5, APROBADA).
+Encontrado en `/mnt/c/Users/Esteban/Downloads/cuadreapp_diseno_original.zip`; extraído fuera del código productivo.
+**Precedencia:** 1) los dos JSX · 2) assets del ZIP · 3) documentación visual derivada · 4) implementación actual. Excepción registrada: bienvenida con logo Lubryco a **70 px** (JSX manda sobre el PDF de marca que dice 40).
+
+**Alcance de la comparación:** A) diseño original conductor vs. B) PWA actual · C) diseño original dashboard vs. D) Dashboard actual.
+
+**Veredicto global:** la implementación actual conservó la paleta base de fondos (`#0B1219/#111C26/#121C25`) y el amarillo `#F5E01B`, pero **reinterpretó todo lo demás**. No hay identidad de marca (ni Yellowtail, ni Barlow, ni el logotipo de 4 capas, ni logos de Lubryco/El Trébol), no hay Splash, la cámara perdió el visor con marco guía, el teclado numérico propio no existe, la ZonaA del dashboard fue reemplazada por un banner plano y el Rodillo perdió los tambores claros con décima roja del Fill-Rite físico. Todo lo listado abajo se trata como **bug visual**.
+
+---
+
+## Aclaración de alcance: qué parte del JSX es demo y qué parte es producto
+
+Los mockups traen un contenedor de demostración que **no** forma parte de la app:
+página contenedora con encabezado "Demo/Recorrido/Las 8 pantallas", carcasa `Celular`
+(borde 34 px, sombra de objeto), `BarraEstado` simulada (hora/señal/batería), panel
+lateral `NOTAS` y la vista galería con `CANON`. Eso existe para presentar el prototipo
+en un navegador de escritorio. **El producto es lo que está dentro del celular**:
+`Splash`, `CabezaApp`, `Titulo`, `BotonGrande`, `Aviso`, `Camara`, `CampoNum`,
+`Teclado` y las 8 pantallas. La auditoría siguiente cubre solo el producto.
+En el dashboard, el chip `DEMO` sí es parte del producto (estado de datos simulados).
+
+---
+
+## 1. Diferencias globales (afectan a las dos apps)
+
+| # | Componente | Valor original (JSX) | Valor actual | Archivo actual | Causa probable | Severidad | Corrección |
+|---|---|---|---|---|---|---|---|
+| G1 | Tipografía de interfaz | `'Barlow', system-ui, -apple-system, sans-serif` (constante `MARCA.ui`) | `system-ui, -apple-system, sans-serif` | `apps/pwa/src/estilos.css:11`, `apps/dashboard/src/estilos.css` | Fuentes nunca se integraron | **Crítica** | Autoalojar Barlow 400/500/600/700 (woff2, subset latin) y fijar `font-family` global. Autoalojado porque la app arranca sin señal (LEEME, advertencia 3) |
+| G2 | Tipografía del logotipo | `'Yellowtail', cursive` | no existe | — | ídem | **Crítica** | Autoalojar Yellowtail 400 |
+| G3 | Tipografía condensada (eslogan, placa) | `'Barlow Condensed', 'Barlow', sans-serif` 600/700 | no existe | — | ídem | **Crítica** | Autoalojar Barlow Condensed 600/700 |
+| G4 | `Logotipo` (4 capas: sombra desplazada → halo blanco → contorno negro → relleno amarillo con filete; tabla `CAPAS` 118/54/34 + función `capas()`; `line-height:1.35`, `paint-order:stroke`) | existe en ambos JSX | no existe en ninguna app | — | omitido | **Crítica** | Implementar `src/marca/Logotipo` idéntico al JSX (duplicado en cada app, igual que en los mockups; extraer a paquete queda para después del congelamiento) |
+| G5 | `Placa` APP (Barlow Condensed 700, `letter-spacing .2em`, `#0B0B0B` sobre `#F5E01B`, `padding 5px 7px 4px`, radio 3, `line-height 1`) | existe | PWA: no existe · Dashboard: aproximación con Tailwind (`text-[10px]`, `rounded`, `px-1.5 py-0.5`) | `apps/dashboard/src/disposicion/DisposicionTablero.tsx:45-50` | reinterpretación | Alta | Implementar `Placa` exacta |
+| G6 | `useMarca` (inyecta fuentes, `document.title`, favicon canvas: cuadrado `#4A7CAB` esquinas 22 %, C Yellowtail amarilla contorno 4 px) | existe | PWA: favicon.svg estático (equivalente aceptable, ya validado en hardening) · Dashboard: **sin favicon** | `apps/dashboard/index.html` | omitido | Media | Dashboard: favicon por canvas según JSX. PWA: conservar íconos instalables validados (mismo motivo visual) |
+| G7 | Logo Lubryco (`LOGO_LUBRYCO`, webp) | presente en cabeceras y Splash | **ausente en todo el producto** | — | asset nunca entregado hasta hoy | **Crítica** | Integrar `lubryco_110px.webp` del ZIP como archivo importado |
+| G8 | Paleta `C` completa | incluye `panelAlto #16232F`, `lineaSuave #1A2A38`, `tenue #5C748A`, `trebol #1E9B4B` | Dashboard `TEMA` usa `panel2 #18242F` (ese hex es `APP.tarjeta2`, token del móvil) y no tiene `panelAlto`/`lineaSuave`; PWA usa Tailwind genérico (`sky-950`, `amber-950`, `red-900`, `emerald-900`, `slate-700`) para estados | `apps/dashboard/src/tema.ts`, `apps/pwa/src/ui/basicos.tsx:51-58`, `apps/pwa/src/pantallas/Inicio.tsx:71-112` | mezcla de tokens | Alta | Completar tokens exactos y patrón de estado `color+"16"/"1F"` fondo, `color+"4D"/"55"` borde |
+| G9 | Regla "toda cifra en monoespaciada" | `font-mono` en galones, horas, códigos, totalizador | parcial: `tabular-nums` sin mono en muchos sitios | varios | reinterpretación | Alta | `font-mono` en toda cifra |
+| G10 | Ancho máximo de contenido | `1180 px` | Dashboard `max-w-5xl` (1024) | `DisposicionTablero.tsx:36` | aproximación | Media | `maxWidth: 1180` |
+| G11 | Sombras | casi ausentes por decisión (solo carcasa demo, rodillo inset, marco cámara) | sin sombras (coincide) | — | — | OK | — |
+| G12 | Iconografía | sin librería de íconos; solo caracteres `✓ ! ⌫` | PWA usa emoji `📷` y `✕`/`✗` | `CamaraEnVivo.tsx:51`, `InstalarApp.tsx:43`, `medidor.tsx:84` | improvisación | Media | Restaurar caracteres del contrato (`✓`, `!`, `⌫`); quitar emoji |
+
+---
+
+## 2. App del conductor — pantalla por pantalla
+
+### 00 · Bienvenida (`Splash`)
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Pantalla completa | Azul `#4A7CAB` a sangre; logotipo 54 px centrado (bloque subido 54 px para centrado óptico); eslogan `CADA GALÓN CUADRA` Barlow Condensed 700 13 px `.3em` negro; al pie (`padding-bottom 38`): `BY` Barlow 600 11 px `.18em` `#EAF2F8` + logo Lubryco **70 px**; avanza al tocar o sola a los 2 s | **No existe.** Al abrir se muestra "CuadreApp / Recuperando sesión…" en texto plano | `apps/pwa/src/App.tsx:169-175` | pantalla nunca implementada | **Crítica** | Implementar `Splash` exacto; mostrarla durante la recuperación de sesión (mínimo 2 s, avanza al toque cuando la sesión ya resolvió) |
+
+### Cabecera de la app (todas las pantallas 1-7)
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| `CabezaApp` | Lubryco 26 px │ separador 1×22 `C.linea` │ logotipo 28 px │ placa 9.5 px; derecha: sede 10 px `C.suave`; debajo, barra de avance de **5 segmentos** (alto 3, radio 2, amarillo/`lineaSuave`; equipo=1 … después=5; listo=5) con borde inferior `lineaSuave` | **No existe** ninguna cabecera; cada pantalla pone un `h1` gris | `apps/pwa/src/ui/basicos.tsx:3-10` | omitida | **Crítica** | Implementar `CabezaApp` exacta con la sede del catálogo |
+| `Titulo` | 21 px semibold `-0.01em` color texto + sub 12.5 px `C.suave` `line-height 1.5` `margin-top 6`; contenedor `px-4 pt-5` | `h1 text-xl font-bold text-[#8AA0B6]` (título gris, sin sub) | `ui/basicos.tsx:6` | reinterpretación | Alta | `Titulo` exacto |
+| `BotonGrande` | primario: amarillo, texto `#101A22`, `padding 18px 16px`, 16 px, `rounded-xl`; `chico`: `13px 16px`/14 px; tono `gris`: `APP.tarjeta2` + borde `C.linea` (no-disponible **sin** opacity) | `BotonPrincipal`: `p-5 text-xl`, negro, `disabled:opacity-40` | `ui/basicos.tsx:12-27` | reinterpretación | Alta | `BotonGrande` exacto con tono gris en vez de opacity |
+| `Aviso` | fondo `col+"16"`, borde `col+"4D"`, cuadrito 18×18 radio 5 con `✓`/`!`, título 13 px color del tono, cuerpo 11.5 px `C.suave` | franjas Tailwind (`border-sky-700 bg-sky-950`…) sin ícono | `ui/basicos.tsx:51-58` | reinterpretación | Alta | `Aviso` exacto (tonos ok/alerta/malo) |
+
+### 01 · Inicio
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Saludo | `Titulo` "Buenos días, {nombre de pila}" | título "CuadreApp" | `pantallas/Inicio.tsx:21` | sin conductor recordado a mano | Alta | Saludo por franja horaria con el último conductor recordado; si no hay, "Buenos días" a secas |
+| Botón principal | amarillo `rounded-2xl`, `padding 30px 18px`, 20 px, texto izquierda, subtexto "Toma unos 40 segundos" 12 px opacity .72 | `BotonPrincipal` genérico centrado sin subtexto | `Inicio.tsx:22` | reinterpretación | **Crítica** (es LA pantalla) | Botón exacto del JSX |
+| "Cargas de hoy" | eyebrow 9.5 px `.12em` + chip verde `9.5px` `C.verde+"1C"` "Todo sincronizado" en la MISMA línea; filas `APP.tarjeta` borde `lineaSuave` radio lg: hora mono 12 `C.suave` · equipo mono semibold 13 · gal mono semibold 14 | `h2` "Tus cargas de hoy: N" + chips píldora grandes de otra paleta; filas con 4 elementos incluido chip de estado | `Inicio.tsx:35-56` | reinterpretación | Alta | Recomponer según JSX; el estado de cuadre por carga (mejora validada) se conserva como acento discreto (punto de color/borde izquierdo), no como píldora protagonista |
+| Chip de sincronización | chip pequeño en la línea del eyebrow (verde "Todo sincronizado"); los demás estados (offline, en cola, sincronizando X de Y, error) son **mejoras validadas del hardening** | píldoras grandes centradas full-width | `Inicio.tsx:71-112` | hardening sin diseño | Alta | Mantener TODOS los estados pero en el formato de chip del JSX (colores del semáforo `C`) |
+| Aviso instalación / almacén en riesgo / diagnóstico | no existen en el JSX (funciones nuevas) | tarjetas y enlaces genéricos | `Inicio.tsx:26-33,58-66` | hardening | Media | Conservar, re-vestidos con `Aviso`/estilos del contrato, debajo de la lista (integración discreta) |
+
+### 02 · Equipo
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Estado "buscando" | visor 216 px `#05090D` con 4 esquinas amarillas (34×34, 3 px, radios 8) y "Buscando código…" 11.5 px; botón alterno "Buscar por código" 12.5 px `C.azul` | lista con `input` de búsqueda de texto libre | `pantallas/Equipo.tsx` | QR diferido por spec; pantalla quedó en su "salida de emergencia" sin diseño | Alta | Sin agregar QR (funcionalidad congelada): la búsqueda por código es la vía, pero **vestida** según el patrón del JSX (título/sub exactos, filas estilo tarjeta) |
+| Confirmación de equipo | tarjeta `APP.tarjeta` borde `C.verde+"66"`: eyebrow verde "Equipo reconocido", código **mono bold 34 px**, descripción 13 `C.suave`, "Horómetro de la última carga: X h" 11.5; botones "Sí, es este" (BotonGrande) y "No, escanear otro" (enlace azul) | **no existe** — tocar la fila salta directo a Conductor | `Equipo.tsx:34` | omitida | **Crítica** | Restaurar el paso de confirmación con la última lectura del contexto ("No, buscar otro") |
+| Título | "¿Qué equipo vas a cargar?" + sub "Apunta al sticker de la máquina." | "¿Qué equipo vas a tanquear?" | `Equipo.tsx:22` | microcopy alterado | Alta | Texto del JSX; sub adaptado a búsqueda: el JSX no contempla lista, se usa el título exacto y sub "Busca el código del equipo." marcado NO DETERMINADO en el contrato |
+
+### 03 · Conductor
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Título | "Confirma tu clave" + sub "Cargando T-04 · Tractor Massey 4292" | "¿Quién eres?" | `pantallas/Conductor.tsx:32` | microcopy alterado | Alta | Texto del JSX con el equipo elegido |
+| Tarjeta del conductor | eyebrow "Conductor" + nombre 16 semibold + "Código 07" 11 `C.suave` (dispositivo recuerda al último) | campo de texto libre "Código" | `Conductor.tsx:33` | reinterpretación | **Crítica** | Tarjeta del último conductor recordado + PIN; cambio de conductor tecleando otro código (teclado numérico, no texto libre) |
+| PIN | 4 puntos 15×15 radio 8 que se llenan en amarillo; "Cuatro dígitos" 11 px centrado | campo de texto libre "PIN" | `Conductor.tsx:34` | reinterpretación | **Crítica** | Puntos exactos |
+| `Teclado` | propio: 12 teclas grid-cols-3 `gap 7`, `padding 13px 0`, 19 px mono, `APP.tarjeta2`, borde `lineaSuave`, `⌫` en `C.suave` — "ninguna pantalla pide escribir letras" | teclado del sistema (inputs) | — | omitido | **Crítica** | Implementar `Teclado` exacto |
+
+### 04 · Antes de cargar
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Título | "Antes de cargar" + sub "Deja el medidor en 0.0 y toma la foto. Una sola foto muestra los dos números." | "Antes de cargar" + `p` "Deja la tanda en 0,0 y toma la foto del medidor." | `AntesDeCargar.tsx:31-32` | microcopy alterado | Alta | Sub del JSX |
+| `Camara` | visor 244 px con la foto del medidor, marco guía (2 px amarillo→verde, radio 6, `box-shadow 0 0 0 9999px rgba(4,8,12,.42)`), píldora de instrucción "Encuadra la carátula completa"/"Foto tomada", obturador 54 px blanco, pie "Solo cámara en vivo · queda con hora y ubicación" 10.5 px | botón rectangular punteado "📷 Foto del medidor (inicial)" | `captura/CamaraEnVivo.tsx` | reinterpretación total | **Crítica** | Restaurar el visor: foto de referencia del Fill-Rite (asset del ZIP) atenuada como guía de encuadre → al capturar, la foto real del conductor dentro del mismo marco en verde. El disparo sigue siendo `input capture` (sin cambio funcional) |
+| `CampoNum` | tarjeta `APP.tarjeta`, borde por validación (rojo/ámbar/amarillo activo/`C.linea`), rot uppercase 9.5 `.12em`, ayuda 10 px, valor **mono bold 26 px** + unidad 11 px, `—` si vacío | `input` nativo 2xl con label | `ui/basicos.tsx:29-49` | reinterpretación | **Crítica** | `CampoNum` exacto + `Teclado` para editar (campo activo con borde amarillo) |
+| Rótulos de campos | "Tanda de arriba" (ayuda "debe ser 0,0") · "Total gallons" (ayuda "esperado 1.847") | "Tanda (debe ser 0,0)" · "Totalizador" (ayuda "Último conocido: …") | `AntesDeCargar.tsx:41-49` | microcopy alterado | Alta | Rótulos y ayudas del JSX (esperado desde el contexto) |
+| Avisos R1/R2 | R1: "La tanda no está en cero" + cuerpo; R2: "El medidor arrancó N gal más arriba" + cuerpo que no acusa | mensajes de `MENSAJES_BANDERA` (texto correcto de dominio) en franjas Tailwind | `AntesDeCargar.tsx:52-59` | estilo | Alta | Mismos mensajes en `Aviso` restaurado |
+| Botón | "Empezar a cargar" / gris "Toma la foto para seguir" | "Empezar a cargar" deshabilitado con opacity | `AntesDeCargar.tsx:61-66` | parcial | Media | Doble rótulo del JSX con tono gris |
+
+### 05 · Cargando
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Composición | Título "Cargando"; cronómetro **mono bold 62 px** `-0.02em` (`padding-top 44`); "Tiempo de carga" 12 `C.suave`; tarjeta (mt 36) con Equipo / Conductor / "Medidor al iniciar" en filas 11.5/12.5 mono; botón "Terminé de cargar" (`padding-top 32`) | "Cargando combustible…" + reloj `text-7xl` + botón; **sin tarjeta de contexto** | `pantallas/Cargando.tsx` | simplificación | **Crítica** | Composición exacta (contexto: equipo, conductor, medidor al iniciar) |
+
+### 06 · Después de cargar
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Título | "Después de cargar" + sub "Toma la foto del cierre y copia los dos números." | sin sub | `DespuesDeCargar.tsx:56` | omitido | Media | Sub del JSX |
+| Cámara + campos | `Camara` + 3 `CampoNum`: "Tanda de arriba", "Total gallons" (ayuda dinámica "subió N"), "Horómetro del tractor" (ayuda "anterior 1.086,5"); bordes rojos cuando no cuadra; avisos "Cuadra: X galones" (verde) / "La tanda dice X pero el totalizador subió Y" (rojo) | botón-cámara + inputs nativos "Tanda final"/"Totalizador final"/"Horómetro"; aviso "✓ Cuadra" azul info | `DespuesDeCargar.tsx` | reinterpretación | **Crítica** | Restaurar composición y microcopy; el aviso de cuadre en **verde** (tono ok), no info |
+| Nota obligatoria (R1) | no existe en JSX (mejora funcional) | textarea genérico | `DespuesDeCargar.tsx:82-94` | hardening | Media | Conservar, vestido como tarjeta del contrato (borde ámbar) |
+| Botón | "Guardar la carga" (gris hasta foto+números) | "Guardar" | `DespuesDeCargar.tsx:96` | microcopy | Alta | "Guardar la carga" |
+
+### 07 · Listo
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Composición | círculo ✓ 62 px `C.verde+"22"` borde `+"66"` 30 px; cifra galones **mono bold 52 px**; "galones cargados" 12; tarjeta 5 filas: Equipo · Conductor · Hora · "Medidor X → Y" · Horómetro; aviso ámbar "Guardado en el celular" cuando no hay señal; botón "Registrar otra carga" | tarjeta única centrada con cifra 5xl, chip píldora de estado, texto de sincronización suelto | `pantallas/Listo.tsx` | reinterpretación | **Crítica** | Composición exacta; el veredicto del dominio/servidor y banderas (mejoras validadas) integrados como acento y `Aviso` del contrato |
+
+### Pantallas fuera del flujo original (mejoras validadas — se conservan, re-vestidas)
+
+| Pantalla | Actual | Corrección |
+|---|---|---|
+| Enrolar | genérica | vestir con `CabezaApp`-menos-avance, `Titulo`, `CampoNum`/`BotonGrande` del contrato (el código de enrolamiento es alfanumérico: única entrada de texto legítima — el enrolamiento lo hace el supervisor, no el conductor) |
+| Diagnóstico | filas genéricas correctas de tono | vestir con `Titulo` y tarjetas del contrato |
+| Falta catálogo / sesión vencida | genéricas | `Aviso` + `BotonGrande` del contrato |
+| Guía instalación (`InstalarApp`) | tarjeta genérica con ✕ | vestir como `Aviso` informativo del contrato, sin emoji |
+
+---
+
+## 3. Dashboard — sección por sección
+
+### Header
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| Co-marca | Lubryco **44 px** │ separador 1×40 │ logotipo 34 + `Placa` │ subtítulo "Control de combustible en planta" 10.5 `.04em` | texto "Cuadre" italic amarillo + badge APP aproximado + subtítulo con texto distinto ("· El Trébol — Planta Buga") | `DisposicionTablero.tsx:41-54` | sin assets ni marca | **Crítica** | Header exacto del JSX |
+| Chip DEMO | uppercase 9.5 `.12em` amarillo, borde `amarillo+"66"`, radio 4, `3px 7px` | banner full-width ámbar oscuro | `DisposicionTablero.tsx:60-65` | reinterpretación | Alta | Chip DEMO exacto; la honestidad de "datos simulados" pasa a la línea de contexto (discreta, visible) |
+| Tarjeta cliente | `panelAlto` borde `linea`, logo Trébol **48×48 radio 6** + "El Trébol S.A.S." 13 semibold + sede 10.5 | **no existe** | — | asset ausente | **Crítica** | Integrar `trebol_110px.webp` y tarjeta exacta |
+| Pestañas | fila bajo el header, 13 px semibold, `padding 11px 16px`, activa = texto claro + `borderBottom 2px` amarillo; `overflow-x-auto` (así resuelve móvil) | píldoras amarillas redondeadas; en móvil, barra fija inferior | `DisposicionTablero.tsx:14-32,71-76` | sustitución "más práctica" | **Crítica** | Pestañas subrayadas del JSX en su lugar original; eliminar la barra inferior (el original resuelve móvil con scroll horizontal) |
+| Línea de contexto | "{cliente} · {fecha} · corte {hora}" izquierda · "Medidor {modelo} · instalado {fecha}" derecha, 12/11 px | **no existe** | — | omitida | Alta | Restaurar con datos de la fuente |
+| Pie | 2 frases: servicio sin costo · Lubryco solo ve volumen | **no existe** | — | omitido | Alta | Restaurar exacto |
+
+### Componentes
+
+| Componente | Original | Actual | Archivo | Causa | Severidad | Corrección |
+|---|---|---|---|---|---|---|
+| `ZonaA` | degradado lateral `col+"14"→panel 55%`, borde izq 3 px, eyebrow del tono, **frase 21 px semibold**, `hechos` (valor mono semibold 17 + etiqueta 11), slot `derecha` | `VeredictoBanner`: borde izq 4 px, título 18 px del color, sin hechos ni derecha | `componentes/basicos.tsx:11-29` | simplificación | **Crítica** | `ZonaA` exacta en las 4 pestañas con sus hechos y bloques derechos |
+| `Rodillo` | tambores claros con degradado `#F7F9FB→#C9D3DC`, texto `#101820`, décima en tambor **rojo** `#C0362B→#8C241C`, ancho = alto×0.62, radio 3, inset shadow | cajas oscuras borde `linea` + décima **amarilla** | `componentes/medidor.tsx:9-38` | reinterpretación | **Crítica** | Rodillo exacto (réplica de la carátula física) |
+| `Chip` | uppercase 10 `.08em`, `color` del estado, fondo `col+"1F"`, borde `col+"55"`, radio full | píldora fondo sólido texto negro | `componentes/basicos.tsx:31-40` | reinterpretación | Alta | Chip exacto |
+| `Candado` | cuadrito 17×17 radio 4 `col+"22"` borde `col+"66"` con `✓`/`!`; texto 12.5 + detalle 11 | círculo relleno con `✓`/`✗` + "cumple/no cumple" | `componentes/medidor.tsx:70-98` | reinterpretación | Alta | Candado exacto (con `!`, no `✗`) |
+| `Eyebrow` | 10 px `.14em` | aproximaciones `text-xs tracking-wider` | varios | estilo | Media | Componente exacto |
+| `Panel` | radio lg, `C.panel`/`panelAlto`, borde `lineaSuave` | `rounded-xl` sin borde | varios | estilo | Media | Panel exacto |
+| `BotonExcel` | fila con sufijo "XLSX", principal amarillo / secundario `panelAlto` | **no existe** (sin exportación) | — | nunca implementado | Alta | Restaurar botones y exportación día/mes (SheetJS) sobre la fuente de datos |
+| Gráfico consumo | 14 barras amarillas opacity .9, día parcial **azul** .55, valor encima 10 px mono, día debajo, alto 132/96 | barras azules, sin valores encima | `componentes/medidor.tsx:40-68` | reinterpretación | Alta | Gráfico exacto |
+
+### Pestaña Hoy
+
+| Bloque | Original | Actual | Severidad | Corrección |
+|---|---|---|---|---|
+| ZonaA | tono alto: frase de autonomía y orden de pedir hoy; hechos existencia/consumo/sin dueño; derecha botón "Pedir diésel a Lubryco" | banner simple + 2 TarjetaMetrica sueltas | **Crítica** | ZonaA exacta (botón "Pedir" visible; acción llega con Fase C — queda deshabilitado-visual con title, decisión anotada) |
+| Grid | `lg:grid-cols-3`: panel Totalizador (rodillo 40 + texto + desglose entregado/despachado con borde superior) + panel gráfico `col-span-2` (encabezado + nota "+54 %…" y pie con corte) | secciones apiladas separadas | **Crítica** | Grid exacto |
+| Cargas de hoy | panel con eyebrow "Cargas de hoy · N registradas"; filas `panelAlto` con **borde izquierdo 2 px** del color de estado; hora 12 mono ancho 42, equipo 13 mono ancho 54, desc+conductor 12, gal 14 mono derecha 74, `Chip` | lista de Links con otra estructura | Alta | Filas exactas (siguen siendo enlaces al detalle — mejora invisible) |
+| Botón "Actualizar" + "Actualizado HH:MM" | no existe en JSX | fila propia | Media | conservar discreto en la línea de contexto (derecha), 11 px |
+
+### Pestaña Cargas
+
+| Bloque | Original | Actual | Severidad | Corrección |
+|---|---|---|---|---|
+| ZonaA | tono medio 44/47 + hechos; derecha bloque "Descargar el detalle" con 2 `BotonExcel` + nota de 5 hojas | banner + filtros píldora | **Crítica** | ZonaA exacta |
+| Master-detail | grid `lg:grid-cols-5`: tabla seleccionable (3) + panel evidencia `alto` (2): fotos 2×138 px, tanda/totalizador por foto, candados, contador del equipo | tabla con link "Ver" → página aparte `/cargas/:id` | **Crítica** | Restaurar master-detail; la ruta `/cargas/:id` se conserva (selecciona la fila — deep-link invisible) |
+| Filtros por estado | no existen en JSX | píldoras | Media | conservar como fila discreta sobre la tabla (mejora funcional validada, estilo chip del contrato) |
+| Tabla | cabeceras uppercase 10 `.1em`, bordes `linea`/`lineaSuave`, fila activa `panelAlto`, Galones derecha | estilo genérico | Alta | Tabla exacta |
+
+### Pestaña Equipos
+
+| Bloque | Original | Actual | Severidad | Corrección |
+|---|---|---|---|---|
+| ZonaA | tono medio, desvío del equipo líder + 3 hechos | banner | **Crítica** | ZonaA exacta calculada de la fuente |
+| Tabla | 6 columnas (incl. **Uso**), fila con desvío ≥ 15 % fondo `rojo+"0F"`, desvío coloreado rojo/ámbar/suave | 5 columnas sin Uso ni resaltado, umbral 10 % ámbar | Alta | Tabla exacta (agregar `uso` a la fuente simulada); umbral visual 15 rojo / >5 ámbar como el JSX |
+| Pie | texto largo "inyectores, filtro, …" | texto distinto | Media | Texto del JSX |
+
+### Pestaña Suministro
+
+| Bloque | Original | Actual | Severidad | Corrección |
+|---|---|---|---|---|
+| ZonaA | tono alto, fecha de agotamiento; derecha tarjeta "Balance de suministro" (entregado − despachado = en tanque amarillo) + nota ±2 % | banner + 3 TarjetaMetrica | **Crítica** | ZonaA exacta con balance en la derecha |
+| Tabla entregas | 5 columnas incl. **"Recibido por"**; pie sobre remisión verificable | 4 columnas sin recibe; pie distinto | Alta | Tabla exacta (agregar `recibidoPor` a la fuente) |
+
+### Detalle de carga (ruta actual)
+
+El JSX no tiene página de detalle: la evidencia vive en el panel derecho de Cargas.
+`/cargas/:id` pasa a renderizar Cargas con esa fila seleccionada. **Corrección:**
+eliminar la página aparte; los mensajes de supervisor por bandera (mejora) se muestran
+en el panel de evidencia bajo los candados.
+
+---
+
+## 4. Assets
+
+| Asset | Original (ZIP) | Actual | Corrección |
+|---|---|---|---|
+| Logo Lubryco | `02_assets/logos/lubryco_110px.webp` | ausente | importar como archivo en ambas apps |
+| Logo El Trébol | `02_assets/logos/trebol_110px.webp` | ausente | importar en dashboard |
+| Foto medidor "antes" | `02_assets/fotos_medidor/fillrite_900_antes.webp` | ausente | PWA: guía de encuadre del visor; Dashboard: evidencia simulada |
+| Foto medidor "después" | `fillrite_900_despues.webp` | ausente | ídem |
+| Íconos instalables PWA | (C amarilla sobre azul — coincide con identidad) | ya validados en hardening | **no tocar** |
+
+## 5. Resumen de severidades
+
+- **Críticas:** 23 (identidad tipográfica y de marca completa, Splash, CabezaApp, cámara, CampoNum, Teclado, confirmación de equipo, PIN, Cargando sin contexto, Listo, header dashboard, pestañas, ZonaA, Rodillo, master-detail, grids de Hoy)
+- **Altas:** 24 · **Medias:** 12 · **OK sin cambio:** paleta base de fondos, semáforo de estados, textos de dominio (MENSAJES_BANDERA), toda la lógica funcional.
+
+**Nada de lo anterior toca:** dominio, API, IndexedDB, cola, sincronización, sesión,
+idempotencia ni reglas de negocio. Únicas extensiones no visuales estrictamente
+necesarias: campos de lectura `uso`/`recibidoPor`/desglose de balance en la fuente
+simulada del tablero (puertos de lectura, sin reglas), y `woff2` en el precache de
+workbox para que la marca funcione offline.
