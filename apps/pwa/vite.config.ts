@@ -28,13 +28,19 @@ export default defineConfig({
         lang: "es",
         start_url: "/",
         display: "standalone",
-        background_color: "#0B1219",
+        // El azul de la bienvenida: la pantalla de arranque que Android
+        // genera (ícono + nombre sobre background_color) queda del MISMO
+        // azul que la Splash — el cuadro celeste sobre fondo oscuro
+        // desaparece y el arranque se lee como una sola bienvenida.
+        background_color: "#4A7CAB",
         theme_color: "#4A7CAB",
+        // Íconos v2 (trazo grueso aprobado). Nombres nuevos a propósito:
+        // el cambio de URL fuerza a Chrome a refrescar el WebAPK.
         icons: [
-          { src: "/iconos/icono-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/iconos/icono-512.png", sizes: "512x512", type: "image/png" },
+          { src: "/iconos/icono-v2-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/iconos/icono-v2-512.png", sizes: "512x512", type: "image/png" },
           {
-            src: "/iconos/icono-mascara-512.png",
+            src: "/iconos/icono-v2-mascara-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
