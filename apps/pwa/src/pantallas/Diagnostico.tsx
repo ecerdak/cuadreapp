@@ -29,7 +29,7 @@ function Fila(props: { rotulo: string; valor: string }) {
 
 export function Diagnostico(props: { bd: BdLocal; onVolver: () => void }) {
   const { bd } = props;
-  const estado = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
+  const estado = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync, obtenerEstadoSync);
   const [almacen, setAlmacen] = useState<string>("consultando…");
   const [persistente, setPersistente] = useState<string>("consultando…");
 

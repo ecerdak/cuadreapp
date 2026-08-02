@@ -144,7 +144,7 @@ export function Inicio(props: {
 /* Chip del estado de sincronización (siempre visible): el formato del
    contrato — píldora 9.5 px — con los estados del hardening validado. */
 function ChipSincronizacion(props: { pendientes: number; errores: number }) {
-  const estado = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
+  const estado = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync, obtenerEstadoSync);
 
   const chip = (color: string, texto: string) => (
     <span

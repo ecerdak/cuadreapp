@@ -91,7 +91,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [idReciente, setIdReciente] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
-  const estadoSync = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
+  const estadoSync = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync, obtenerEstadoSync);
   const [restauracionLista, setRestauracionLista] = useState(false);
 
   // [00] Bienvenida: la marca aparece una vez y se quita del camino.
