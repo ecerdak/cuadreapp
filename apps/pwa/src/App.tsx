@@ -19,6 +19,7 @@ import {
 import type { ServicioSesion } from "./seguridad/sesion";
 import { capturarGps, type PosicionCapturada } from "./captura/gps";
 import { aNumero, formatearGal } from "./ui/numeros";
+import { fechaLocalDe, fechaLocalHoy } from "./ui/fechas";
 import { MENSAJES_BANDERA } from "./ui/mensajes";
 import { Aviso, BotonPrincipal, Pantalla } from "./ui/basicos";
 import { obtenerDeviceId, VERSION_APP } from "./config";
@@ -101,11 +102,12 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     ? catalogoLocalDesdeRemoto(catalogoCacheado.datos)
     : null;
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  // RC1-A2: el "hoy" del negocio es America/Bogota, no UTC (spec §13).
+  const hoy = fechaLocalHoy();
   const cargasHoy =
     useLiveQuery(async () => {
       const todas = await bd.cargas.orderBy("creadaEn").reverse().limit(50).toArray();
-      return todas.filter((carga) => carga.creadaEn.startsWith(hoy));
+      return todas.filter((carga) => fechaLocalDe(carga.creadaEn) === hoy);
     }, [hoy]) ?? [];
   const pendientes = useLiveQuery(() => contarPendientes(bd)) ?? 0;
   const erroresDefinitivos =
