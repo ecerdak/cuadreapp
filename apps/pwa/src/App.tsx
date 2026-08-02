@@ -9,6 +9,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { validarCarga, type ContextoValidacion, type RegistroCarga } from "@cuadreapp/dominio";
 import type { BdLocal, PayloadCarga } from "./offline/bd";
 import { contarPendientes, encolarCarga, obtenerContextoValidacion } from "./offline/cola";
+import { cargarBorrador, guardarBorrador, limpiarBorrador } from "./offline/borrador";
 import type { ClienteApi } from "./offline/sincronizador";
 import { obtenerEstadoSync, sincronizarConEstado, suscribirEstadoSync } from "./offline/estado-sync";
 import {
@@ -87,6 +88,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [aviso, setAviso] = useState<string | null>(null);
   const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
   const estadoSync = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
+  const [restauracionLista, setRestauracionLista] = useState(false);
 
   // RC1-A3: si el navegador niega la persistencia, la cola puede
   // purgarse — el conductor debe saberlo.
@@ -128,6 +130,38 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   );
 
   const cambiar = (cambios: Partial<Borrador>) => setBorrador((actual) => ({ ...actual, ...cambios }));
+
+  // FASE 5: el borrador sobrevive a que maten la app a mitad de captura.
+  // Restaurar una sola vez cuando hay sesión y catálogo.
+  useEffect(() => {
+    if (restauracionLista || estadoSesion === "cargando" || estadoSesion === "sin_enrolar") return;
+    if (!catalogo) return;
+    void cargarBorrador(bd).then(async (guardado) => {
+      if (guardado && guardado.paso !== "inicio" && guardado.paso !== "listo") {
+        const datos = guardado.datos as Borrador;
+        setBorrador(datos);
+        if (datos.equipo) {
+          setContexto(
+            await obtenerContextoValidacion(bd, catalogo.dispensador, datos.equipo, catalogo.sede),
+          );
+        }
+        setPaso(guardado.paso as Paso);
+      }
+      setRestauracionLista(true);
+    });
+    // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restauracionLista, estadoSesion, catalogo === null]);
+
+  // Persistir el borrador en cada cambio durante la captura; limpiarlo al
+  // volver al inicio (la carga guardada ya lo limpió en guardar()).
+  useEffect(() => {
+    if (!restauracionLista) return;
+    if (paso === "inicio") {
+      void limpiarBorrador(bd);
+    } else if (paso !== "listo") {
+      void guardarBorrador(bd, paso, borrador);
+    }
+  }, [restauracionLista, paso, borrador]);
 
   /* ============ Puertas de sesión (antes del flujo de carga) ============ */
 
@@ -284,16 +318,26 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       version_app: VERSION_APP,
     };
 
-    await encolarCarga(bd, {
-      payload,
-      veredicto,
-      resumen: {
-        equipoCodigo: borrador.equipo.codigo,
-        conductorNombre: borrador.conductor.nombre,
-        galones: tandaFinal,
-      },
-      fotos: { inicial: borrador.fotoInicial, final: borrador.fotoFinal },
-    });
+    try {
+      await encolarCarga(bd, {
+        payload,
+        veredicto,
+        resumen: {
+          equipoCodigo: borrador.equipo.codigo,
+          conductorNombre: borrador.conductor.nombre,
+          galones: tandaFinal,
+        },
+        fotos: { inicial: borrador.fotoInicial, final: borrador.fotoFinal },
+      });
+    } catch {
+      // FASE 5: un fallo de almacenamiento (cuota) jamás pierde la captura:
+      // el borrador sigue persistido y en pantalla.
+      setAviso(
+        "No se pudo guardar en el teléfono (¿almacenamiento lleno?). Libera espacio e intenta de nuevo — tu registro sigue en pantalla.",
+      );
+      return;
+    }
+    await limpiarBorrador(bd);
 
     setIdReciente(id);
     setPaso("listo");

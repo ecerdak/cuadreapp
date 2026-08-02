@@ -5,6 +5,7 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
 import type { CatalogoRemoto, PerfilMe } from "../datos/contratos";
+import type { BorradorGuardado } from "./borrador";
 
 /** Cuerpo exacto del POST /api/v1/cargas (contrato snake_case de la API). */
 export interface PayloadCarga {
@@ -93,6 +94,7 @@ export type BdLocal = Dexie & {
   contexto: EntityTable<ContextoLocal, "clave">;
   perfil: EntityTable<PerfilCacheado, "clave">;
   catalogo: EntityTable<CatalogoCacheado, "clave">;
+  borradores: EntityTable<BorradorGuardado, "clave">;
 };
 
 export function crearBd(nombre = "cuadreapp"): BdLocal {
@@ -105,6 +107,9 @@ export function crearBd(nombre = "cuadreapp"): BdLocal {
   bd.version(2).stores({
     perfil: "clave",
     catalogo: "clave",
+  });
+  bd.version(3).stores({
+    borradores: "clave",
   });
   return bd;
 }

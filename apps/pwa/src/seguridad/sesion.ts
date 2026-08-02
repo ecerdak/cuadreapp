@@ -4,6 +4,7 @@
 // TokenStore/ClienteHttp.
 
 import type { BdLocal } from "../offline/bd";
+import { contarPendientes } from "../offline/cola";
 import type { TokenStore } from "./token-store";
 import { ClienteHttp, ErrorSesionVencida } from "../datos/cliente-http";
 import { solicitarAlmacenamientoPersistente } from "./persistencia";
@@ -78,14 +79,22 @@ export class ServicioSesion {
     }
   }
 
-  /** Cierra la sesión. La cola de cargas pendientes queda intacta: es
-   *  evidencia operativa que sube en la próxima sesión. */
-  async cerrar(): Promise<void> {
+  /** Cierra la sesión. FASE 5 del hardening: con cargas pendientes se
+   *  NIEGA salvo forzar explícito — desenrolar con evidencia sin subir
+   *  es la forma más fácil de perderla. La cola queda intacta siempre. */
+  async cerrar(
+    opciones: { forzar?: boolean } = {},
+  ): Promise<{ ok: true } | { ok: false; pendientes: number }> {
+    const pendientes = await contarPendientes(this.bd);
+    if (pendientes > 0 && !opciones.forzar) {
+      return { ok: false, pendientes };
+    }
     try {
       await this.http.solicitar("/api/v1/auth/logout", { method: "POST" });
     } catch {
       // mejor esfuerzo: la revocación local es lo que importa
     }
     await this.tokens.limpiar();
+    return { ok: true };
   }
 }
