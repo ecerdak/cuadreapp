@@ -107,3 +107,11 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 ### Agregado
 - `docs/RC1_RELEASE_AUDIT.md`: auditoría de liberación con hallazgos verificados en código (3 críticos, 7 importantes), riesgos por categoría, checklist Go/No-Go, planes de instalación/primer día/contingencia, criterios de éxito y métricas del piloto, y mejoras priorizadas para v1.1. Veredicto: **NO-GO, 68/100**, con camino explícito a >90.
 - `docs/ROADMAP_RC1_TO_GO.md`: plan oficial aprobado para pasar de 68 a >90 — cinco fases con tareas, dependencias, esfuerzo y criterio de terminado: A correcciones críticas (+4), B infraestructura real (+8, única fase bloqueada por cuentas externas), C integración del Dashboard sin tocar componentes (+9), D piloto interno con las 10 cargas offline (+3), E preparación del cliente (+3).
+
+### Fase A completada (correcciones críticas)
+- A1: la API acepta jpeg/png además de webp (Safari/iOS no exporta WebP); extensión del objeto según tipo real; bucket actualizado por migración.
+- A2: el "hoy" del negocio usa `America/Bogota`, nunca UTC (el bug rotaba el día a las 7 p. m.).
+- A3: `navigator.storage.persist()` al enrolar + aviso cuando el navegador lo niega — la cola offline es la evidencia probatoria.
+- A4: `bodyLimit` de fotos alineado al contrato de 2 MiB.
+- A5: íconos de instalación (192/512/maskable/apple-touch + favicon SVG) generados desde la marca del mockup.
+- 17 pruebas nuevas, todas rojo→verde. Puntuación RC1: **68 → 72/100**.
