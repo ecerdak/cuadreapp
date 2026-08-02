@@ -28,8 +28,15 @@ export const MENSAJES_BANDERA: Record<Bandera, string> = {
   TIEMPO_ATIPICO: "La duración de la carga es atípica. Queda anotado.",
 };
 
-export const ETIQUETA_ESTADO: Record<EstadoCarga, { texto: string; clase: string }> = {
-  ok: { texto: "Cuadra", clase: "bg-emerald-600 text-white" },
-  advertencia: { texto: "Con advertencia", clase: "bg-amber-500 text-black" },
-  inconsistente: { texto: "No cuadra", clase: "bg-red-600 text-white" },
+/* Semáforo del contrato visual: Cuadra / Revisar / No cuadra. */
+export const TEXTO_ESTADO: Record<EstadoCarga, string> = {
+  ok: "Cuadra",
+  advertencia: "Revisar",
+  inconsistente: "No cuadra",
+};
+
+export const COLOR_ESTADO: Record<EstadoCarga, string> = {
+  ok: "#3FAE7E",
+  advertencia: "#E2A233",
+  inconsistente: "#E2594C",
 };

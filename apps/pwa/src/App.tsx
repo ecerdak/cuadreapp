@@ -4,7 +4,7 @@
 // sesión se maneja vía ServicioSesion y el catálogo llega cacheado en
 // Dexie. La única autoridad de negocio invocada es el dominio.
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { validarCarga, type ContextoValidacion, type RegistroCarga } from "@cuadreapp/dominio";
 import type { BdLocal, PayloadCarga } from "./offline/bd";
@@ -24,8 +24,10 @@ import { capturarGps, type PosicionCapturada } from "./captura/gps";
 import { aNumero, formatearGal } from "./ui/numeros";
 import { fechaLocalDe, fechaLocalHoy } from "./ui/fechas";
 import { MENSAJES_BANDERA } from "./ui/mensajes";
-import { Aviso, BotonPrincipal, Pantalla } from "./ui/basicos";
+import { Aviso, BotonGrande, Titulo } from "./ui/basicos";
+import { CabezaApp } from "./ui/CabezaApp";
 import { obtenerDeviceId, VERSION_APP } from "./config";
+import { Splash } from "./pantallas/Splash";
 import { Inicio } from "./pantallas/Inicio";
 import { Equipo } from "./pantallas/Equipo";
 import { Conductor } from "./pantallas/Conductor";
@@ -91,6 +93,15 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
   const estadoSync = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
   const [restauracionLista, setRestauracionLista] = useState(false);
+
+  // [00] Bienvenida: la marca aparece una vez y se quita del camino.
+  // Dura 2 s o lo que tarde el conductor en tocar la pantalla (y cubre
+  // la recuperación de sesión si tarda más).
+  const [splashVista, setSplashVista] = useState(false);
+  useEffect(() => {
+    const temporizador = setTimeout(() => setSplashVista(true), 2_000);
+    return () => clearTimeout(temporizador);
+  }, []);
 
   // RC1-A3: si el navegador niega la persistencia, la cola puede
   // purgarse — el conductor debe saberlo.
@@ -164,25 +175,34 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     }
   }, [restauracionLista, paso, borrador]);
 
-  /* ============ Puertas de sesión (antes del flujo de carga) ============ */
+  /* ============ Bienvenida y puertas de sesión ============ */
 
-  if (estadoSesion === "cargando") {
-    return (
-      <Pantalla titulo="CuadreApp">
-        <p className="text-[#8AA0B6]">Recuperando sesión…</p>
-      </Pantalla>
-    );
+  // La Splash cubre el arranque: 2 s de marca (o un toque) y, si la
+  // recuperación de sesión aún no resuelve, sigue en pantalla.
+  if (!splashVista || estadoSesion === "cargando") {
+    return <Splash onSeguir={() => estadoSesion !== "cargando" && setSplashVista(true)} />;
   }
 
+  const shell = (paso: string | undefined, contenido: ReactNode) => (
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col">
+      <CabezaApp paso={paso} sede={catalogo?.sede.nombre} />
+      <div className="flex-1" style={{ paddingBottom: 22 }}>
+        {contenido}
+      </div>
+    </div>
+  );
+
   if (estadoSesion === "sin_enrolar" || estadoSesion === "vencida") {
-    return (
+    return shell(
+      undefined,
       <>
         {estadoSesion === "vencida" ? (
-          <div className="mx-auto max-w-md p-4 pb-0">
-            <Aviso tipo="advertencia">
-              La sesión de este dispositivo venció o fue revocada. Las cargas guardadas siguen en el
-              equipo y se subirán al re-enrolar.
-            </Aviso>
+          <div className="px-4 pt-4">
+            <Aviso
+              tono="alerta"
+              titulo="La sesión de este dispositivo venció o fue revocada"
+              cuerpo="Las cargas guardadas siguen en el equipo y se subirán al re-enrolar."
+            />
           </div>
         ) : null}
         <Enrolar
@@ -192,28 +212,34 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
             return resultado.ok ? { ok: true } : { ok: false, detalle: resultado.detalle };
           }}
         />
-      </>
+      </>,
     );
   }
 
   if (!catalogo) {
-    return (
-      <Pantalla titulo="Falta el catálogo">
-        <p className="text-[#8AA0B6]">
-          Este dispositivo aún no tiene el catálogo de la estación (equipos y conductores). Se necesita
-          señal una vez para descargarlo.
-        </p>
-        <BotonPrincipal
-          onClick={() =>
-            void sesion.refrescarCatalogo().then((ok) => {
-              if (!ok) setAviso("No se pudo descargar el catálogo. Revisa la señal.");
-            })
-          }
-        >
-          Reintentar
-        </BotonPrincipal>
-        {aviso ? <Aviso tipo="advertencia">{aviso}</Aviso> : null}
-      </Pantalla>
+    return shell(
+      undefined,
+      <>
+        <Titulo sub="Este dispositivo aún no tiene el catálogo de la estación (equipos y conductores). Se necesita señal una vez para descargarlo.">
+          Falta el catálogo
+        </Titulo>
+        <div className="px-4 pt-4">
+          <BotonGrande
+            onClick={() =>
+              void sesion.refrescarCatalogo().then((ok) => {
+                if (!ok) setAviso("No se pudo descargar el catálogo. Revisa la señal.");
+              })
+            }
+          >
+            Reintentar
+          </BotonGrande>
+        </div>
+        {aviso ? (
+          <div className="px-4 pt-4">
+            <Aviso tono="alerta" titulo={aviso} />
+          </div>
+        ) : null}
+      </>,
     );
   }
 
@@ -345,18 +371,26 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     void sincronizarConEstado(bd, api); // intento inmediato; sin señal, la cola espera al sincronizador
   }
 
-  return (
+  // Saludo de Inicio: el último conductor que usó este dispositivo.
+  const nombreConductor =
+    catalogo.conductores.find((c) => c.codigo === localStorage.getItem("cuadreapp:ultimo_conductor"))
+      ?.nombre ?? null;
+
+  return shell(
+    paso,
     <>
       {estadoSync.actualizacionLista ? (
-        <div className="mx-auto max-w-md p-4 pb-0">
-          <Aviso tipo="info">
-            Actualización lista. Cierra y vuelve a abrir la app para aplicarla — tus datos no se tocan.
-          </Aviso>
+        <div className="px-4 pt-4">
+          <Aviso
+            tono="info"
+            titulo="Actualización lista"
+            cuerpo="Cierra y vuelve a abrir la app para aplicarla — tus datos no se tocan."
+          />
         </div>
       ) : null}
       {aviso ? (
-        <div className="mx-auto max-w-md p-4 pb-0">
-          <Aviso tipo="advertencia">{aviso}</Aviso>
+        <div className="px-4 pt-4">
+          <Aviso tono="alerta" titulo={aviso} />
         </div>
       ) : null}
 
@@ -365,6 +399,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           cargasHoy={cargasHoy}
           pendientes={pendientes}
           erroresDefinitivos={erroresDefinitivos}
+          nombreConductor={nombreConductor}
           almacenEnRiesgo={almacenEnRiesgo}
           onDiagnostico={() => setPaso("diagnostico")}
           onEmpezar={() => {
@@ -380,6 +415,9 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       {paso === "conductor" && (
         <Conductor
           conductores={catalogo.conductores}
+          equipoRotulo={
+            borrador.equipo ? `${borrador.equipo.codigo} · ${borrador.equipo.descripcion}` : undefined
+          }
           onIdentificado={(conductor) => {
             cambiar({ conductor });
             setPaso("antes");
@@ -392,7 +430,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           contexto={contexto}
           tandaInicial={borrador.tandaInicial}
           totInicial={borrador.totInicial}
-          fotoInicial={borrador.fotoInicial !== null}
+          fotoInicial={borrador.fotoInicial}
           onTandaInicial={(valor) => cambiar({ tandaInicial: valor })}
           onTotInicial={(valor) => cambiar({ totInicial: valor })}
           onFoto={(foto) => cambiar({ fotoInicial: foto })}
@@ -403,9 +441,13 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
         />
       )}
 
-      {paso === "cargando" && borrador.iniciadaEn && (
+      {paso === "cargando" && borrador.iniciadaEn && borrador.equipo && borrador.conductor && (
         <Cargando
           iniciadaEn={borrador.iniciadaEn}
+          equipoCodigo={borrador.equipo.codigo}
+          equipoDescripcion={borrador.equipo.descripcion}
+          conductorNombre={borrador.conductor.nombre}
+          totInicialGal={aNumero(borrador.totInicial)}
           onTermine={() => {
             cambiar({ finalizadaEn: new Date().toISOString() });
             setPaso("despues");
@@ -425,7 +467,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           lecturaEquipo={borrador.lecturaEquipo}
           nota={borrador.nota}
           exigeNota={exigeNota}
-          fotoFinal={borrador.fotoFinal !== null}
+          fotoFinal={borrador.fotoFinal}
           onTandaFinal={(valor) => cambiar({ tandaFinal: valor })}
           onTotFinal={(valor) => cambiar({ totFinal: valor })}
           onLecturaEquipo={(valor) => cambiar({ lecturaEquipo: valor })}
@@ -440,6 +482,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       {paso === "listo" && (
         <Listo
           carga={cargaReciente}
+          equipoDescripcion={borrador.equipo?.descripcion}
           onOtraCarga={() => {
             setBorrador(borradorVacio());
             setIdReciente(null);
@@ -448,6 +491,6 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           }}
         />
       )}
-    </>
+    </>,
   );
 }

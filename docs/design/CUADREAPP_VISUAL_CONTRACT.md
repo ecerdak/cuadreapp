@@ -16,41 +16,41 @@ reglas visuales de StationOS.
 
 ### Marca (`MARCA`, idéntica en ambos archivos)
 
-| Token | Valor |
-|---|---|
-| amarillo | `#F5E01B` |
-| azul | `#4A7CAB` |
-| negro | `#0B0B0B` |
-| halo | `#FFFFFF` |
-| script | `'Yellowtail', cursive` |
-| ui | `'Barlow', system-ui, -apple-system, sans-serif` |
-| condensada | `'Barlow Condensed', 'Barlow', sans-serif` |
+| Token      | Valor                                            |
+| ---------- | ------------------------------------------------ |
+| amarillo   | `#F5E01B`                                        |
+| azul       | `#4A7CAB`                                        |
+| negro      | `#0B0B0B`                                        |
+| halo       | `#FFFFFF`                                        |
+| script     | `'Yellowtail', cursive`                          |
+| ui         | `'Barlow', system-ui, -apple-system, sans-serif` |
+| condensada | `'Barlow Condensed', 'Barlow', sans-serif`       |
 
 ### Interfaz (`C`)
 
-| Token | Valor | Uso |
-|---|---|---|
-| fondo | `#0B1219` | fondo de página |
-| panel | `#111C26` | tarjetas, barra superior |
-| panelAlto | `#16232F` | filas destacadas, panel de detalle (solo dashboard) |
-| linea | `#22374A` | bordes de tabla, separadores |
-| lineaSuave | `#1A2A38` | bordes de tarjeta, filas |
-| texto | `#E7EEF6` | texto principal |
-| suave | `#8AA0B6` | texto secundario |
-| tenue | `#5C748A` | declarado, sin uso activo |
-| amarillo | = MARCA.amarillo | acción, pestaña activa, barras |
-| azul | `#5B90C4` | día parcial, enlaces secundarios móvil |
-| verde | `#3FAE7E` | Cuadra |
-| ambar | `#E2A233` | Revisar |
-| rojo | `#E2594C` | No cuadra |
-| trebol | `#1E9B4B` | declarado, sin uso activo |
+| Token      | Valor            | Uso                                                 |
+| ---------- | ---------------- | --------------------------------------------------- |
+| fondo      | `#0B1219`        | fondo de página                                     |
+| panel      | `#111C26`        | tarjetas, barra superior                            |
+| panelAlto  | `#16232F`        | filas destacadas, panel de detalle (solo dashboard) |
+| linea      | `#22374A`        | bordes de tabla, separadores                        |
+| lineaSuave | `#1A2A38`        | bordes de tarjeta, filas                            |
+| texto      | `#E7EEF6`        | texto principal                                     |
+| suave      | `#8AA0B6`        | texto secundario                                    |
+| tenue      | `#5C748A`        | declarado, sin uso activo                           |
+| amarillo   | = MARCA.amarillo | acción, pestaña activa, barras                      |
+| azul       | `#5B90C4`        | día parcial, enlaces secundarios móvil              |
+| verde      | `#3FAE7E`        | Cuadra                                              |
+| ambar      | `#E2A233`        | Revisar                                             |
+| rojo       | `#E2594C`        | No cuadra                                           |
+| trebol     | `#1E9B4B`        | declarado, sin uso activo                           |
 
 ### Solo app móvil (`APP`)
 
-| Token | Valor | Uso |
-|---|---|---|
-| fondo | `#070D13` | fondo de la app |
-| tarjeta | `#121C25` | tarjetas |
+| Token    | Valor     | Uso                          |
+| -------- | --------- | ---------------------------- |
+| fondo    | `#070D13` | fondo de la app              |
+| tarjeta  | `#121C25` | tarjetas                     |
 | tarjeta2 | `#18242F` | teclado, botones secundarios |
 
 ### Semáforo
@@ -80,17 +80,18 @@ y cronómetro.
 
 `Logotipo({tam=34, texto="Cuadre", halo=true})` — cuatro copias del texto,
 `paint-order: stroke`, `line-height 1.35`, `white-space nowrap`:
+
 1. sombra: desplazada `off`, stroke `sombra` negro
 2. halo: stroke `halo` blanco (opcional)
 3. contorno: stroke `contorno` negro
 4. relleno: amarillo con filete `filete` negro
 
-| tam | off | sombra | halo | contorno | filete |
-|---|---|---|---|---|---|
-| 118 | 10 | 20 | 16 | 11 | 3 |
-| 54 | 5 | 10 | 8 | 5 | 1.5 |
-| 34 | 3 | 6 | 4.5 | 3 | 1 |
-| otro | 8 % | 17 % | 13 % | 9 % | 2.5 % |
+| tam  | off | sombra | halo | contorno | filete |
+| ---- | --- | ------ | ---- | -------- | ------ |
+| 118  | 10  | 20     | 16   | 11       | 3      |
+| 54   | 5   | 10     | 8    | 5        | 1.5    |
+| 34   | 3   | 6      | 4.5  | 3        | 1      |
+| otro | 8 % | 17 %   | 13 % | 9 %      | 2.5 %  |
 
 **Placa** `APP`: Barlow Condensed 700 · 12 px (9.5 en barra móvil) · `.2em` ·
 negro sobre amarillo · `padding 5px 7px 4px` · radio 3 · `line-height 1`.
@@ -100,15 +101,15 @@ negro sobre amarillo · `padding 5px 7px 4px` · radio 3 · `line-height 1`.
 
 ### Tamaños de logo aprobados
 
-| Ubicación | Alto |
-|---|---|
-| Barra dashboard: Lubryco | **44 px** |
-| Barra dashboard: logotipo script | 34 px + Placa 12 |
-| Barra de la app móvil: Lubryco | **26 px** (mínimo de marca) |
-| Barra de la app móvil: logotipo script | 28 px + Placa 9.5 |
-| Bienvenida: logotipo script | 54 px |
-| Bienvenida: Lubryco | **70 px** (decisión posterior; manda sobre el PDF de 40) |
-| Chip cliente: Trébol | 48×48, radio 6 |
+| Ubicación                              | Alto                                                     |
+| -------------------------------------- | -------------------------------------------------------- |
+| Barra dashboard: Lubryco               | **44 px**                                                |
+| Barra dashboard: logotipo script       | 34 px + Placa 12                                         |
+| Barra de la app móvil: Lubryco         | **26 px** (mínimo de marca)                              |
+| Barra de la app móvil: logotipo script | 28 px + Placa 9.5                                        |
+| Bienvenida: logotipo script            | 54 px                                                    |
+| Bienvenida: Lubryco                    | **70 px** (decisión posterior; manda sobre el PDF de 40) |
+| Chip cliente: Trébol                   | 48×48, radio 6                                           |
 
 ## 4. Geometría
 
@@ -150,7 +151,7 @@ negro sobre amarillo · `padding 5px 7px 4px` · radio 3 · `line-height 1`.
   40 px `#DCE4EB`; pie 10.5 suave centrado "Solo cámara en vivo · queda con hora y
   ubicación".
 - **CampoNum(rot, valor, unidad, activo, tono, ayuda):** botón full `rounded-lg
-  px-3 py-3` fondo `tarjeta`; borde: rojo (malo) / ámbar (alerta) / amarillo
+px-3 py-3` fondo `tarjeta`; borde: rojo (malo) / ámbar (alerta) / amarillo
   (activo) / `linea`; rot uppercase 9.5 `.12em` suave — ayuda 10 suave a la derecha;
   valor mono bold 26 (o `—` en color `linea`) + unidad 11 suave, gap 6.
 - **Teclado:** grid 3 col gap 7 `px-4`; teclas `1-9 , 0 ⌫`; `13px 0`, 19 px mono
@@ -193,7 +194,7 @@ los errores no acusan; validación en vivo con los textos del dominio.
   fuente `round(alto*.56)` mono bold, gap 2, radio 3; enteros: texto `#101820`,
   degradado `#F7F9FB 0% → #DFE6EC 45% → #FFFFFF 55% → #C9D3DC 100%`, inset 1px
   negro .35; décima: texto `#FFF3F1`, degradado `#C0362B → #9E2B22 45% → #D8483B
-  55% → #8C241C`, inset .4.
+55% → #8C241C`, inset .4.
 - **Candado(ok, texto, detalle):** cuadrito 17×17 radio 4 `col+22` borde `col+66`,
   `✓`/`!` 11 bold; texto 12.5 `lh 1.4`; detalle 11 suave `lh 1.5 mt 2`; gap 10.
 - **BotonExcel:** fila full `rounded-md` semibold gap 10 `10px 14px` 12.5;
@@ -241,7 +242,7 @@ los errores no acusan; validación en vivo con los textos del dominio.
   `lh 1.6`.
 - **Suministro:** ZonaA (derecha tarjeta balance `panelAlto` borde `linea` radio md
   `p-4 min-w 210`: eyebrow + 3 filas 12 gap 7, "En tanque" separado `border-top
-  linea pt-2`, cifra amarilla mono semibold; nota 10.5 `mt 10`) · Panel tabla
+linea pt-2`, cifra amarilla mono semibold; nota 10.5 `mt 10`) · Panel tabla
   entregas 5 col (incl. "Recibido por") `min-w 520` · pie 11 `lh 1.6`.
 - **Pie global:** `mt-8 pt-5 border-top lineaSuave`, flex between wrap 11 suave:
   "CuadreApp · un servicio de Lubryco para sus clientes industriales · sin costo" —
@@ -251,13 +252,14 @@ los errores no acusan; validación en vivo con los textos del dominio.
 ## 9. Breakpoints y responsive
 
 El JSX usa únicamente los prefijos Tailwind `md:` (768) y `lg:` (1024):
+
 - ZonaA: columna → fila en `md`.
 - Grids Hoy/Cargas: 1 columna → 3/5 en `lg`.
 - Fotos evidencia: siempre 2 columnas.
 - Pestañas y tablas: `overflow-x-auto` (así resuelve móvil — sin barra inferior).
 - App móvil: una columna, `px-4`, sin breakpoints.
-NO DETERMINADO: comportamiento entre 768–1024 del master-detail (el mockup apila);
-se conserva apilado.
+  NO DETERMINADO: comportamiento entre 768–1024 del master-detail (el mockup apila);
+  se conserva apilado.
 
 ## 10. Estados
 
@@ -277,13 +279,13 @@ se conserva apilado.
 
 ## 11. Assets canónicos
 
-| Asset | Archivo del ZIP | Uso |
-|---|---|---|
-| Logo Lubryco | `logos/lubryco_110px.webp` | cabeceras (26/44) y Splash (70) |
-| Logo El Trébol | `logos/trebol_110px.webp` | chip cliente 48 |
-| Fill-Rite antes | `fotos_medidor/fillrite_900_antes.webp` | guía de encuadre PWA; evidencia demo |
-| Fill-Rite después | `fillrite_900_despues.webp` | ídem |
-| Originales sin procesar | `originales_sin_procesar/*` | archivo, no se embeben |
+| Asset                   | Archivo del ZIP                         | Uso                                  |
+| ----------------------- | --------------------------------------- | ------------------------------------ |
+| Logo Lubryco            | `logos/lubryco_110px.webp`              | cabeceras (26/44) y Splash (70)      |
+| Logo El Trébol          | `logos/trebol_110px.webp`               | chip cliente 48                      |
+| Fill-Rite antes         | `fotos_medidor/fillrite_900_antes.webp` | guía de encuadre PWA; evidencia demo |
+| Fill-Rite después       | `fillrite_900_despues.webp`             | ídem                                 |
+| Originales sin procesar | `originales_sin_procesar/*`             | archivo, no se embeben               |
 
 Se integran como **archivos importados** (no base64). Los íconos instalables de la
 PWA (C amarilla sobre azul, validados físicamente) permanecen.

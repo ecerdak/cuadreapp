@@ -1,112 +1,186 @@
-// [1] INICIO (spec §8.1): una sola decisión. Debajo, las cargas de hoy
-// y el chip de sincronización siempre visible.
+// [1] INICIO (spec §8.1, pantalla 01 del contrato): una sola decisión.
+// Saludo, botón grande amarillo con subtexto, y "Cargas de hoy" con el
+// chip de sincronización siempre visible en la línea del eyebrow.
 
 import { useSyncExternalStore } from "react";
 import type { CargaLocal } from "../offline/bd";
 import { obtenerEstadoSync, suscribirEstadoSync } from "../offline/estado-sync";
-import { ETIQUETA_ESTADO } from "../ui/mensajes";
+import { COLOR_ESTADO, TEXTO_ESTADO } from "../ui/mensajes";
 import { formatearGal } from "../ui/numeros";
-import { BotonPrincipal, Pantalla } from "../ui/basicos";
+import { Eyebrow, Titulo } from "../ui/basicos";
+import { APP, C } from "../marca/tokens";
 import { InstalarApp } from "../instalacion/InstalarApp";
+
+function horaDe(iso: string): string {
+  return new Date(iso).toLocaleTimeString("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function saludo(): string {
+  const hora = new Date().getHours();
+  return hora < 12 ? "Buenos días" : hora < 18 ? "Buenas tardes" : "Buenas noches";
+}
 
 export function Inicio(props: {
   cargasHoy: CargaLocal[];
   pendientes: number;
   erroresDefinitivos: number;
+  nombreConductor?: string | null;
   almacenEnRiesgo?: boolean;
   onEmpezar: () => void;
   onDiagnostico?: () => void;
 }) {
   return (
-    <Pantalla titulo="CuadreApp">
-      <BotonPrincipal onClick={props.onEmpezar}>Cargar combustible</BotonPrincipal>
+    <>
+      <Titulo>
+        {saludo()}
+        {props.nombreConductor ? `, ${props.nombreConductor.split(" ")[0]}` : ""}
+      </Titulo>
 
-      <ChipSincronizacion pendientes={props.pendientes} errores={props.erroresDefinitivos} />
-
-      <InstalarApp />
-
-      {props.almacenEnRiesgo ? (
-        <div className="rounded-xl border border-amber-600 bg-amber-950 p-3 text-sm text-amber-200">
-          El navegador no garantiza conservar los datos de este dispositivo. No borres los datos del
-          navegador: las cargas sin subir se perderían.
-        </div>
-      ) : null}
-
-      <h2 className="mt-2 text-sm font-semibold uppercase tracking-wide text-[#8AA0B6]">
-        Tus cargas de hoy: {props.cargasHoy.length}
-      </h2>
-      <ul className="flex flex-col gap-2">
-        {props.cargasHoy.map((carga) => {
-          // El veredicto del servidor manda; el local se muestra mientras llega.
-          const estado = carga.veredictoServidor?.estado ?? carga.estadoLocal;
-          const etiqueta = ETIQUETA_ESTADO[estado];
-          return (
-            <li key={carga.id} className="flex items-center justify-between rounded-xl bg-[#121C25] p-3">
-              <span className="font-bold">{carga.resumen.equipoCodigo}</span>
-              <span className="tabular-nums">{formatearGal(carga.resumen.galones)} gal</span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${etiqueta.clase}`}>
-                {etiqueta.texto}
-              </span>
-              <span className="text-xs text-[#8AA0B6]">
-                {carga.sincronizacion === "sincronizada" ? "✓ subida" : "en cola"}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      {props.onDiagnostico ? (
+      <div className="px-4 pt-5">
         <button
           type="button"
-          onClick={props.onDiagnostico}
-          className="mt-4 text-center text-xs text-[#5B90C4] underline"
+          onClick={props.onEmpezar}
+          className="w-full rounded-2xl font-semibold"
+          style={{
+            background: C.amarillo,
+            color: "#101A22",
+            padding: "30px 18px",
+            fontSize: 20,
+            textAlign: "left",
+          }}
         >
-          Diagnóstico del dispositivo
+          Cargar combustible
+          <span className="block font-normal" style={{ fontSize: 12, opacity: 0.72, marginTop: 5 }}>
+            Toma unos 40 segundos
+          </span>
         </button>
+      </div>
+
+      <div className="px-4 pt-6">
+        <div className="flex items-baseline justify-between">
+          <Eyebrow>Cargas de hoy</Eyebrow>
+          <ChipSincronizacion pendientes={props.pendientes} errores={props.erroresDefinitivos} />
+        </div>
+        <div className="mt-3 flex flex-col" style={{ gap: 7 }}>
+          {props.cargasHoy.map((carga) => {
+            // El veredicto del servidor manda; el local se muestra mientras llega.
+            const estado = carga.veredictoServidor?.estado ?? carga.estadoLocal;
+            return (
+              <div
+                key={carga.id}
+                className="flex items-center justify-between rounded-lg px-3 py-3"
+                style={{
+                  background: APP.tarjeta,
+                  border: `1px solid ${C.lineaSuave}`,
+                  borderLeft: `2px solid ${COLOR_ESTADO[estado]}`,
+                }}
+              >
+                <div className="flex items-baseline" style={{ gap: 10 }}>
+                  <span className="font-mono" style={{ fontSize: 12, color: C.suave }}>
+                    {horaDe(carga.creadaEn)}
+                  </span>
+                  <span className="font-mono font-semibold" style={{ fontSize: 13 }}>
+                    {carga.resumen.equipoCodigo}
+                  </span>
+                  {carga.sincronizacion !== "sincronizada" ? (
+                    <span style={{ fontSize: 10, color: C.suave }}>en cola</span>
+                  ) : null}
+                </div>
+                <div className="flex items-center" style={{ gap: 8 }}>
+                  <span className="font-mono font-semibold" style={{ fontSize: 14 }}>
+                    {formatearGal(carga.resumen.galones)} gal
+                  </span>
+                  <span
+                    className="rounded-full px-2 py-1 font-semibold uppercase"
+                    style={{
+                      fontSize: 9.5,
+                      letterSpacing: "0.08em",
+                      color: COLOR_ESTADO[estado],
+                      background: `${COLOR_ESTADO[estado]}1F`,
+                      border: `1px solid ${COLOR_ESTADO[estado]}55`,
+                    }}
+                  >
+                    {TEXTO_ESTADO[estado]}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col px-4 pt-4" style={{ gap: 8 }}>
+        <InstalarApp />
+        {props.almacenEnRiesgo ? (
+          <div
+            className="rounded-lg px-3 py-3"
+            style={{ background: `${C.ambar}16`, border: `1px solid ${C.ambar}4D` }}
+          >
+            <div className="font-semibold" style={{ fontSize: 13, color: C.ambar }}>
+              El navegador no garantiza conservar los datos
+            </div>
+            <div style={{ fontSize: 11.5, color: C.suave, lineHeight: 1.5, marginTop: 3 }}>
+              No borres los datos del navegador: las cargas sin subir se perderían.
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {props.onDiagnostico ? (
+        <div className="px-4 pt-4 text-center">
+          <button type="button" onClick={props.onDiagnostico} style={{ fontSize: 12.5, color: C.azul }}>
+            Diagnóstico del dispositivo
+          </button>
+        </div>
       ) : null}
-    </Pantalla>
+    </>
   );
 }
 
+/* Chip del estado de sincronización (siempre visible): el formato del
+   contrato — píldora 9.5 px — con los estados del hardening validado. */
 function ChipSincronizacion(props: { pendientes: number; errores: number }) {
   const estado = useSyncExternalStore(suscribirEstadoSync, obtenerEstadoSync);
 
+  const chip = (color: string, texto: string) => (
+    <span
+      className="rounded-full px-2 py-1 font-semibold"
+      style={{ fontSize: 9.5, color, background: `${color}1C` }}
+    >
+      {texto}
+    </span>
+  );
+
   if (estado.sincronizando && estado.sincronizando.total > 0) {
-    return (
-      <div className="rounded-full bg-sky-900 px-4 py-2 text-center text-sm font-semibold text-sky-200">
-        Sincronizando {estado.sincronizando.actual} de {estado.sincronizando.total}…
-      </div>
+    return chip(
+      C.azul,
+      `Sincronizando ${estado.sincronizando.actual} de ${estado.sincronizando.total}…`,
     );
   }
   if (props.errores > 0) {
-    return (
-      <div className="rounded-full bg-red-900 px-4 py-2 text-center text-sm font-semibold text-red-200">
-        {props.errores} registro(s) con error de sincronización — avisa al supervisor
-      </div>
-    );
+    return chip(C.rojo, `${props.errores} con error — avisa al supervisor`);
   }
   if (props.pendientes > 0) {
-    return (
-      <div className="rounded-full bg-amber-900 px-4 py-2 text-center text-sm font-semibold text-amber-200">
-        {estado.conectado
-          ? `En cola: ${props.pendientes} — subiendo apenas se pueda`
-          : `Sin conexión — ${props.pendientes} en cola; se subirán al volver la señal`}
-      </div>
+    return chip(
+      C.ambar,
+      estado.conectado
+        ? `En cola: ${props.pendientes} — subiendo`
+        : `Sin conexión — ${props.pendientes} en cola`,
     );
   }
   if (!estado.conectado) {
-    return (
-      <div className="rounded-full bg-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-200">
-        Trabajando offline — todo lo que registres queda guardado en el teléfono
-      </div>
-    );
+    return chip(C.suave, "Trabajando offline");
   }
-  return (
-    <div className="rounded-full bg-emerald-900 px-4 py-2 text-center text-sm font-semibold text-emerald-200">
-      Todo sincronizado
-      {estado.ultimaSincronizacionEn
-        ? ` · último envío ${new Date(estado.ultimaSincronizacionEn).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}`
-        : ""}
-    </div>
+  return chip(
+    C.verde,
+    `Todo sincronizado${
+      estado.ultimaSincronizacionEn
+        ? ` · ${new Date(estado.ultimaSincronizacionEn).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}`
+        : ""
+    }`,
   );
 }

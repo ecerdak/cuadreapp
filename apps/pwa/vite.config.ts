@@ -16,7 +16,9 @@ export default defineConfig({
         // Explícito y verificado por prueba: el shell COMPLETO (incluidos
         // íconos y manifest) queda precacheado, y toda navegación offline
         // cae al index.html — la app instalada abre sin red.
-        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
+        // woff2/webp: la marca (fuentes autoalojadas, logos) también
+        // debe abrir sin red — son parte del shell.
+        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2,webmanifest}"],
         navigateFallback: "index.html",
       },
       manifest: {

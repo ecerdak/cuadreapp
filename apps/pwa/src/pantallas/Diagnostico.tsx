@@ -1,6 +1,7 @@
 // Diagnóstico para el supervisor (FASE 4 del hardening): estado real
-// del dispositivo en una pantalla. Sin datos sensibles: nada de tokens,
-// nada de contenido de cargas — solo salud operacional.
+// del dispositivo en una pantalla, vestido con el contrato visual.
+// Sin datos sensibles: nada de tokens, nada de contenido de cargas —
+// solo salud operacional.
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -9,13 +10,19 @@ import { obtenerEstadoSync, suscribirEstadoSync } from "../offline/estado-sync";
 import { almacenamientoEsPersistente } from "../seguridad/persistencia";
 import { enModoApp } from "../instalacion/instalacion";
 import { VERSION_APP } from "../config";
-import { BotonPrincipal, Pantalla } from "../ui/basicos";
+import { BotonGrande, Titulo } from "../ui/basicos";
+import { APP, C } from "../marca/tokens";
 
 function Fila(props: { rotulo: string; valor: string }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-[#121C25] p-3 text-sm">
-      <span className="text-[#8AA0B6]">{props.rotulo}</span>
-      <span className="text-right font-semibold">{props.valor}</span>
+    <div
+      className="flex items-center justify-between rounded-lg px-3 py-3"
+      style={{ background: APP.tarjeta, border: `1px solid ${C.lineaSuave}` }}
+    >
+      <span style={{ fontSize: 11.5, color: C.suave }}>{props.rotulo}</span>
+      <span className="text-right font-mono font-semibold" style={{ fontSize: 12.5 }}>
+        {props.valor}
+      </span>
     </div>
   );
 }
@@ -48,8 +55,9 @@ export function Diagnostico(props: { bd: BdLocal; onVolver: () => void }) {
   }, []);
 
   return (
-    <Pantalla titulo="Diagnóstico">
-      <div className="flex flex-col gap-2">
+    <>
+      <Titulo>Diagnóstico</Titulo>
+      <div className="flex flex-col px-4 pt-4" style={{ gap: 7 }}>
         <Fila rotulo="Versión instalada" valor={VERSION_APP} />
         <Fila rotulo="Modo" valor={enModoApp() ? "app instalada" : "navegador"} />
         <Fila rotulo="Conectividad" valor={estado.conectado ? "con conexión" : "sin conexión"} />
@@ -69,7 +77,9 @@ export function Diagnostico(props: { bd: BdLocal; onVolver: () => void }) {
         />
         <Fila rotulo="Último error" valor={estado.ultimoError ?? "ninguno"} />
       </div>
-      <BotonPrincipal onClick={props.onVolver}>Volver</BotonPrincipal>
-    </Pantalla>
+      <div className="px-4 pt-4">
+        <BotonGrande onClick={props.onVolver}>Volver</BotonGrande>
+      </div>
+    </>
   );
 }

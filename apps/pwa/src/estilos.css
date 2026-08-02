@@ -1,7 +1,9 @@
 @import "tailwindcss";
+@import "./marca/fuentes.css";
 
 /* Sol directo, guantes, una mano (spec §8.1): contraste alto, botones
-   grandes, cero animación decorativa. */
+   grandes, cero animación decorativa. Tipografía y fondo del contrato
+   visual (docs/design/CUADREAPP_VISUAL_CONTRACT.md). */
 :root {
   color-scheme: dark;
 }
@@ -9,6 +11,7 @@ body {
   background-color: #070d13;
   color: #e7eef6;
   font-family:
+    "Barlow",
     system-ui,
     -apple-system,
     sans-serif;
