@@ -4,6 +4,7 @@
 // sin red ni base de datos.
 
 import fastify, { type FastifyError, type FastifyInstance } from "fastify";
+import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import limitador from "@fastify/rate-limit";
 import { registrarRutaCargas } from "./rutas/cargas.js";
@@ -29,10 +30,33 @@ export interface Dependencias {
   verificarListo?: () => Promise<Record<string, boolean>>;
   /** Etapa H: apagable solo en pruebas que no ejercitan límites. */
   limites?: boolean;
+  /** CORS (cierre de infraestructura): orígenes de navegador permitidos.
+   *  Sin lista explícita, se permiten los dominios *.up.railway.app
+   *  (los frontends del proyecto). Nunca "*": la API lleva Bearer. */
+  origenesCors?: string[];
 }
 
 export function construirAplicacion(dependencias: Dependencias): FastifyInstance {
   const app = fastify();
+
+  // CORS: la PWA y el Dashboard viven en orígenes distintos al de la
+  // API; sin esto, el navegador bloquea toda llamada (el preflight con
+  // Authorization ni siquiera llegaba a una ruta). Allowlist explícita
+  // o el patrón de los dominios del proyecto — jamás "*".
+  const permitidos = dependencias.origenesCors;
+  app.register(cors, {
+    origin: (origen, listo) => {
+      if (!origen) return listo(null, false); // sin Origin (curl/salud): sin headers CORS
+      const ok = permitidos
+        ? permitidos.includes(origen)
+        : /^https:\/\/[a-z0-9-]+\.up\.railway\.app$/.test(origen);
+      listo(null, ok);
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["content-type", "authorization"],
+    exposedHeaders: ["x-request-id"],
+    maxAge: 86400,
+  });
 
   // Headers de seguridad (Etapa H). La API sirve JSON: sin CSP propia
   // (la CSP de la PWA vive en su hosting), sí todo lo demás de helmet.

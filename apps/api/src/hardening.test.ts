@@ -98,3 +98,62 @@ describe("Errores no controlados (Etapa H)", () => {
     });
   });
 });
+
+describe("CORS (cierre de infraestructura)", () => {
+  it("el preflight desde un frontend del proyecto es aceptado con los headers correctos", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "OPTIONS",
+      url: "/api/v1/auth/refresh",
+      headers: {
+        origin: "https://cuadreapppwa-production.up.railway.app",
+        "access-control-request-method": "POST",
+        "access-control-request-headers": "content-type,authorization",
+      },
+    });
+    expect(respuesta.statusCode).toBeLessThan(300);
+    expect(respuesta.headers["access-control-allow-origin"]).toBe(
+      "https://cuadreapppwa-production.up.railway.app",
+    );
+    expect(String(respuesta.headers["access-control-allow-headers"])).toContain("authorization");
+  });
+
+  it("un origen ajeno NO recibe headers CORS (el navegador lo bloquea)", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "OPTIONS",
+      url: "/api/v1/auth/refresh",
+      headers: { origin: "https://atacante.example.com", "access-control-request-method": "POST" },
+    });
+    expect(respuesta.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("con allowlist explícita, solo esa lista pasa", async () => {
+    const { app } = armarAplicacion({ origenesCors: ["https://tablero.lubryco.com"] });
+    const permitido = await app.inject({
+      method: "OPTIONS",
+      url: "/api/v1/auth/refresh",
+      headers: { origin: "https://tablero.lubryco.com", "access-control-request-method": "POST" },
+    });
+    expect(permitido.headers["access-control-allow-origin"]).toBe("https://tablero.lubryco.com");
+    const railway = await app.inject({
+      method: "OPTIONS",
+      url: "/api/v1/auth/refresh",
+      headers: {
+        origin: "https://cuadreapppwa-production.up.railway.app",
+        "access-control-request-method": "POST",
+      },
+    });
+    expect(railway.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("las respuestas normales exponen x-request-id al navegador", async () => {
+    const { app } = armarAplicacion();
+    const respuesta = await app.inject({
+      method: "GET",
+      url: "/salud",
+      headers: { origin: "https://cuadreapppwa-production.up.railway.app" },
+    });
+    expect(String(respuesta.headers["access-control-expose-headers"])).toContain("x-request-id");
+  });
+});

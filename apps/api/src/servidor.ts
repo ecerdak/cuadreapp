@@ -30,6 +30,7 @@ const app = construirAplicacion({
   proveedorIdentidad: new ProveedorIdentidadSupabase(configSupabase),
   almacenFotos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_FOTOS),
   secretoJwt: config.SUPABASE_JWT_SECRET,
+  origenesCors: config.CORS_ORIGENES?.split(",").map((origen) => origen.trim()),
   verificarListo: async () => {
     try {
       await pool.query("select 1");

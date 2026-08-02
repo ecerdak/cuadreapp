@@ -16,6 +16,8 @@ const esquema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
   SUPABASE_JWT_SECRET: z.string().min(20),
   BUCKET_FOTOS: z.string().min(1).default("fotos-cargas"),
+  /** Lista separada por comas; sin ella, se permiten los *.up.railway.app. */
+  CORS_ORIGENES: z.string().optional(),
   PORT: z.coerce.number().int().positive().default(3000),
 });
 
