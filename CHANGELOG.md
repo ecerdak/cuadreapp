@@ -101,3 +101,8 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 ### Agregado
 - `docs/DASHBOARD_ARQUITECTURA.md` (v1.1): arquitectura aprobada del Dashboard — módulos, rutas, design system, capa de datos por puertos y adaptadores con `FuenteSimulada`, patrón `Consulta<T>`, responsive y accesibilidad.
 - `apps/dashboard`: aplicación completa con datos simulados — 4 pestañas (Hoy, Cargas, Equipos, Suministro) + detalle de carga con fotos, lecturas y candados; design system con los tokens del mockup (Rodillo, VeredictoBanner, ChipEstado, BarrasConsumo, Candados); esqueletos, estados vacíos y de error con reintento (`?simular-error`); filtros en la URL; responsive móvil/escritorio; escenario determinista cuya aritmética cierra y cuyos veredictos calcula `@cuadreapp/dominio`. 15 pruebas de coherencia. Regla de fronteras generalizada: ninguna app importa a otra app; build del Dashboard en CI.
+
+## [RC1 — Release Candidate] (en curso)
+
+### Agregado
+- `docs/RC1_RELEASE_AUDIT.md`: auditoría de liberación con hallazgos verificados en código (3 críticos, 7 importantes), riesgos por categoría, checklist Go/No-Go, planes de instalación/primer día/contingencia, criterios de éxito y métricas del piloto, y mejoras priorizadas para v1.1. Veredicto: **NO-GO, 68/100**, con camino explícito a >90.
