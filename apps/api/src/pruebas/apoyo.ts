@@ -158,6 +158,10 @@ export class AlmacenFotosFalso implements AlmacenFotos {
   async guardar(ruta: string, bytes: Uint8Array, tipo: string): Promise<void> {
     this.guardadas.push({ ruta, bytes: bytes.length, tipo });
   }
+
+  async urlFirmada(ruta: string): Promise<string | null> {
+    return `https://firmada.prueba/${ruta}`;
+  }
 }
 
 export function armarAplicacion(sobre: Partial<Dependencias> = {}) {

@@ -98,4 +98,18 @@ export class AlmacenFotosSupabase implements AlmacenFotos {
       throw new Error(`Storage respondió ${respuesta.status}`);
     }
   }
+
+  async urlFirmada(ruta: string, segundos: number): Promise<string | null> {
+    const respuesta = await fetch(`${this.config.url}/storage/v1/object/sign/${this.bucket}/${ruta}`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.config.claveServiceRole}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ expiresIn: segundos }),
+    });
+    if (!respuesta.ok) return null;
+    const cuerpo = (await respuesta.json()) as { signedURL?: string };
+    return cuerpo.signedURL ? `${this.config.url}/storage/v1${cuerpo.signedURL}` : null;
+  }
 }

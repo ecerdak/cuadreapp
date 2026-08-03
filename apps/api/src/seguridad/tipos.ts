@@ -36,4 +36,7 @@ export interface ProveedorIdentidad {
 /** Destino de la evidencia fotográfica (bucket privado de Storage). */
 export interface AlmacenFotos {
   guardar(ruta: string, bytes: Uint8Array, tipo: string): Promise<void>;
+  /** URL temporal de lectura para la consola admin (bucket privado).
+   *  null si el proveedor no puede firmarla. */
+  urlFirmada(ruta: string, segundos: number): Promise<string | null>;
 }

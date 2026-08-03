@@ -8,6 +8,7 @@ import { cargarConfiguracion } from "./config.js";
 import { registrar } from "./registro.js";
 import { construirAplicacion } from "./aplicacion.js";
 import { RepositorioCargasPostgres, RepositorioSeguridadPostgres } from "./repositorio/postgres.js";
+import { RepositorioAdminPostgres } from "./repositorio/admin-postgres.js";
 import { AlmacenFotosSupabase, ProveedorIdentidadSupabase } from "./seguridad/supabase.js";
 
 let config;
@@ -28,6 +29,7 @@ const configSupabase = {
 const app = construirAplicacion({
   repositorio: new RepositorioCargasPostgres(pool),
   repositorioSeguridad: new RepositorioSeguridadPostgres(pool),
+  repositorioAdmin: new RepositorioAdminPostgres(pool),
   proveedorIdentidad: new ProveedorIdentidadSupabase(configSupabase),
   almacenFotos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_FOTOS),
   secretoJwt: config.SUPABASE_JWT_SECRET,

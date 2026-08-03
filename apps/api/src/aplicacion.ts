@@ -12,15 +12,19 @@ import { registrarRutasAuth } from "./rutas/auth.js";
 import { registrarRutaEnrolamiento } from "./rutas/dispositivos.js";
 import { registrarRutaCatalogo } from "./rutas/catalogo.js";
 import { registrarRutaFotos } from "./rutas/fotos.js";
+import { registrarRutasAdmin } from "./rutas/admin.js";
 import { registrarObservabilidad, type EmisorEventos } from "./observabilidad.js";
 import { crearAutenticacion } from "./seguridad/autenticacion.js";
 import type { JWTVerifyGetKey } from "jose";
 import type { AlmacenFotos, ProveedorIdentidad } from "./seguridad/tipos.js";
 import type { RepositorioCargas, RepositorioSeguridad } from "./repositorio/tipos.js";
+import type { RepositorioAdmin } from "./repositorio/admin.js";
 
 export interface Dependencias {
   repositorio: RepositorioCargas;
   repositorioSeguridad: RepositorioSeguridad;
+  /** Consola administrativa (piloto Sacyr). Opcional: sin él, /admin no existe. */
+  repositorioAdmin?: RepositorioAdmin;
   proveedorIdentidad: ProveedorIdentidad;
   almacenFotos: AlmacenFotos;
   /** Secreto HS256 del proyecto de Supabase para verificar los JWT localmente. */
@@ -120,6 +124,13 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
     });
     registrarRutaFotos(rutas, { almacen: dependencias.almacenFotos, autenticar });
     registrarRutaCargas(rutas, dependencias.repositorio, autenticar);
+    if (dependencias.repositorioAdmin) {
+      registrarRutasAdmin(rutas, {
+        repositorio: dependencias.repositorioAdmin,
+        almacenFotos: dependencias.almacenFotos,
+        autenticar,
+      });
+    }
   });
 
   return app;
