@@ -12,7 +12,8 @@ import { Cargando } from "./Cargando";
 import { AntesDeCargar } from "./AntesDeCargar";
 import { Listo } from "./Listo";
 import { CabezaApp } from "../ui/CabezaApp";
-import { BotonGrande, CampoNum, Aviso, Teclado, escribirTecla } from "../ui/basicos";
+import { Aviso, BotonGrande, CampoNum, Confirmacion, Teclado, escribirTecla } from "../ui/basicos";
+import { DespuesDeCargar } from "./DespuesDeCargar";
 import type { CargaLocal } from "../offline/bd";
 
 const CONTEXTO: ContextoValidacion = {
@@ -214,5 +215,108 @@ describe("piezas del contrato", () => {
     );
     expect(gris).toContain("background:#18242F");
     expect(gris).not.toContain("opacity");
+  });
+});
+
+describe("navegación hacia atrás (contrato + seguridad)", () => {
+  it("Antes de cargar muestra ← Atrás discreto antes del título", () => {
+    const html = renderToStaticMarkup(
+      <AntesDeCargar
+        contexto={CONTEXTO}
+        tandaInicial="0,0"
+        totInicial="1847"
+        fotoInicial={null}
+        onTandaInicial={() => {}}
+        onTotInicial={() => {}}
+        onFoto={() => {}}
+        onEmpezarACargar={() => {}}
+        onAtras={() => {}}
+      />,
+    );
+    expect(html).toContain("← Atrás");
+    expect(html.indexOf("← Atrás")).toBeLessThan(html.indexOf("Antes de cargar"));
+  });
+
+  it("la lista de equipos muestra ← Atrás solo si se le entrega onAtras", () => {
+    const con = renderToStaticMarkup(
+      <Equipo equipos={[]} onSeleccionar={() => {}} onAtras={() => {}} />,
+    );
+    expect(con).toContain("← Atrás");
+    const sin = renderToStaticMarkup(<Equipo equipos={[]} onSeleccionar={() => {}} />);
+    expect(sin).not.toContain("← Atrás");
+  });
+
+  it("guardando: sin Atrás, botón gris con 'Guardando…' (bloqueo de retroceso y de doble toque)", () => {
+    const html = renderToStaticMarkup(
+      <DespuesDeCargar
+        contexto={CONTEXTO}
+        equipo={{
+          id: "e1",
+          codigo: "T-04",
+          descripcion: "Tractor Massey 4292",
+          tipoMedidor: "horometro",
+          ultimaLecturaConocida: 1086.5,
+          capacidadTanqueGal: 80,
+        }}
+        tandaInicial="0,0"
+        totInicial="1847"
+        iniciadaEn={new Date().toISOString()}
+        tandaFinal="42,5"
+        totFinal="1889,5"
+        lecturaEquipo="1093,0"
+        nota=""
+        exigeNota={false}
+        fotoFinal={{ bytes: new Uint8Array([1]).buffer, tipo: "image/webp" }}
+        onTandaFinal={() => {}}
+        onTotFinal={() => {}}
+        onLecturaEquipo={() => {}}
+        onNota={() => {}}
+        onFoto={() => {}}
+        onGuardar={() => {}}
+        onAtras={() => {}}
+        guardando
+      />,
+    );
+    expect(html).not.toContain("← Atrás");
+    expect(html).toContain("Guardando…");
+    expect(html).toContain("background:#18242F"); // botón en gris, no opacity
+  });
+
+  it("Confirmacion: título, cuerpo en lenguaje llano y botones Cancelar/acción", () => {
+    const html = renderToStaticMarkup(
+      <Confirmacion
+        titulo="¿Volver a la pantalla anterior?"
+        cuerpo="Si vuelves, tendrás que tomar nuevamente la foto inicial."
+        accion="Volver"
+        onCancelar={() => {}}
+        onConfirmar={() => {}}
+      />,
+    );
+    expect(html).toContain("¿Volver a la pantalla anterior?");
+    expect(html).toContain("tomar nuevamente la foto inicial");
+    expect(html).toContain(">Volver</button>");
+    expect(html).toContain(">Cancelar</button>");
+    expect(html).toContain('role="alertdialog"');
+  });
+
+  it("Listo NO ofrece Atrás: solo 'Registrar otra carga' (test 16)", () => {
+    const carga = {
+      id: "x",
+      creadaEn: "2026-08-02T09:52:00-05:00",
+      payload: {
+        tot_inicial_gal: 1847,
+        tot_final_gal: 1890,
+        lectura_equipo: null,
+        finalizada_en: "2026-08-02T09:52:00-05:00",
+      },
+      resumen: { equipoCodigo: "T-04", conductorNombre: "Duván", galones: 42.5 },
+      estadoLocal: "ok",
+      banderasLocales: [],
+      sincronizacion: "pendiente",
+      veredictoServidor: null,
+    } as unknown as CargaLocal;
+    const html = renderToStaticMarkup(<Listo carga={carga} onOtraCarga={() => {}} />);
+    expect(html).not.toContain("← Atrás");
+    expect(html).toContain("Registrar otra carga");
   });
 });

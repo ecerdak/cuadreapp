@@ -21,6 +21,8 @@ import { Listo } from "../src/pantallas/Listo";
 import { Diagnostico } from "../src/pantallas/Diagnostico";
 import { Enrolar } from "../src/pantallas/Enrolar";
 import { CabezaApp } from "../src/ui/CabezaApp";
+import { Confirmacion } from "../src/ui/basicos";
+import { CONFIRMACIONES } from "../src/flujo/navegacion";
 import { APP, C } from "../src/marca/tokens";
 
 /* Datos de demostración: el TURNO del mockup aprobado. */
@@ -172,7 +174,7 @@ function Galeria() {
         </Marco>
 
         <Marco id="s02" rotulo="Equipo" conCabeza="equipo">
-          <Equipo equipos={EQUIPOS} onSeleccionar={nada} />
+          <Equipo equipos={EQUIPOS} onSeleccionar={nada} onAtras={nada} />
         </Marco>
 
         <Marco id="s03" rotulo="Conductor" conCabeza="conductor">
@@ -180,6 +182,7 @@ function Galeria() {
             conductores={CONDUCTORES}
             equipoRotulo="T-04 · Tractor Massey 4292"
             onIdentificado={nada}
+            onAtras={nada}
           />
         </Marco>
 
@@ -193,6 +196,7 @@ function Galeria() {
             onTotInicial={nada}
             onFoto={nada}
             onEmpezarACargar={nada}
+            onAtras={nada}
           />
         </Marco>
 
@@ -204,6 +208,7 @@ function Galeria() {
             conductorNombre="Duván Bonilla"
             totInicialGal={1847}
             onTermine={nada}
+            onAtras={nada}
           />
         </Marco>
 
@@ -226,6 +231,7 @@ function Galeria() {
             onNota={nada}
             onFoto={nada}
             onGuardar={nada}
+            onAtras={nada}
           />
         </Marco>
 
@@ -239,6 +245,54 @@ function Galeria() {
 
         <Marco id="s09" rotulo="Enrolamiento" conCabeza={undefined}>
           <Enrolar onEnrolar={() => Promise.resolve({ ok: true })} />
+        </Marco>
+
+        <Marco id="s10" rotulo="Confirmación al volver (foto inicial)" conCabeza="antes">
+          {/* transform crea el bloque contenedor: el diálogo fixed queda dentro del marco */}
+          <div style={{ transform: "translate(0)", minHeight: 420 }}>
+            <AntesDeCargar
+              contexto={CONTEXTO}
+              tandaInicial="0,0"
+              totInicial="1847"
+              fotoInicial={{ bytes: new Uint8Array([1]).buffer, tipo: "image/webp" }}
+              onTandaInicial={nada}
+              onTotInicial={nada}
+              onFoto={nada}
+              onEmpezarACargar={nada}
+              onAtras={nada}
+            />
+            <Confirmacion
+              titulo={CONFIRMACIONES.descartarFotoInicial.titulo}
+              cuerpo={CONFIRMACIONES.descartarFotoInicial.cuerpo}
+              accion={CONFIRMACIONES.descartarFotoInicial.accion}
+              onCancelar={nada}
+              onConfirmar={nada}
+            />
+          </div>
+        </Marco>
+
+        <Marco id="s11" rotulo="Guardando (retroceso bloqueado)" conCabeza="despues">
+          <DespuesDeCargar
+            contexto={CONTEXTO}
+            equipo={EQUIPOS[0]!}
+            tandaInicial="0,0"
+            totInicial="1847"
+            iniciadaEn={new Date(Date.now() - 300_000).toISOString()}
+            tandaFinal="42,5"
+            totFinal="1889,5"
+            lecturaEquipo="1093,0"
+            nota=""
+            exigeNota={false}
+            fotoFinal={{ bytes: new Uint8Array([1]).buffer, tipo: "image/webp" }}
+            onTandaFinal={nada}
+            onTotFinal={nada}
+            onLecturaEquipo={nada}
+            onNota={nada}
+            onFoto={nada}
+            onGuardar={nada}
+            onAtras={nada}
+            guardando
+          />
         </Marco>
       </div>
     </div>
