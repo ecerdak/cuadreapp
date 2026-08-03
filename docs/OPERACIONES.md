@@ -106,3 +106,23 @@ El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisi�
 - Cada petición emite un evento JSON a stdout (DEC-012) con `request_id`, duración, resultado, banderas y versiones — Railway los agrega y permite consultarlos; un pantallazo del `request_id` que muestra la PWA basta para encontrar la traza.
 - `/listo` en el healthcheck de Railway hace visible una base caída como despliegue no-listo, no como errores silenciosos.
 - Pendiente deliberado (registrado en la revisión de arquitectura): agregador de errores tipo Sentry y métricas agregadas — para el piloto, los eventos estructurados en Railway cubren la necesidad.
+
+## 7. Consola Admin — arranque del primer usuario (bootstrap único)
+
+La consola (`apps/admin`, servicio Railway propio con `railway.admin.json` y
+`VITE_API_URL` apuntando a la API) usa login email+contraseña de la API. El
+PRIMER administrador se crea una sola vez, porque aún no existe nadie que
+pueda crearlo desde la consola:
+
+1. Supabase → Authentication → Add user: email y contraseña del admin
+   (o vía API admin de GoTrue con la service role).
+2. Insertar su fila en `usuarios` con `rol_id = 6` (admin_lubryco),
+   `cliente_id = null`, `sede_id = null`, `activo = true`, y el `id` del
+   usuario de Auth recién creado.
+3. Verificar: login en la consola → pestaña Resumen responde.
+
+Desde ahí, TODO lo demás (clientes, sedes, equipos, operadores, códigos de
+enrolamiento, revocaciones) se hace en la consola — el SQL manual queda
+retirado de la operación. Los usuarios admin adicionales siguen siendo un
+paso de infraestructura hasta que exista la pantalla de usuarios (fuera del
+alcance del piloto).
