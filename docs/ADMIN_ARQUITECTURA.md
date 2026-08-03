@@ -7,18 +7,18 @@ observabilidad (DEC-012), Security First (DEC-013), apps separadas (DEC-015).
 
 ## 1. Modelos REUTILIZADOS (el esquema ya es multicliente)
 
-| Necesidad del Admin | Modelo existente | Nota |
-|---|---|---|
-| Clientes | `clientes` (nombre, nit, activo) | Sacyr = una fila; El Trébol después, **sin cambiar código** |
-| Sedes | `sedes` (cliente_id, nombre, geocerca, zona horaria) | la EDS de Lubryco donde cargan los carrotanques es la sede del cliente Sacyr |
-| Punto de despacho | `dispensadores` (sede_id, medidor, tot_actual) | se crea junto con la sede |
-| Carrotanques / equipos | `equipos` (cliente_id, codigo_interno, descripcion, categoria, activo) | **placa → `codigo_interno`** (así se identifica el carrotanque en campo); observaciones → `descripcion`; categoria "Carrotanque" |
-| Operadores y conductores | `conductores` (cliente_id, nombre, codigo, pin_hash, activo) | **operador ≡ conductor**: es el MISMO rol funcional (la persona que se identifica con código+PIN al registrar). Una sola pantalla los administra. "Último acceso" = su última carga registrada. No existe (ni se inventa) "equipo asignado" ni "dispositivo asignado": el dispositivo es de la sede |
-| Usuarios de consola | `usuarios` (rol_id, cliente_id, sede_id, activo) | identidad en Supabase Auth, autorización SIEMPRE en RBAC propio |
-| Roles y permisos | `roles`, `permisos`, `rol_permisos` | ver §3 |
-| Dispositivos | `dispositivos` (sede_id, usuario_id, ultimo_visto_en, activo) | revocar = desactivar dispositivo **y** su usuario técnico (la API rechaza sesiones de usuarios inactivos) |
-| Enrolamiento | `codigos_enrolamiento` (sede_id, expira_en, usado_en) | el Admin los genera; se elimina el SQL manual |
-| Cargas y evidencia | `cargas`, `fotos` | solo lectura en el Admin |
+| Necesidad del Admin      | Modelo existente                                                       | Nota                                                                                                                                                                                                                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clientes                 | `clientes` (nombre, nit, activo)                                       | Sacyr = una fila; El Trébol después, **sin cambiar código**                                                                                                                                                                                                                                         |
+| Sedes                    | `sedes` (cliente_id, nombre, geocerca, zona horaria)                   | la EDS de Lubryco donde cargan los carrotanques es la sede del cliente Sacyr                                                                                                                                                                                                                        |
+| Punto de despacho        | `dispensadores` (sede_id, medidor, tot_actual)                         | se crea junto con la sede                                                                                                                                                                                                                                                                           |
+| Carrotanques / equipos   | `equipos` (cliente_id, codigo_interno, descripcion, categoria, activo) | **placa → `codigo_interno`** (así se identifica el carrotanque en campo); observaciones → `descripcion`; categoria "Carrotanque"                                                                                                                                                                    |
+| Operadores y conductores | `conductores` (cliente_id, nombre, codigo, pin_hash, activo)           | **operador ≡ conductor**: es el MISMO rol funcional (la persona que se identifica con código+PIN al registrar). Una sola pantalla los administra. "Último acceso" = su última carga registrada. No existe (ni se inventa) "equipo asignado" ni "dispositivo asignado": el dispositivo es de la sede |
+| Usuarios de consola      | `usuarios` (rol_id, cliente_id, sede_id, activo)                       | identidad en Supabase Auth, autorización SIEMPRE en RBAC propio                                                                                                                                                                                                                                     |
+| Roles y permisos         | `roles`, `permisos`, `rol_permisos`                                    | ver §3                                                                                                                                                                                                                                                                                              |
+| Dispositivos             | `dispositivos` (sede_id, usuario_id, ultimo_visto_en, activo)          | revocar = desactivar dispositivo **y** su usuario técnico (la API rechaza sesiones de usuarios inactivos)                                                                                                                                                                                           |
+| Enrolamiento             | `codigos_enrolamiento` (sede_id, expira_en, usado_en)                  | el Admin los genera; se elimina el SQL manual                                                                                                                                                                                                                                                       |
+| Cargas y evidencia       | `cargas`, `fotos`                                                      | solo lectura en el Admin                                                                                                                                                                                                                                                                            |
 
 ## 2. Modelos NUEVOS
 
@@ -29,11 +29,11 @@ observabilidad (DEC-012), Security First (DEC-013), apps separadas (DEC-015).
 
 ## 3. Permisos
 
-| Rol | admin.leer | admin.gestionar | Alcance |
-|---|---|---|---|
-| admin_lubryco | ✓ | ✓ | multicliente (`cliente_id` null) |
-| supervisor / admin_cliente | ✗ | ✗ | su tablero llega con la Fase C |
-| dispositivo | ✗ | ✗ | flujo del conductor |
+| Rol                        | admin.leer | admin.gestionar | Alcance                          |
+| -------------------------- | ---------- | --------------- | -------------------------------- |
+| admin_lubryco              | ✓          | ✓               | multicliente (`cliente_id` null) |
+| supervisor / admin_cliente | ✗          | ✗               | su tablero llega con la Fase C   |
+| dispositivo                | ✗          | ✗               | flujo del conductor              |
 
 Toda ruta `/api/v1/admin/*` exige token válido **y** el permiso
 correspondiente (`admin.leer` para GET, `admin.gestionar` para
@@ -42,17 +42,17 @@ se devuelve**.
 
 ## 4. API (`/api/v1/admin/*` — Thin API: CRUD y lecturas, cero reglas de negocio)
 
-| Método y ruta | Qué hace |
-|---|---|
-| GET `/admin/resumen` | indicadores: clientes/equipos/operadores/dispositivos activos, cargas y galones de hoy, alertas (cargas de hoy que no cuadran + dispositivos sin señal >24 h) |
-| GET `/admin/cargas?cliente_id&limite` | recientes con cliente, equipo, operador, galones, estado, fotos |
-| GET·POST `/admin/clientes` · PATCH `/admin/clientes/:id` | crear/editar/activar/desactivar; buscar por nombre |
-| GET `/admin/clientes/:id/sedes` · POST `/admin/sedes` · PATCH `/admin/sedes/:id` | la creación de sede incluye su dispensador (transacción) |
-| GET·POST `/admin/equipos` · PATCH `/admin/equipos/:id` | carrotanques y demás equipos, por cliente |
-| GET·POST `/admin/operadores` · PATCH `/admin/operadores/:id` | personas con PIN; asignar/rotar PIN; última carga como último acceso |
-| GET·POST `/admin/codigos` | generar código de enrolamiento por sede (expiración configurable), listar con estado vigente/usado/expirado |
-| GET `/admin/dispositivos` · PATCH `/admin/dispositivos/:id` | estado, último uso; desactivar/revocar. **Reenrolar** = revocar + generar código nuevo |
-| GET `/admin/tablero/:clienteId` | dashboard operativo del cliente (Sacyr): día, por-equipo, duración promedio, operadora, historial, evidencia con URL firmada |
+| Método y ruta                                                                    | Qué hace                                                                                                                                                      |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET `/admin/resumen`                                                             | indicadores: clientes/equipos/operadores/dispositivos activos, cargas y galones de hoy, alertas (cargas de hoy que no cuadran + dispositivos sin señal >24 h) |
+| GET `/admin/cargas?cliente_id&limite`                                            | recientes con cliente, equipo, operador, galones, estado, fotos                                                                                               |
+| GET·POST `/admin/clientes` · PATCH `/admin/clientes/:id`                         | crear/editar/activar/desactivar; buscar por nombre                                                                                                            |
+| GET `/admin/clientes/:id/sedes` · POST `/admin/sedes` · PATCH `/admin/sedes/:id` | la creación de sede incluye su dispensador (transacción)                                                                                                      |
+| GET·POST `/admin/equipos` · PATCH `/admin/equipos/:id`                           | carrotanques y demás equipos, por cliente                                                                                                                     |
+| GET·POST `/admin/operadores` · PATCH `/admin/operadores/:id`                     | personas con PIN; asignar/rotar PIN; última carga como último acceso                                                                                          |
+| GET·POST `/admin/codigos`                                                        | generar código de enrolamiento por sede (expiración configurable), listar con estado vigente/usado/expirado                                                   |
+| GET `/admin/dispositivos` · PATCH `/admin/dispositivos/:id`                      | estado, último uso; desactivar/revocar. **Reenrolar** = revocar + generar código nuevo                                                                        |
+| GET `/admin/tablero/:clienteId`                                                  | dashboard operativo del cliente (Sacyr): día, por-equipo, duración promedio, operadora, historial, evidencia con URL firmada                                  |
 
 Persistencia: interfaz `RepositorioAdmin` (implementación Postgres real +
 fake en memoria para pruebas, mismo patrón existente). La evidencia usa
