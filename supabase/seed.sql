@@ -17,8 +17,10 @@
 insert into clientes (nombre, nit, activo) values
   ('Industrias Alimenticias El Trébol S.A.S.', null, true);
 
-insert into sedes (cliente_id, nombre, radio_geocerca_m)
-select id, 'Planta Buga', 150
+-- La ciudad compone la identidad visible de la sede (DEC-017):
+-- «Planta Buga, Valle del Cauca».
+insert into sedes (cliente_id, nombre, ciudad, radio_geocerca_m)
+select id, 'Planta Buga', 'Buga, Valle del Cauca', 150
 from clientes
 where nombre = 'Industrias Alimenticias El Trébol S.A.S.';
 
