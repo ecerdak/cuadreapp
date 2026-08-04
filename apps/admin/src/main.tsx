@@ -14,7 +14,11 @@ import { Clientes } from "./paginas/Clientes";
 import { Equipos } from "./paginas/Equipos";
 import { Operadores } from "./paginas/Operadores";
 import { Dispositivos } from "./paginas/Dispositivos";
-import { Tablero } from "./paginas/Tablero";
+import { FichaCliente } from "./paginas/cliente/FichaCliente";
+import { IdentidadCliente } from "./paginas/cliente/Identidad";
+import { ConfiguracionCliente } from "./paginas/cliente/Configuracion";
+import { OperacionCliente } from "./paginas/cliente/Operacion";
+import { DashboardCliente } from "./paginas/cliente/Dashboard";
 
 function ConSesion() {
   if (!haySesion()) return <Navigate to="/entrar" replace />;
@@ -32,12 +36,17 @@ createRoot(document.getElementById("raiz")!).render(
             <Route path="/resumen" element={<Resumen />} />
             <Route path="/cargas" element={<Cargas />} />
             <Route path="/clientes" element={<Clientes />} />
+            {/* Ficha del cliente: Identidad · Configuración · Operación · Dashboard */}
+            <Route path="/clientes/:clienteId" element={<FichaCliente />}>
+              <Route index element={<Navigate to="identidad" replace />} />
+              <Route path="identidad" element={<IdentidadCliente />} />
+              <Route path="configuracion" element={<ConfiguracionCliente />} />
+              <Route path="operacion" element={<OperacionCliente />} />
+              <Route path="dashboard" element={<DashboardCliente />} />
+            </Route>
             <Route path="/equipos" element={<Equipos />} />
             <Route path="/operadores" element={<Operadores />} />
             <Route path="/dispositivos" element={<Dispositivos />} />
-            <Route path="/tablero" element={<Tablero />} />
-            {/* Compatibilidad con marcadores viejos de la ruta piloto. */}
-            <Route path="/sacyr" element={<Tablero />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/resumen" replace />} />

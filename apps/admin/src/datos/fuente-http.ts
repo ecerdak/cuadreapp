@@ -71,6 +71,9 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async crearCliente(datos: {
     nombre: string;
+    nombreComercial: string | null;
+    colorPrimario: string | null;
+    colorSecundario: string | null;
     nit: string | null;
     perfilCodigo: string;
   }): Promise<Cliente> {
@@ -79,6 +82,9 @@ export class FuenteAdminHttp implements FuenteAdmin {
         method: "POST",
         body: JSON.stringify({
           nombre: datos.nombre,
+          nombre_comercial: datos.nombreComercial,
+          color_primario: datos.colorPrimario,
+          color_secundario: datos.colorSecundario,
           nit: datos.nit,
           perfil_codigo: datos.perfilCodigo,
         }),
@@ -88,13 +94,27 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async editarCliente(
     id: string,
-    cambios: Partial<Pick<Cliente, "nombre" | "nit" | "activo" | "perfilCodigo">>,
+    cambios: Partial<
+      Pick<
+        Cliente,
+        | "nombre"
+        | "nombreComercial"
+        | "colorPrimario"
+        | "colorSecundario"
+        | "nit"
+        | "activo"
+        | "perfilCodigo"
+      >
+    >,
   ): Promise<Cliente> {
     return json(
       await solicitar(`/api/v1/admin/clientes/${id}`, {
         method: "PATCH",
         body: JSON.stringify({
           nombre: cambios.nombre,
+          ...("nombreComercial" in cambios ? { nombre_comercial: cambios.nombreComercial } : {}),
+          ...("colorPrimario" in cambios ? { color_primario: cambios.colorPrimario } : {}),
+          ...("colorSecundario" in cambios ? { color_secundario: cambios.colorSecundario } : {}),
           ...("nit" in cambios ? { nit: cambios.nit } : {}),
           activo: cambios.activo,
           ...(cambios.perfilCodigo ? { perfil_codigo: cambios.perfilCodigo } : {}),
@@ -181,6 +201,7 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async crearEquipo(datos: {
     clienteId: string;
+    sedeId: string | null;
     codigoInterno: string;
     descripcion: string | null;
     categoria: string | null;
@@ -190,6 +211,7 @@ export class FuenteAdminHttp implements FuenteAdmin {
         method: "POST",
         body: JSON.stringify({
           cliente_id: datos.clienteId,
+          sede_id: datos.sedeId,
           codigo_interno: datos.codigoInterno,
           descripcion: datos.descripcion,
           categoria: datos.categoria,
@@ -200,12 +222,13 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async editarEquipo(
     id: string,
-    cambios: Partial<Pick<Equipo, "codigoInterno" | "descripcion" | "categoria" | "activo">>,
+    cambios: Partial<Pick<Equipo, "sedeId" | "codigoInterno" | "descripcion" | "categoria" | "activo">>,
   ): Promise<Equipo> {
     return json(
       await solicitar(`/api/v1/admin/equipos/${id}`, {
         method: "PATCH",
         body: JSON.stringify({
+          ...("sedeId" in cambios ? { sede_id: cambios.sedeId } : {}),
           codigo_interno: cambios.codigoInterno,
           ...("descripcion" in cambios ? { descripcion: cambios.descripcion } : {}),
           categoria: cambios.categoria,
@@ -226,6 +249,7 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async crearOperador(datos: {
     clienteId: string;
+    sedeId: string | null;
     nombre: string;
     codigo: string;
     pin: string;
@@ -235,6 +259,7 @@ export class FuenteAdminHttp implements FuenteAdmin {
         method: "POST",
         body: JSON.stringify({
           cliente_id: datos.clienteId,
+          sede_id: datos.sedeId,
           nombre: datos.nombre,
           codigo: datos.codigo,
           pin: datos.pin,
@@ -245,12 +270,24 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async editarOperador(
     id: string,
-    cambios: { nombre?: string; codigo?: string; pin?: string; activo?: boolean },
+    cambios: {
+      sedeId?: string | null;
+      nombre?: string;
+      codigo?: string;
+      pin?: string;
+      activo?: boolean;
+    },
   ): Promise<Operador> {
     return json(
       await solicitar(`/api/v1/admin/operadores/${id}`, {
         method: "PATCH",
-        body: JSON.stringify(cambios),
+        body: JSON.stringify({
+          ...("sedeId" in cambios ? { sede_id: cambios.sedeId } : {}),
+          nombre: cambios.nombre,
+          codigo: cambios.codigo,
+          pin: cambios.pin,
+          activo: cambios.activo,
+        }),
       }),
     );
   }

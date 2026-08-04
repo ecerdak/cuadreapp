@@ -52,6 +52,9 @@ export function Equipos() {
       dialogo === "crear"
         ? fuente.crearEquipo({
             clienteId: valores.clienteId,
+            // Vista global: nace compartido; la sede se asigna en la
+            // ficha del cliente → Operación (DEC-018).
+            sedeId: null,
             codigoInterno: valores.codigo,
             categoria: valores.categoria || null,
             descripcion: valores.descripcion || null,

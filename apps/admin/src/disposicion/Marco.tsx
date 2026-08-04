@@ -1,5 +1,7 @@
 // Marco de la consola: co-marca con placa ADMIN, pestañas subrayadas
-// (mismo lenguaje del contrato visual) y cierre de sesión.
+// (mismo lenguaje del contrato visual) y cierre de sesión. Las
+// pestañas son las vistas GLOBALES; la operación de un cliente vive en
+// su ficha (/clientes/:id), con su propio Dashboard (DEC-018).
 
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { TEMA } from "../tema";
@@ -15,7 +17,6 @@ const PESTANAS = [
   { ruta: "/equipos", rotulo: "Equipos" },
   { ruta: "/operadores", rotulo: "Operadores" },
   { ruta: "/dispositivos", rotulo: "Dispositivos" },
-  { ruta: "/tablero", rotulo: "Tablero" },
 ];
 
 export function Marco() {

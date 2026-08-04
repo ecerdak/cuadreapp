@@ -1,24 +1,16 @@
-// [Tablero] El tablero operativo por cliente: resumen del día, galones
-// por equipo, operadores, duración promedio, historial y evidencia
-// fotográfica. Un selector elige el cliente — jamás un nombre
-// hardcodeado (DEC-016): la misma plantilla sirve para todos.
+// [Cliente → Dashboard] El Dashboard de Cliente (DEC-018): la
+// operación del cliente de la ficha — resumen del día, galones por
+// equipo, operadores, duración, historial y evidencia. Un único
+// Dashboard para todos los clientes; lo que cambia es la
+// configuración, jamás el código.
 
 import { useState } from "react";
-import { useFuenteAdmin } from "../datos/proveedor";
-import { useConsulta } from "../datos/consulta";
-import {
-  ChipEstado,
-  Esqueleto,
-  EstadoError,
-  Eyebrow,
-  Panel,
-  Selector,
-  Th,
-  celda,
-  gal,
-  horaCorta,
-} from "../ui";
-import { TEMA } from "../tema";
+import { useOutletContext } from "react-router-dom";
+import { useFuenteAdmin } from "../../datos/proveedor";
+import { useConsulta } from "../../datos/consulta";
+import { ChipEstado, Esqueleto, EstadoError, Eyebrow, Panel, Th, celda, gal, horaCorta } from "../../ui";
+import { TEMA } from "../../tema";
+import type { ContextoFicha } from "./FichaCliente";
 
 const duracion = (segundos: number | null): string => {
   if (segundos === null) return "—";
@@ -26,49 +18,12 @@ const duracion = (segundos: number | null): string => {
   return `${minutos} min ${String(Math.round(segundos % 60)).padStart(2, "0")} s`;
 };
 
-export function Tablero() {
-  const fuente = useFuenteAdmin();
-  const clientes = useConsulta(() => fuente.clientes(), []);
-  const [clienteId, setClienteId] = useState<string | null>(null);
-
-  if (clientes.consulta.estado === "cargando") return <Esqueleto alto={380} />;
-  if (clientes.consulta.estado === "error")
-    return <EstadoError detalle={clientes.consulta.detalle} onReintentar={clientes.recargar} />;
-
-  const activos = clientes.consulta.datos.filter((c) => c.activo);
-  if (activos.length === 0) {
-    return (
-      <Panel className="p-6 text-center">
-        <p className="font-semibold">Aún no hay clientes activos.</p>
-        <p className="mt-1" style={{ fontSize: 12.5, color: TEMA.suave }}>
-          Crea el cliente en la pestaña Clientes (con su sede) para activar este tablero.
-        </p>
-      </Panel>
-    );
-  }
-
-  const seleccionado = activos.find((c) => c.id === clienteId) ?? activos[0]!;
-  return (
-    <TableroDeCliente
-      key={seleccionado.id}
-      clienteId={seleccionado.id}
-      selector={
-        activos.length > 1 ? (
-          <div style={{ minWidth: 220 }}>
-            <Selector
-              rotulo="Cliente"
-              valor={seleccionado.id}
-              onCambio={setClienteId}
-              opciones={activos.map((c) => ({ valor: c.id, rotulo: c.nombre }))}
-            />
-          </div>
-        ) : null
-      }
-    />
-  );
+export function DashboardCliente() {
+  const { cliente } = useOutletContext<ContextoFicha>();
+  return <TableroDeCliente key={cliente.id} clienteId={cliente.id} />;
 }
 
-function TableroDeCliente(props: { clienteId: string; selector: React.ReactNode }) {
+function TableroDeCliente(props: { clienteId: string }) {
   const fuente = useFuenteAdmin();
   const { consulta, recargar } = useConsulta(() => fuente.tablero(props.clienteId), [props.clienteId]);
   const [fotosDe, setFotosDe] = useState<string | null>(null);
@@ -87,20 +42,17 @@ function TableroDeCliente(props: { clienteId: string; selector: React.ReactNode 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-end justify-between" style={{ gap: 12 }}>
-        <h1 className="font-semibold" style={{ fontSize: 21, letterSpacing: "-0.01em" }}>
-          {tablero.clienteNombre} · operación de hoy
-        </h1>
-        <div className="flex items-end" style={{ gap: 12 }}>
-          {props.selector}
-          <button
-            type="button"
-            onClick={recargar}
-            className="focus-visible:outline"
-            style={{ fontSize: 12.5, color: TEMA.azul, paddingBottom: 10 }}
-          >
-            Actualizar
-          </button>
-        </div>
+        <h2 className="font-semibold" style={{ fontSize: 17, letterSpacing: "-0.01em" }}>
+          Operación de hoy
+        </h2>
+        <button
+          type="button"
+          onClick={recargar}
+          className="focus-visible:outline"
+          style={{ fontSize: 12.5, color: "var(--cliente-primario)" }}
+        >
+          Actualizar
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">

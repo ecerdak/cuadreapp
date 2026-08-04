@@ -56,6 +56,9 @@ export function Operadores() {
       dialogo === "crear"
         ? fuente.crearOperador({
             clienteId: valores.clienteId,
+            // Vista global: nace compartido entre sedes; se asigna en
+            // la ficha del cliente → Operación (DEC-018).
+            sedeId: null,
             nombre: valores.nombre,
             codigo: valores.codigo,
             pin: valores.pin,

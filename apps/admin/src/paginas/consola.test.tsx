@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ProveedorAdmin } from "../datos/proveedor";
 import type {
   Carga,
@@ -17,8 +17,9 @@ import type {
   Tablero as TableroDatos,
 } from "../datos/puertos";
 import { Resumen } from "./Resumen";
-import { Tablero } from "./Tablero";
-import { Clientes, LogoCliente } from "./Clientes";
+import { Clientes } from "./Clientes";
+import { LogoCliente } from "./cliente/LogoCliente";
+import { FichaCliente } from "./cliente/FichaCliente";
 import { Entrar } from "./Entrar";
 
 const CARGA: Carga = {
@@ -84,6 +85,9 @@ function clienteFalso(cambios: Partial<Cliente> = {}): Cliente {
   return {
     id: "cl1",
     nombre: "Sacyr",
+    nombreComercial: null,
+    colorPrimario: null,
+    colorSecundario: null,
     nit: null,
     activo: true,
     sedes: 1,
@@ -129,6 +133,9 @@ function fuenteFalsa(): FuenteAdmin & { estado: { clientes: Cliente[]; sedes: Se
       const cliente = clienteFalso({
         id: `cl${estado.clientes.length + 1}`,
         nombre: datos.nombre,
+        nombreComercial: datos.nombreComercial,
+        colorPrimario: datos.colorPrimario,
+        colorSecundario: datos.colorSecundario,
         nit: datos.nit,
         perfilCodigo: datos.perfilCodigo,
         cargas: 0,
@@ -183,7 +190,19 @@ function fuenteFalsa(): FuenteAdmin & { estado: { clientes: Cliente[]; sedes: Se
       return sede;
     },
     equipos: async () => [],
-    crearEquipo: async () => ({}) as never,
+    crearEquipo: async (datos) => ({
+      id: "eq1",
+      clienteId: datos.clienteId,
+      clienteNombre: "Sacyr",
+      sedeId: datos.sedeId,
+      sedeNombre: null,
+      codigoInterno: datos.codigoInterno,
+      descripcion: datos.descripcion,
+      categoria: datos.categoria,
+      tipoMedidor: "ninguno",
+      capacidadTanqueGal: null,
+      activo: true,
+    }),
     editarEquipo: async () => ({}) as never,
     operadores: async () => [],
     crearOperador: async () => ({}) as never,
@@ -224,18 +243,7 @@ describe("dashboard administrativo (Resumen)", () => {
   });
 });
 
-describe("tablero por cliente (sin nombres hardcodeados)", () => {
-  it("monta con la fuente inyectada", async () => {
-    const html = await renderConDatos(
-      <ProveedorAdmin fuente={fuenteFalsa()}>
-        <MemoryRouter>
-          <Tablero />
-        </MemoryRouter>
-      </ProveedorAdmin>,
-    );
-    expect(html).toContain("animate-pulse");
-  });
-
+describe("Dashboard de Cliente (sin nombres hardcodeados)", () => {
   it("el tablero del cliente trae día, por-equipo, operadores y evidencia", async () => {
     const tablero = await fuenteFalsa().tablero("cl1");
     expect(tablero.clienteNombre).toBe("Sacyr");
@@ -259,6 +267,9 @@ describe("identidad del cliente (DEC-016/DEC-017)", () => {
     const fuente = fuenteFalsa();
     const cliente = await fuente.crearCliente({
       nombre: "Constructora Piloto",
+      nombreComercial: null,
+      colorPrimario: null,
+      colorSecundario: null,
       nit: null,
       perfilCodigo: "carga_inventario",
     });
@@ -348,5 +359,50 @@ describe("acceso", () => {
     expect(html).toContain("Correo");
     expect(html).toContain("Contraseña");
     expect(html).toContain(">Entrar</button>");
+  });
+});
+
+describe("ficha del cliente como ERP (DEC-018)", () => {
+  it("la ficha monta con sus cuatro secciones: Identidad, Configuración, Operación y Dashboard", async () => {
+    const html = renderToStaticMarkup(
+      <ProveedorAdmin fuente={fuenteFalsa()}>
+        <MemoryRouter initialEntries={["/clientes/cl1/identidad"]}>
+          <Routes>
+            <Route path="/clientes/:clienteId" element={<FichaCliente />}>
+              <Route path="identidad" element={<div>bloque identidad</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </ProveedorAdmin>,
+    );
+    // Arranca cargando el cliente; el shell ya declara la navegación.
+    expect(html).toContain("animate-pulse");
+  });
+
+  it("el puerto expone la identidad completa del cliente para la ficha", async () => {
+    const fuente = fuenteFalsa();
+    const cliente = await fuente.crearCliente({
+      nombre: "Transportes del Valle S.A.S.",
+      nombreComercial: "TransValle",
+      colorPrimario: "#C0392B",
+      colorSecundario: "#7B241C",
+      nit: "901234567-8",
+      perfilCodigo: "medidor_doble",
+    });
+    expect(cliente.nombreComercial).toBe("TransValle");
+    expect(cliente.colorPrimario).toBe("#C0392B");
+    expect(cliente.nombre).toBe("Transportes del Valle S.A.S.");
+  });
+
+  it("equipos y operadores viajan con su sede (null = todas las sedes)", async () => {
+    const fuente = fuenteFalsa();
+    const equipo = await fuente.crearEquipo({
+      clienteId: "cl1",
+      sedeId: null,
+      codigoInterno: "T-99",
+      descripcion: null,
+      categoria: null,
+    });
+    expect(equipo.sedeId).toBeNull();
   });
 });

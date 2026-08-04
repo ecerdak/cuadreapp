@@ -12,7 +12,12 @@ export interface PerfilOperativo {
 
 export interface Cliente {
   id: string;
+  /** Razón social. */
   nombre: string;
+  /** Identidad corporativa (DEC-018). */
+  nombreComercial: string | null;
+  colorPrimario: string | null;
+  colorSecundario: string | null;
   nit: string | null;
   activo: boolean;
   sedes: number;
@@ -39,6 +44,9 @@ export interface Equipo {
   id: string;
   clienteId: string;
   clienteNombre: string;
+  /** DEC-018: null = disponible en todas las sedes del cliente. */
+  sedeId: string | null;
+  sedeNombre: string | null;
   codigoInterno: string;
   descripcion: string | null;
   categoria: string | null;
@@ -51,6 +59,9 @@ export interface Operador {
   id: string;
   clienteId: string;
   clienteNombre: string;
+  /** DEC-018: null = opera en todas las sedes del cliente. */
+  sedeId: string | null;
+  sedeNombre: string | null;
   nombre: string;
   codigo: string;
   activo: boolean;
@@ -137,10 +148,28 @@ export interface FuenteAdmin {
   perfiles(): Promise<PerfilOperativo[]>;
 
   clientes(buscar?: string): Promise<Cliente[]>;
-  crearCliente(datos: { nombre: string; nit: string | null; perfilCodigo: string }): Promise<Cliente>;
+  crearCliente(datos: {
+    nombre: string;
+    nombreComercial: string | null;
+    colorPrimario: string | null;
+    colorSecundario: string | null;
+    nit: string | null;
+    perfilCodigo: string;
+  }): Promise<Cliente>;
   editarCliente(
     id: string,
-    cambios: Partial<Pick<Cliente, "nombre" | "nit" | "activo" | "perfilCodigo">>,
+    cambios: Partial<
+      Pick<
+        Cliente,
+        | "nombre"
+        | "nombreComercial"
+        | "colorPrimario"
+        | "colorSecundario"
+        | "nit"
+        | "activo"
+        | "perfilCodigo"
+      >
+    >,
   ): Promise<Cliente>;
   /** Sube (o reemplaza) el logo — binario real, jamás base64 (DEC-017). */
   subirLogo(id: string, archivo: Blob): Promise<Cliente>;
@@ -164,25 +193,33 @@ export interface FuenteAdmin {
   equipos(filtro?: { clienteId?: string; buscar?: string }): Promise<Equipo[]>;
   crearEquipo(datos: {
     clienteId: string;
+    sedeId: string | null;
     codigoInterno: string;
     descripcion: string | null;
     categoria: string | null;
   }): Promise<Equipo>;
   editarEquipo(
     id: string,
-    cambios: Partial<Pick<Equipo, "codigoInterno" | "descripcion" | "categoria" | "activo">>,
+    cambios: Partial<Pick<Equipo, "sedeId" | "codigoInterno" | "descripcion" | "categoria" | "activo">>,
   ): Promise<Equipo>;
 
   operadores(filtro?: { clienteId?: string; buscar?: string }): Promise<Operador[]>;
   crearOperador(datos: {
     clienteId: string;
+    sedeId: string | null;
     nombre: string;
     codigo: string;
     pin: string;
   }): Promise<Operador>;
   editarOperador(
     id: string,
-    cambios: { nombre?: string; codigo?: string; pin?: string; activo?: boolean },
+    cambios: {
+      sedeId?: string | null;
+      nombre?: string;
+      codigo?: string;
+      pin?: string;
+      activo?: boolean;
+    },
   ): Promise<Operador>;
 
   codigos(): Promise<Codigo[]>;
