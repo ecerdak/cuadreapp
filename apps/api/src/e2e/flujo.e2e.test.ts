@@ -8,6 +8,14 @@
 //                         → bloque de identidad (GoTrue) y Storage
 //
 // Ejecutar: pnpm --filter @cuadreapp/api e2e
+//
+// LIMPIEZA OBLIGATORIA: este archivo corre contra la base REAL de
+// producción. Toda fila que inserte debe borrarse al terminar y todo
+// contador que mueva debe restituirse — una carga de prueba que
+// sobreviva contamina la evidencia del cliente y, peor, deja el
+// totalizador adelantado: la siguiente carga real dispararía un
+// SALTO_TOTALIZADOR falso. El registro de limpieza vive en
+// `aLimpiar` y se ejecuta siempre en el afterAll.
 
 import { afterAll, describe, expect, it } from "vitest";
 import pg from "pg";
@@ -25,7 +33,19 @@ const haySupabase = Boolean(SUPABASE.url && SUPABASE.claveAnon && SUPABASE.clave
 
 const pool = URL_BD ? new pg.Pool({ connectionString: URL_BD }) : null;
 
+/** Acciones de limpieza que dejan la base como estaba. Se ejecutan
+ *  todas, incluso si alguna falla (no se aborta la limpieza a medias). */
+const aLimpiar: Array<() => Promise<void>> = [];
+
 afterAll(async () => {
+  for (const limpiar of aLimpiar.reverse()) {
+    try {
+      await limpiar();
+    } catch (error) {
+      console.error("E2E: fallo limpiando", error);
+      process.exitCode = 1; // un E2E que ensucia producción NO es verde
+    }
+  }
   await pool?.end();
 });
 
@@ -33,15 +53,35 @@ describe.runIf(Boolean(URL_BD))("E2E base de datos real (migraciones + seed apli
   it("el criterio de la Etapa 0: insertar una carga avanza tot_actual_gal por trigger", async () => {
     const repo = new RepositorioCargasPostgres(pool!);
 
+    // Correlacionada a propósito: dispensador, equipo y conductor DEBEN
+    // ser del mismo cliente, que es justo lo que exige
+    // obtenerContextoRegistro. Un producto cartesiano aquí elegiría un
+    // dispensador de otro cliente en cuanto exista más de uno en la
+    // base y la prueba fallaría de forma intermitente.
     const referencias = await pool!.query(
       `select d.id as dispensador_id, d.tot_actual_gal, e.id as equipo_id, c.id as conductor_id
-       from dispensadores d, equipos e, conductores c
-       where e.codigo_interno = 'T-04' and c.codigo = '07'
+       from dispensadores d
+       join sedes s        on s.id = d.sede_id
+       join equipos e      on e.cliente_id = s.cliente_id and e.codigo_interno = 'T-04' and e.activo
+       join conductores c  on c.cliente_id = s.cliente_id and c.codigo = '07' and c.activo
+       where d.activo
+       order by d.nombre
        limit 1`,
     );
     expect(referencias.rows).toHaveLength(1);
     const fila = referencias.rows[0];
     const totAntes = Number(fila.tot_actual_gal);
+    const id = crypto.randomUUID();
+
+    // Registrada ANTES de insertar: si la prueba falla a mitad, la
+    // limpieza corre igual.
+    aLimpiar.push(async () => {
+      await pool!.query(`delete from cargas where id = $1`, [id]);
+      await pool!.query(`update dispensadores set tot_actual_gal = $2 where id = $1`, [
+        fila.dispensador_id,
+        totAntes,
+      ]);
+    });
 
     const contexto = await repo.obtenerContextoRegistro({
       dispensadorId: fila.dispensador_id,
@@ -50,7 +90,6 @@ describe.runIf(Boolean(URL_BD))("E2E base de datos real (migraciones + seed apli
     });
     expect(contexto).not.toBeNull();
 
-    const id = crypto.randomUUID();
     const veredicto = validarCarga(
       {
         tandaInicialGal: 0.0,
