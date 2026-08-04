@@ -311,6 +311,14 @@ Cambios de esquema aplicados por `supabase/migrations/20260804090000_perfiles_op
 - `cargas.galones` conserva una única semántica en todo perfil: **galones despachados por Lubryco** (en `medidor_doble` sigue siendo `= tanda_final_gal`).
 - El trigger de `tot_actual_gal` no cambia: con `dispensador_id` nulo su `UPDATE` no matchea filas.
 
+### Addendum P.1 4-ago-2026 — Identidad corporativa y jerarquía multi-sede (DEC-018)
+
+Cambios de `supabase/migrations/20260805090000_identidad_cliente.sql` (idempotente):
+
+- `clientes` gana `nombre_comercial` («El Trébol S.A.S.» frente a la razón social en `nombre`), `color_primario` y `color_secundario` (`#RRGGBB`, CHECK de formato). La base almacena SOLO esos dos colores: todo lo demás (hover, sombras, estados, contrastes) lo deriva el Design System — nunca CSS libre.
+- `equipos.sede_id` y `conductores.sede_id`, **opcionales** (FK a `sedes`, null = disponible en todas las sedes del cliente). Jerarquía congelada: Cliente → Sedes → Equipos → Operadores → Dispositivos; multi-sede es supuesto universal. El catálogo del dispositivo filtra por su sede: entrega los equipos/operadores de esa sede más los compartidos (null).
+- Cero cambios en `cargas`, perfiles, trigger y RLS.
+
 ---
 
 ## 7. Reglas de validación

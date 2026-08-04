@@ -140,3 +140,9 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 ### Pendiente
 - Sobre infraestructura real (acciones con credenciales del propietario): aplicar la migración de la Etapa P, correr `supabase/verificacion_perfiles.sql`, E2E de ambos perfiles, crear el cliente Sacyr con su perfil/sede/logo desde la consola y enrolar su dispositivo.
 - Indicadores diarios del Dashboard por perfil (volumen total de salida, carrotanques atendidos): llegan con la conexión del Dashboard a la API (Fase C), que es cuando el tablero deja los datos simulados.
+
+## [Etapa P.1 — Generalización del cliente + identidad corporativa] (en curso)
+
+### Decidido
+
+- DEC-018: **Identidad corporativa por cliente y Dashboard de Cliente único** — identidad y comportamiento provienen solo de la base; tematización restringida a `color_primario`/`color_secundario` con todo lo demás derivado del Design System (nunca CSS libre); ficha del cliente en tres bloques (Identidad / Configuración / Operación) + Dashboard, con navegación de ERP; el Perfil Operativo pasa de identidad a Configuración; jerarquía congelada Cliente → Sedes → Equipos → Operadores → Dispositivos con `sede_id` opcional en equipos y operadores (null = todas las sedes — permite compartidos y exclusivos; decisión permanente, no un requerimiento del piloto); el guard `pnpm sin-clientes` se amplía a patrones de lógica por cliente, con fixtures/demo/comentarios/documentación permitidos.
