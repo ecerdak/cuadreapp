@@ -9,7 +9,14 @@ import { catalogoLocalDesdeRemoto } from "./catalogo";
 
 function remotoBase(cambios: Partial<CatalogoRemoto> = {}): CatalogoRemoto {
   return {
-    cliente: { id: "cl1", nombre: "Sacyr", logo_url: "https://firmada/logo.png" },
+    cliente: {
+      id: "cl1",
+      nombre: "Sacyr S.A.",
+      nombre_comercial: "Sacyr",
+      color_primario: "#1B4F9C",
+      color_secundario: "#0C2A55",
+      logo_url: "https://firmada/logo.png",
+    },
     perfil: { codigo: "carga_inventario", nombre: "Carga sobre Inventario" },
     sede: {
       id: "s1",
@@ -32,7 +39,11 @@ describe("catalogoLocalDesdeRemoto — perfil e identidad", () => {
     expect(local).not.toBeNull();
     expect(local!.perfil).toBe("carga_inventario");
     expect(local!.dispensador).toBeNull();
-    expect(local!.cliente).toEqual({ nombre: "Sacyr", logoUrl: "https://firmada/logo.png" });
+    expect(local!.cliente).toEqual({
+      nombre: "Sacyr",
+      logoUrl: "https://firmada/logo.png",
+      colorPrimario: "#1B4F9C",
+    });
     expect(local!.sede.ciudad).toBe("Cali, Valle del Cauca");
   });
 
@@ -65,5 +76,22 @@ describe("catalogoLocalDesdeRemoto — perfil e identidad", () => {
       dispensadores: [{ id: "d1", nombre: "Isla 1", tot_actual_gal: 100.0, tolerancia_tanda_gal: 1.0 }],
     });
     expect(catalogoLocalDesdeRemoto(raro)!.perfil).toBe("medidor_doble");
+  });
+});
+
+describe("identidad corporativa en la PWA (DEC-018)", () => {
+  it("prefiere el nombre comercial sobre la razón social", () => {
+    const local = catalogoLocalDesdeRemoto(remotoBase());
+    expect(local!.cliente?.nombre).toBe("Sacyr"); // comercial, no "Sacyr S.A."
+  });
+
+  it("sin nombre comercial usa la razón social", () => {
+    const local = catalogoLocalDesdeRemoto(
+      remotoBase({
+        cliente: { id: "cl1", nombre: "Constructora Andina S.A.S.", logo_url: null },
+      }),
+    );
+    expect(local!.cliente?.nombre).toBe("Constructora Andina S.A.S.");
+    expect(local!.cliente?.colorPrimario).toBeNull(); // acento CuadreApp
   });
 });

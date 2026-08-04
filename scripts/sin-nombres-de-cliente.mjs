@@ -1,10 +1,15 @@
-// DEC-016: prohibido condicionar por cliente en cualquier capa. Este
-// chequeo convierte la regla en máquina (como dependency-cruiser hace
-// con DEC-007): ningún nombre de cliente puede aparecer en el código
-// fuente de apps/ ni packages/, salvo la lista explícita de lugares
-// donde es DATO y no lógica (fixtures de prueba, datos simulados de
-// demostración, identidad de fallback del marco demo, assets de marca
-// y el alias de ruta para marcadores viejos).
+// DEC-016 y DEC-018: prohibido condicionar por cliente en cualquier
+// capa. Este chequeo convierte la regla en máquina (como
+// dependency-cruiser hace con DEC-007). Verifica dos cosas:
+//
+//   1. Ningún NOMBRE de cliente en el código fuente de apps/ ni
+//      packages/, salvo donde es DATO y no lógica (fixtures, datos
+//      simulados, assets de marca, comentarios históricos).
+//   2. Ningún PATRÓN de lógica por cliente, aunque no nombre a
+//      ninguno: comparaciones sobre cliente.nombre, switch(cliente),
+//      rutas con nombre propio. Esto aplica a TODO el código, sin
+//      excepciones de ruta — un fixture tampoco necesita ramificar
+//      por nombre de cliente.
 //
 // Para agregar un cliente nuevo NO se toca este archivo: los clientes
 // se crean en la consola Admin. Si este chequeo falla, el código está
@@ -24,8 +29,29 @@ const PERMITIDOS = [
   /apps\/dashboard\/src\/datos\/contexto-cliente\.ts$/, // identidad demo (fallback del marco)
   /apps\/dashboard\/src\/datos\/fuente-simulada\.ts$/, // fuente de demostración
   /apps\/dashboard\/src\/simulacion\//, // escenario simulado
-  /apps\/dashboard\/src\/disposicion\/DisposicionTablero\.tsx$/, // fallback demo + asset
-  /apps\/admin\/src\/main\.tsx$/, // alias de ruta /sacyr para marcadores viejos
+];
+
+// Patrones de LÓGICA por cliente (DEC-018): prohibidos en todas
+// partes, incluidos fixtures y datos simulados. Nombrar a un cliente
+// como dato es legítimo; ramificar el comportamiento por su nombre,
+// jamás.
+const PATRONES_DE_LOGICA = [
+  {
+    patron: /\bcliente[A-Za-z]*\s*\.\s*nombre(Comercial)?\s*(===|==|!==|!=)/,
+    razon: "comparación por nombre de cliente",
+  },
+  {
+    patron: /(===|==|!==|!=)\s*cliente[A-Za-z]*\s*\.\s*nombre(Comercial)?\b/,
+    razon: "comparación por nombre de cliente",
+  },
+  {
+    patron: /\bswitch\s*\(\s*cliente[A-Za-z]*(\s*\.\s*nombre[A-Za-z]*)?\s*\)/,
+    razon: "switch por cliente",
+  },
+  {
+    patron: /\bCLIENTE_(PILOTO|ACTUAL|ESPECIAL)\b/,
+    razon: "constante de cliente especial",
+  },
 ];
 
 /** Los comentarios explican historia y contexto — no son lógica. */
@@ -54,19 +80,31 @@ const violaciones = [];
 for (const base of ["apps", "packages"]) {
   for (const ruta of archivos(join(RAIZ, base))) {
     const relativa = relative(RAIZ, ruta).split(sep).join("/");
-    if (PERMITIDOS.some((patron) => patron.test(relativa))) continue;
-    const contenido = readFileSync(ruta, "utf8");
-    const lineas = contenido.split("\n");
+    const esDato = PERMITIDOS.some((patron) => patron.test(relativa));
+    const lineas = readFileSync(ruta, "utf8").split("\n");
+
     lineas.forEach((linea, indice) => {
-      if (NOMBRES_DE_CLIENTE.test(linea) && !esComentario(linea)) {
-        violaciones.push(`${relativa}:${indice + 1}: ${linea.trim()}`);
+      if (esComentario(linea)) return;
+      const ubicacion = `${relativa}:${indice + 1}`;
+
+      // (2) Lógica por cliente: prohibida en TODO el código.
+      for (const { patron, razon } of PATRONES_DE_LOGICA) {
+        if (patron.test(linea)) {
+          violaciones.push(`${ubicacion}: [${razon}] ${linea.trim()}`);
+          return;
+        }
+      }
+
+      // (1) Nombres de cliente: prohibidos salvo donde son dato.
+      if (!esDato && NOMBRES_DE_CLIENTE.test(linea)) {
+        violaciones.push(`${ubicacion}: [nombre de cliente] ${linea.trim()}`);
       }
     });
   }
 }
 
 if (violaciones.length > 0) {
-  console.error("DEC-016 violada — nombres de cliente en el código (no en datos):\n");
+  console.error("DEC-016/DEC-018 violadas — comportamiento atado a un cliente:\n");
   for (const violacion of violaciones) console.error(`  ${violacion}`);
   console.error(
     "\nLos clientes se administran desde la consola; el código despacha por PERFIL, jamás por cliente.",
@@ -74,4 +112,6 @@ if (violaciones.length > 0) {
   process.exit(1);
 }
 
-console.log("sin-nombres-de-cliente: OK — cero condicionales por cliente en el código.");
+console.log(
+  "sin-nombres-de-cliente: OK — cero nombres de cliente en el código y cero lógica por cliente.",
+);

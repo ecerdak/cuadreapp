@@ -18,9 +18,12 @@ export function CabezaApp(props: {
    *  logo, iniciales del cliente — jamás una imagen rota. */
   cliente?: string;
   logoCliente?: string | null;
+  /** Acento corporativo (#RRGGBB, DEC-018); null = paleta CuadreApp. */
+  colorCliente?: string | null;
 }) {
   const { porPaso, total: TOTAL } = props.avance ?? AVANCE_POR_DEFECTO;
   const avance = props.paso ? (porPaso[props.paso] ?? 0) : 0;
+  const acento = /^#[0-9A-Fa-f]{6}$/.test(props.colorCliente ?? "") ? props.colorCliente! : C.lineaSuave;
   const iniciales = (props.cliente ?? "")
     .split(/\s+/)
     .filter((palabra) => /^[a-záéíóúñ]/i.test(palabra))
@@ -52,6 +55,7 @@ export function CabezaApp(props: {
                 height: 20,
                 fontSize: 9,
                 background: C.lineaSuave,
+                border: `1px solid ${acento}`,
                 color: C.suave,
               }}
             >

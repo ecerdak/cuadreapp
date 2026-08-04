@@ -19,7 +19,15 @@ export interface PerfilMe {
 export interface CatalogoRemoto {
   /** Identidad del cliente (DEC-017). Opcional: un catálogo cacheado
    *  antes de la Etapa P no la trae — la PWA cae a los valores previos. */
-  cliente?: { id: string; nombre: string; logo_url: string | null };
+  cliente?: {
+    id: string;
+    nombre: string;
+    nombre_comercial?: string | null;
+    /** Identidad corporativa (DEC-018); la PWA la usa como acento. */
+    color_primario?: string | null;
+    color_secundario?: string | null;
+    logo_url: string | null;
+  };
   /** Perfil Operativo del cliente (DEC-016); ausente = medidor_doble. */
   perfil?: { codigo: string; nombre: string };
   sede: {

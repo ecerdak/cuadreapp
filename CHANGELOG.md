@@ -146,3 +146,18 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 ### Decidido
 
 - DEC-018: **Identidad corporativa por cliente y Dashboard de Cliente único** — identidad y comportamiento provienen solo de la base; tematización restringida a `color_primario`/`color_secundario` con todo lo demás derivado del Design System (nunca CSS libre); ficha del cliente en tres bloques (Identidad / Configuración / Operación) + Dashboard, con navegación de ERP; el Perfil Operativo pasa de identidad a Configuración; jerarquía congelada Cliente → Sedes → Equipos → Operadores → Dispositivos con `sede_id` opcional en equipos y operadores (null = todas las sedes — permite compartidos y exclusivos; decisión permanente, no un requerimiento del piloto); el guard `pnpm sin-clientes` se amplía a patrones de lógica por cliente, con fixtures/demo/comentarios/documentación permitidos.
+
+### Agregado
+
+- BD (migración idempotente `20260805090000`): `clientes.nombre_comercial`, `color_primario` y `color_secundario` con CHECK `#RRGGBB`; `equipos.sede_id` y `conductores.sede_id` opcionales (null = todas las sedes del cliente).
+- API: CRUD de clientes con identidad completa (colores validados como hex — nunca CSS libre en la base); equipos y operadores con sede opcional; el catálogo del dispositivo entrega la identidad del cliente y filtra equipos/operadores por SU sede más los compartidos. 7 pruebas nuevas (104 en la API).
+- Consola: **ficha ERP del cliente** en `/clientes/:id` con Identidad (logo, colores con selector, vista previa y advertencia de contraste, datos legales), Configuración (Perfil Operativo — reclasificado desde Identidad — y base de reglas futuras), Operación (Sedes → Equipos → Operadores → Dispositivos con alcance del cliente y asignación de sede) y su Dashboard de Cliente. La lista de clientes queda como índice del ERP; desaparecen la ruta `/sacyr` y la pestaña global Tablero.
+- `TemaCliente` (consola y Dashboard): deriva de los dos colores TODAS las variables de la UI —hover, activo, superficie, borde, sombra, gradiente y el color de texto legible por contraste WCAG—. Un color inválido cae a la paleta CuadreApp en vez de inyectarse; el subrayado de navegación sigue siendo identidad de CuadreApp (solo cambia la identidad del cliente, no la experiencia). 10 pruebas por app.
+- Dashboard: marco con identidad NEUTRA (cero nombres de cliente en el código); la tarjeta del cliente aparece solo cuando hay identidad; `contexto-cliente.ts` queda declarado como datos de demostración con sus colores. 41 pruebas.
+- PWA: el catálogo trae nombre comercial y color primario; la cabecera usa el acento del cliente en su chip de identidad. 130 pruebas.
+- Guard ampliado (`pnpm sin-clientes`): además de nombres de cliente, ahora detecta **patrones de lógica por cliente** en TODO el código (comparaciones sobre `cliente.nombre`, `switch(cliente)`, constantes tipo `CLIENTE_PILOTO`), sin excepciones de ruta. Verificado que falla el build ante cada patrón.
+
+### Pendiente
+
+- Sobre infraestructura real: aplicar la migración `20260805090000` y configurar la identidad de los clientes reales desde la consola.
+- Unificación de `tema-cliente.ts` (hoy duplicado en consola y Dashboard) en el paquete de UI compartida previsto por DEC-015, cuando el Dashboard se conecte a la API (Fase C).

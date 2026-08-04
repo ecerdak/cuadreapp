@@ -49,44 +49,38 @@ function cuerpoInventarioBase(cambios: Record<string, unknown> = {}): Record<str
 }
 
 describe("POST /api/v1/cargas — perfil carga_inventario (Sacyr)", () => {
-  // Timeout amplio: es la PRIMERA prueba del archivo y paga el arranque
-  // de Fastify + jose bajo la carga paralela del monorepo completo.
-  it(
-    "registra la carga y calcula 150 + 600 = 750; el operador nunca manda el total",
-    { timeout: 15_000 },
-    async () => {
-      const { app, repositorio, eventos } = armarInventario();
-      const respuesta = await app.inject({
-        method: "POST",
-        url: "/api/v1/cargas",
-        headers: await encabezados(),
-        payload: cuerpoInventarioBase(),
-      });
+  it("registra la carga y calcula 150 + 600 = 750; el operador nunca manda el total", async () => {
+    const { app, repositorio, eventos } = armarInventario();
+    const respuesta = await app.inject({
+      method: "POST",
+      url: "/api/v1/cargas",
+      headers: await encabezados(),
+      payload: cuerpoInventarioBase(),
+    });
 
-      expect(respuesta.statusCode).toBe(201);
-      const cuerpo = respuesta.json();
-      expect(cuerpo.estado).toBe("ok");
-      expect(cuerpo.galones).toBe(600.0);
-      expect(cuerpo.llegada_gal).toBe(150.0);
-      expect(cuerpo.inventario_final_gal).toBe(750.0);
+    expect(respuesta.statusCode).toBe(201);
+    const cuerpo = respuesta.json();
+    expect(cuerpo.estado).toBe("ok");
+    expect(cuerpo.galones).toBe(600.0);
+    expect(cuerpo.llegada_gal).toBe(150.0);
+    expect(cuerpo.inventario_final_gal).toBe(750.0);
 
-      // La fila persistida tiene la forma exacta del perfil (el CHECK de
-      // la base la exige igual).
-      const { carga } = repositorio.inserciones[0]!;
-      expect(carga.perfil_codigo).toBe("carga_inventario");
-      expect(carga.dispensador_id).toBeNull();
-      expect(carga.tanda_inicial_gal).toBeNull();
-      expect(carga.tot_final_gal).toBeNull();
-      expect(carga.llegada_gal).toBe(150.0);
-      expect(carga.galones).toBe(600.0);
-      expect(carga.cliente_id).toBe(ID_CLIENTE);
-      expect(carga.sede_id).toBe(ID_SEDE);
+    // La fila persistida tiene la forma exacta del perfil (el CHECK de
+    // la base la exige igual).
+    const { carga } = repositorio.inserciones[0]!;
+    expect(carga.perfil_codigo).toBe("carga_inventario");
+    expect(carga.dispensador_id).toBeNull();
+    expect(carga.tanda_inicial_gal).toBeNull();
+    expect(carga.tot_final_gal).toBeNull();
+    expect(carga.llegada_gal).toBe(150.0);
+    expect(carga.galones).toBe(600.0);
+    expect(carga.cliente_id).toBe(ID_CLIENTE);
+    expect(carga.sede_id).toBe(ID_SEDE);
 
-      // Observabilidad (DEC-012 + DEC-016): el evento lleva el perfil.
-      const evento = eventos.find((e) => e.endpoint === "POST /api/v1/cargas");
-      expect(evento?.perfil).toBe("carga_inventario");
-    },
-  );
+    // Observabilidad (DEC-012 + DEC-016): el evento lleva el perfil.
+    const evento = eventos.find((e) => e.endpoint === "POST /api/v1/cargas");
+    expect(evento?.perfil).toBe("carga_inventario");
+  });
 
   it("es idempotente: reintento con el mismo id devuelve lo persistido con su total", async () => {
     const { app } = armarInventario();

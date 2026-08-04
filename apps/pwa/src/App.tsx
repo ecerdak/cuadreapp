@@ -344,6 +344,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
         avance={avance}
         cliente={catalogo?.cliente?.nombre}
         logoCliente={urlLogoCliente}
+        colorCliente={catalogo?.cliente?.colorPrimario ?? null}
       />
       <div className="flex-1" style={{ paddingBottom: 22 }}>
         {contenido}

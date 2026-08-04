@@ -41,9 +41,12 @@ export interface SedeCatalogo {
 }
 
 export interface ClienteCatalogo {
+  /** Nombre visible: comercial si existe, si no la razón social. */
   nombre: string;
   /** URL firmada temporal del logo (DEC-017); los bytes se cachean aparte. */
   logoUrl: string | null;
+  /** Identidad corporativa (DEC-018): acento de la app; null = CuadreApp. */
+  colorPrimario: string | null;
 }
 
 export interface CatalogoLocal {
@@ -70,7 +73,13 @@ export function catalogoLocalDesdeRemoto(remoto: CatalogoRemoto): CatalogoLocal 
 
   return {
     perfil,
-    cliente: remoto.cliente ? { nombre: remoto.cliente.nombre, logoUrl: remoto.cliente.logo_url } : null,
+    cliente: remoto.cliente
+      ? {
+          nombre: remoto.cliente.nombre_comercial ?? remoto.cliente.nombre,
+          logoUrl: remoto.cliente.logo_url,
+          colorPrimario: remoto.cliente.color_primario ?? null,
+        }
+      : null,
     sede: {
       nombre: remoto.sede.nombre,
       ciudad: remoto.sede.ciudad ?? null,
