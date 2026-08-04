@@ -2,27 +2,22 @@
 // Una sola fuente de verdad: qué paso precede a cuál, cuándo se puede
 // volver, qué se invalida y con qué mensaje se pide confirmación.
 // Cero dependencias de React o del navegador: reglas puras y probadas.
+//
+// Desde la Etapa P la secuencia vive como DATO en flujo/perfiles.ts
+// (DEC-016): PASO_ANTERIOR se deriva de la definición del flujo, con
+// los mismos valores de siempre para medidor_doble.
 
-/** Pasos del flujo (los mismos de App.tsx). */
-export type PasoWizard =
-  "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo" | "diagnostico";
+import { derivarPasoAnterior, FLUJO_MEDIDOR_DOBLE, type PasoWizard } from "./perfiles";
+
+export type { PasoWizard };
 
 /**
- * Paso inmediatamente anterior. `null` = no se puede volver:
- *  - inicio: es la raíz del flujo.
- *  - listo: la carga YA está guardada en la cola — volver podría
- *    reabrir/duplicar un registro confirmado.
+ * Paso inmediatamente anterior, derivado del flujo. `null` = no se
+ * puede volver (inicio es la raíz; en listo la carga YA está guardada
+ * en la cola — volver podría reabrir/duplicar un registro confirmado).
  */
-export const PASO_ANTERIOR: Record<PasoWizard, PasoWizard | null> = {
-  inicio: null,
-  equipo: "inicio",
-  conductor: "equipo",
-  antes: "conductor",
-  cargando: "antes",
-  despues: "cargando",
-  listo: null,
-  diagnostico: "inicio",
-};
+export const PASO_ANTERIOR: Record<PasoWizard, PasoWizard | null> =
+  derivarPasoAnterior(FLUJO_MEDIDOR_DOBLE);
 
 /**
  * ¿Se permite retroceder desde este paso ahora?

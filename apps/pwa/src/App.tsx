@@ -45,12 +45,13 @@ import {
   hayDatosDependientesDeEquipo,
   invalidacionPorCambioDeEquipo,
   type Confirmacion as ConfirmacionPendiente,
+  type PasoWizard,
 } from "./flujo/navegacion";
 
 type EstadoSesion = "cargando" | "sin_enrolar" | "activa" | "offline" | "vencida";
 
-type Paso =
-  "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo" | "diagnostico";
+/** El tipo único del wizard vive en flujo/perfiles.ts (DEC-016). */
+type Paso = PasoWizard;
 
 interface Foto {
   bytes: ArrayBuffer;

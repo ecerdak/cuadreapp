@@ -1,25 +1,22 @@
 // Cabecera de la app: Lubryco 26 px │ logotipo 28 px │ placa 9.5, la
-// sede a la derecha y la barra de avance de 5 segmentos. Transcrita del
-// mockup aprobado (CabezaApp).
+// sede a la derecha y la barra de avance. Transcrita del mockup
+// aprobado (CabezaApp). El avance se deriva de la definición del flujo
+// (flujo/perfiles.ts, DEC-016) — por defecto, el flujo original.
 
 import { C } from "../marca/tokens";
 import { Logotipo, Placa } from "../marca/Logotipo";
 import logoLubryco from "../marca/assets/lubryco.webp";
+import { derivarAvance, FLUJO_MEDIDOR_DOBLE } from "../flujo/perfiles";
 
-/* Avance por paso del flujo (equipo=1 … después=5; listo=5; resto sin barra). */
-const AVANCE: Record<string, number> = {
-  equipo: 1,
-  conductor: 2,
-  antes: 3,
-  cargando: 4,
-  despues: 5,
-  listo: 5,
-};
+const AVANCE_POR_DEFECTO = derivarAvance(FLUJO_MEDIDOR_DOBLE);
 
-const TOTAL = 5;
-
-export function CabezaApp(props: { paso?: string; sede?: string }) {
-  const avance = props.paso ? (AVANCE[props.paso] ?? 0) : 0;
+export function CabezaApp(props: {
+  paso?: string;
+  sede?: string;
+  avance?: { porPaso: Record<string, number>; total: number };
+}) {
+  const { porPaso, total: TOTAL } = props.avance ?? AVANCE_POR_DEFECTO;
+  const avance = props.paso ? (porPaso[props.paso] ?? 0) : 0;
   return (
     <div style={{ borderBottom: `1px solid ${C.lineaSuave}` }}>
       <div className="flex items-center justify-between px-4 py-3">
