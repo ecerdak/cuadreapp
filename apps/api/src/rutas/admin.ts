@@ -24,13 +24,22 @@ const generarCodigoEnrolamiento = (prefijo: string) =>
 
 /* ============ Esquemas de entrada (validación estructural) ============ */
 
+// Identidad corporativa (DEC-018): SOLO dos colores #RRGGBB; el resto
+// lo deriva el Design System — jamás CSS libre.
+const colorHex = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "color #RRGGBB");
 const esquemaCliente = z.object({
   nombre: z.string().trim().min(2).max(120),
+  nombre_comercial: z.string().trim().min(2).max(80).nullish(),
+  color_primario: colorHex.nullish(),
+  color_secundario: colorHex.nullish(),
   nit: z.string().trim().min(3).max(30).nullish(),
   perfil_codigo: z.enum(CODIGOS_PERFIL).default("medidor_doble"),
 });
 const esquemaClienteCambios = z.object({
   nombre: z.string().trim().min(2).max(120).optional(),
+  nombre_comercial: z.string().trim().min(2).max(80).nullable().optional(),
+  color_primario: colorHex.nullable().optional(),
+  color_secundario: colorHex.nullable().optional(),
   nit: z.string().trim().min(3).max(30).nullable().optional(),
   activo: z.boolean().optional(),
   perfil_codigo: z.enum(CODIGOS_PERFIL).optional(),
@@ -94,6 +103,7 @@ function esImagenReal(tipo: string, bytes: Buffer): boolean {
 }
 const esquemaEquipo = z.object({
   cliente_id: z.string().uuid(),
+  sede_id: z.string().uuid().nullish(), // DEC-018: null = todas las sedes
   codigo_interno: z.string().trim().min(1).max(30),
   descripcion: z.string().trim().max(300).nullish(),
   categoria: z.string().trim().max(60).nullish(),
@@ -101,6 +111,7 @@ const esquemaEquipo = z.object({
   capacidad_tanque_gal: z.number().min(1).max(20000).nullish(),
 });
 const esquemaEquipoCambios = z.object({
+  sede_id: z.string().uuid().nullable().optional(),
   codigo_interno: z.string().trim().min(1).max(30).optional(),
   descripcion: z.string().trim().max(300).nullable().optional(),
   categoria: z.string().trim().max(60).nullable().optional(),
@@ -110,6 +121,7 @@ const esquemaEquipoCambios = z.object({
 });
 const esquemaOperador = z.object({
   cliente_id: z.string().uuid(),
+  sede_id: z.string().uuid().nullish(), // DEC-018: null = todas las sedes
   nombre: z.string().trim().min(2).max(120),
   codigo: z
     .string()
@@ -118,6 +130,7 @@ const esquemaOperador = z.object({
   pin: z.string().regex(/^\d{4}$/, "PIN de 4 dígitos"),
 });
 const esquemaOperadorCambios = z.object({
+  sede_id: z.string().uuid().nullable().optional(),
   nombre: z.string().trim().min(2).max(120).optional(),
   codigo: z
     .string()
@@ -222,6 +235,9 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     const cliente = await conConflicto(respuesta, () =>
       repositorio.crearCliente({
         nombre: datos.nombre,
+        nombreComercial: datos.nombre_comercial ?? null,
+        colorPrimario: datos.color_primario ?? null,
+        colorSecundario: datos.color_secundario ?? null,
         nit: datos.nit ?? null,
         perfilCodigo: datos.perfil_codigo ?? "medidor_doble",
       }),
@@ -235,6 +251,9 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     const cliente = await conConflicto(respuesta, () =>
       repositorio.editarCliente((solicitud.params as { id: string }).id, {
         nombre: cambios.nombre,
+        ...("nombre_comercial" in cambios ? { nombreComercial: cambios.nombre_comercial ?? null } : {}),
+        ...("color_primario" in cambios ? { colorPrimario: cambios.color_primario ?? null } : {}),
+        ...("color_secundario" in cambios ? { colorSecundario: cambios.color_secundario ?? null } : {}),
         ...("nit" in cambios ? { nit: cambios.nit ?? null } : {}),
         activo: cambios.activo,
         perfilCodigo: cambios.perfil_codigo,
@@ -367,6 +386,7 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     const equipo = await conConflicto(respuesta, () =>
       repositorio.crearEquipo({
         clienteId: datos.cliente_id,
+        sedeId: datos.sede_id ?? null,
         codigoInterno: datos.codigo_interno,
         qrToken: randomUUID(),
         descripcion: datos.descripcion ?? null,
@@ -383,6 +403,7 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     if (!cambios) return;
     const equipo = await conConflicto(respuesta, () =>
       repositorio.editarEquipo((solicitud.params as { id: string }).id, {
+        ...("sede_id" in cambios ? { sedeId: cambios.sede_id ?? null } : {}),
         codigoInterno: cambios.codigo_interno,
         ...("descripcion" in cambios ? { descripcion: cambios.descripcion ?? null } : {}),
         categoria: cambios.categoria ?? undefined,
@@ -416,6 +437,7 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     const operador = await conConflicto(respuesta, () =>
       repositorio.crearOperador({
         clienteId: datos.cliente_id,
+        sedeId: datos.sede_id ?? null,
         nombre: datos.nombre,
         codigo: datos.codigo,
         pinHash: bcrypt.hashSync(datos.pin, 10),
@@ -429,6 +451,7 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     if (!cambios) return;
     const operador = await conConflicto(respuesta, () =>
       repositorio.editarOperador((solicitud.params as { id: string }).id, {
+        ...("sede_id" in cambios ? { sedeId: cambios.sede_id ?? null } : {}),
         nombre: cambios.nombre,
         codigo: cambios.codigo,
         pinHash: cambios.pin ? bcrypt.hashSync(cambios.pin, 10) : undefined,

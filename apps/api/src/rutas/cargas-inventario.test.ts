@@ -176,7 +176,14 @@ describe("GET /api/v1/catalogo — identidad del cliente (DEC-016/DEC-017)", () 
   it("entrega cliente, perfil y sede visibles; el logo va como URL firmada, jamás la clave", async () => {
     const { app, repositorioSeguridad } = armarInventario();
     repositorioSeguridad.catalogo = {
-      cliente: { id: ID_CLIENTE, nombre: "Sacyr", logo_clave: `clientes/${ID_CLIENTE}/logo.png` },
+      cliente: {
+        id: ID_CLIENTE,
+        nombre: "Sacyr",
+        nombre_comercial: "Sacyr",
+        color_primario: "#1B4F9C",
+        color_secundario: "#0C2A55",
+        logo_clave: `clientes/${ID_CLIENTE}/logo.png`,
+      },
       perfil: { codigo: "carga_inventario", nombre: "Carga sobre Inventario" },
       sede: {
         id: ID_SEDE,
@@ -209,7 +216,14 @@ describe("GET /api/v1/catalogo — identidad del cliente (DEC-016/DEC-017)", () 
   it("sin logo: logo_url null (el cliente muestra iniciales, nunca imagen rota)", async () => {
     const { app, repositorioSeguridad } = armarInventario();
     repositorioSeguridad.catalogo = {
-      cliente: { id: ID_CLIENTE, nombre: "Sacyr", logo_clave: null },
+      cliente: {
+        id: ID_CLIENTE,
+        nombre: "Sacyr",
+        nombre_comercial: null,
+        color_primario: null,
+        color_secundario: null,
+        logo_clave: null,
+      },
       perfil: { codigo: "carga_inventario", nombre: "Carga sobre Inventario" },
       sede: {
         id: ID_SEDE,

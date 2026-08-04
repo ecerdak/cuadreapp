@@ -310,7 +310,8 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
 
   async obtenerCatalogo(clienteId: string, sedeId: string | null): Promise<CatalogoSede | null> {
     const columnas = `s.id, s.nombre, s.ciudad, s.direccion, s.lat, s.lng, s.radio_geocerca_m,
-              cl.id as cliente_id, cl.nombre as cliente_nombre, cl.logo_url as logo_clave,
+              cl.id as cliente_id, cl.nombre as cliente_nombre, cl.nombre_comercial,
+              cl.color_primario, cl.color_secundario, cl.logo_url as logo_clave,
               p.codigo as perfil_codigo, p.nombre as perfil_nombre`;
     const sede = await this.pool.query(
       sedeId
@@ -335,14 +336,21 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
          from dispensadores where sede_id = $1 and activo`,
         [filaSede.id],
       ),
+      // DEC-018: el dispositivo (enrolado a una sede) recibe los equipos
+      // y operadores de SU sede más los compartidos (sede_id null).
       this.pool.query(
         `select id, codigo_interno, descripcion, tipo_medidor, ultima_lectura, capacidad_tanque_gal
-         from equipos where cliente_id = $1 and activo order by codigo_interno`,
-        [clienteId],
+         from equipos
+         where cliente_id = $1 and activo and (sede_id is null or sede_id = $2)
+         order by codigo_interno`,
+        [clienteId, filaSede.id],
       ),
       this.pool.query(
-        `select id, nombre, codigo, pin_hash from conductores where cliente_id = $1 and activo order by codigo`,
-        [clienteId],
+        `select id, nombre, codigo, pin_hash
+         from conductores
+         where cliente_id = $1 and activo and (sede_id is null or sede_id = $2)
+         order by codigo`,
+        [clienteId, filaSede.id],
       ),
     ]);
 
@@ -350,6 +358,9 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
       cliente: {
         id: filaSede.cliente_id,
         nombre: filaSede.cliente_nombre,
+        nombre_comercial: filaSede.nombre_comercial ?? null,
+        color_primario: filaSede.color_primario ?? null,
+        color_secundario: filaSede.color_secundario ?? null,
         logo_clave: filaSede.logo_clave ?? null,
       },
       perfil: {

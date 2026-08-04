@@ -85,6 +85,9 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
 
   async crearCliente(datos: {
     nombre: string;
+    nombreComercial: string | null;
+    colorPrimario: string | null;
+    colorSecundario: string | null;
     nit: string | null;
     perfilCodigo: CodigoPerfil;
   }): Promise<ClienteAdmin> {
@@ -92,6 +95,9 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
     const cliente: ClienteAdmin = {
       id: uuid(),
       nombre: datos.nombre,
+      nombreComercial: datos.nombreComercial,
+      colorPrimario: datos.colorPrimario,
+      colorSecundario: datos.colorSecundario,
       nit: datos.nit,
       activo: true,
       sedes: 0,
@@ -105,12 +111,26 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
 
   async editarCliente(
     id: string,
-    cambios: { nombre?: string; nit?: string | null; activo?: boolean; perfilCodigo?: CodigoPerfil },
+    cambios: {
+      nombre?: string;
+      nombreComercial?: string | null;
+      colorPrimario?: string | null;
+      colorSecundario?: string | null;
+      nit?: string | null;
+      activo?: boolean;
+      perfilCodigo?: CodigoPerfil;
+    },
   ): Promise<ClienteAdmin | null> {
     const cliente = this.clientes.find((c) => c.id === id);
     if (!cliente) return null;
     Object.assign(cliente, {
       nombre: cambios.nombre ?? cliente.nombre,
+      nombreComercial:
+        "nombreComercial" in cambios ? (cambios.nombreComercial ?? null) : cliente.nombreComercial,
+      colorPrimario:
+        "colorPrimario" in cambios ? (cambios.colorPrimario ?? null) : cliente.colorPrimario,
+      colorSecundario:
+        "colorSecundario" in cambios ? (cambios.colorSecundario ?? null) : cliente.colorSecundario,
       nit: "nit" in cambios ? (cambios.nit ?? null) : cliente.nit,
       activo: cambios.activo ?? cliente.activo,
       perfilCodigo: cambios.perfilCodigo ?? cliente.perfilCodigo,
@@ -219,6 +239,7 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
 
   async crearEquipo(datos: {
     clienteId: string;
+    sedeId: string | null;
     codigoInterno: string;
     qrToken: string;
     descripcion: string | null;
@@ -237,6 +258,8 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
       id: uuid(),
       clienteId: datos.clienteId,
       clienteNombre: this.clientes.find((c) => c.id === datos.clienteId)?.nombre ?? "?",
+      sedeId: datos.sedeId,
+      sedeNombre: this.sedes.find((s) => s.id === datos.sedeId)?.nombre ?? null,
       codigoInterno: datos.codigoInterno,
       descripcion: datos.descripcion,
       categoria: datos.categoria,
@@ -253,7 +276,13 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
     cambios: Partial<
       Pick<
         EquipoAdmin,
-        "codigoInterno" | "descripcion" | "categoria" | "tipoMedidor" | "capacidadTanqueGal" | "activo"
+        | "sedeId"
+        | "codigoInterno"
+        | "descripcion"
+        | "categoria"
+        | "tipoMedidor"
+        | "capacidadTanqueGal"
+        | "activo"
       >
     >,
   ): Promise<EquipoAdmin | null> {
@@ -263,6 +292,10 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
       equipo,
       Object.fromEntries(Object.entries(cambios).filter(([, v]) => v !== undefined)),
     );
+    if ("sedeId" in cambios) {
+      equipo.sedeId = cambios.sedeId ?? null;
+      equipo.sedeNombre = this.sedes.find((s) => s.id === cambios.sedeId)?.nombre ?? null;
+    }
     return equipo;
   }
 
@@ -278,6 +311,7 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
 
   async crearOperador(datos: {
     clienteId: string;
+    sedeId: string | null;
     nombre: string;
     codigo: string;
     pinHash: string;
@@ -289,6 +323,8 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
       id: uuid(),
       clienteId: datos.clienteId,
       clienteNombre: this.clientes.find((c) => c.id === datos.clienteId)?.nombre ?? "?",
+      sedeId: datos.sedeId,
+      sedeNombre: this.sedes.find((s) => s.id === datos.sedeId)?.nombre ?? null,
       nombre: datos.nombre,
       codigo: datos.codigo,
       activo: true,
@@ -302,7 +338,13 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
 
   async editarOperador(
     id: string,
-    cambios: { nombre?: string; codigo?: string; pinHash?: string; activo?: boolean },
+    cambios: {
+      sedeId?: string | null;
+      nombre?: string;
+      codigo?: string;
+      pinHash?: string;
+      activo?: boolean;
+    },
   ): Promise<OperadorAdmin | null> {
     const operador = this.operadores.find((o) => o.id === id);
     if (!operador) return null;
@@ -310,6 +352,10 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
       operador,
       Object.fromEntries(Object.entries(cambios).filter(([, v]) => v !== undefined)),
     );
+    if ("sedeId" in cambios) {
+      operador.sedeId = cambios.sedeId ?? null;
+      operador.sedeNombre = this.sedes.find((s) => s.id === cambios.sedeId)?.nombre ?? null;
+    }
     const { pinHash: _pinHash, ...sinPin } = operador;
     return sinPin;
   }

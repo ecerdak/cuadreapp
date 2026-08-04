@@ -203,6 +203,9 @@ describe("GET /api/v1/catalogo", () => {
       cliente: {
         id: ID_CLIENTE,
         nombre: "Industrias Alimenticias El Trébol S.A.S.",
+        nombre_comercial: "El Trébol S.A.S.",
+        color_primario: "#1E9B4B",
+        color_secundario: "#0E5C2C",
         logo_clave: "clientes/x/logo.png",
       },
       perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },

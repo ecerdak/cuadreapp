@@ -14,7 +14,12 @@ export interface PerfilOperativoAdmin {
 
 export interface ClienteAdmin {
   id: string;
+  /** Razón social. */
   nombre: string;
+  /** Identidad corporativa (DEC-018). */
+  nombreComercial: string | null;
+  colorPrimario: string | null;
+  colorSecundario: string | null;
   nit: string | null;
   activo: boolean;
   sedes: number;
@@ -44,6 +49,9 @@ export interface EquipoAdmin {
   id: string;
   clienteId: string;
   clienteNombre: string;
+  /** DEC-018: null = todas las sedes del cliente. */
+  sedeId: string | null;
+  sedeNombre: string | null;
   codigoInterno: string;
   descripcion: string | null;
   categoria: string | null;
@@ -56,6 +64,9 @@ export interface OperadorAdmin {
   id: string;
   clienteId: string;
   clienteNombre: string;
+  /** DEC-018: null = opera en todas las sedes del cliente. */
+  sedeId: string | null;
+  sedeNombre: string | null;
   nombre: string;
   codigo: string;
   activo: boolean;
@@ -147,12 +158,23 @@ export interface RepositorioAdmin {
   listarClientes(buscar?: string): Promise<ClienteAdmin[]>;
   crearCliente(datos: {
     nombre: string;
+    nombreComercial: string | null;
+    colorPrimario: string | null;
+    colorSecundario: string | null;
     nit: string | null;
     perfilCodigo: CodigoPerfil;
   }): Promise<ClienteAdmin>;
   editarCliente(
     id: string,
-    cambios: { nombre?: string; nit?: string | null; activo?: boolean; perfilCodigo?: CodigoPerfil },
+    cambios: {
+      nombre?: string;
+      nombreComercial?: string | null;
+      colorPrimario?: string | null;
+      colorSecundario?: string | null;
+      nit?: string | null;
+      activo?: boolean;
+      perfilCodigo?: CodigoPerfil;
+    },
   ): Promise<ClienteAdmin | null>;
   /** Registra la clave del logo (DEC-017); devuelve la anterior para
    *  que la ruta borre el objeto viejo si cambió de extensión. */
@@ -193,6 +215,7 @@ export interface RepositorioAdmin {
   listarEquipos(filtro: { clienteId?: string; buscar?: string }): Promise<EquipoAdmin[]>;
   crearEquipo(datos: {
     clienteId: string;
+    sedeId: string | null;
     codigoInterno: string;
     qrToken: string;
     descripcion: string | null;
@@ -203,6 +226,7 @@ export interface RepositorioAdmin {
   editarEquipo(
     id: string,
     cambios: {
+      sedeId?: string | null;
       codigoInterno?: string;
       descripcion?: string | null;
       categoria?: string | null;
@@ -215,13 +239,20 @@ export interface RepositorioAdmin {
   listarOperadores(filtro: { clienteId?: string; buscar?: string }): Promise<OperadorAdmin[]>;
   crearOperador(datos: {
     clienteId: string;
+    sedeId: string | null;
     nombre: string;
     codigo: string;
     pinHash: string;
   }): Promise<OperadorAdmin>;
   editarOperador(
     id: string,
-    cambios: { nombre?: string; codigo?: string; pinHash?: string; activo?: boolean },
+    cambios: {
+      sedeId?: string | null;
+      nombre?: string;
+      codigo?: string;
+      pinHash?: string;
+      activo?: boolean;
+    },
   ): Promise<OperadorAdmin | null>;
 
   listarCodigos(filtro: { sedeId?: string }): Promise<CodigoAdmin[]>;

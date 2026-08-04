@@ -141,6 +141,9 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
     return {
       id: f.id as string,
       nombre: f.nombre as string,
+      nombreComercial: (f.nombre_comercial as string | null) ?? null,
+      colorPrimario: (f.color_primario as string | null) ?? null,
+      colorSecundario: (f.color_secundario as string | null) ?? null,
       nit: (f.nit as string | null) ?? null,
       activo: f.activo as boolean,
       sedes: Number(f.sedes ?? 0),
@@ -150,7 +153,7 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
     };
   }
 
-  private static readonly COLUMNAS_CLIENTE = `id, nombre, nit, activo, perfil_codigo, logo_url,
+  private static readonly COLUMNAS_CLIENTE = `id, nombre, nombre_comercial, color_primario, color_secundario, nit, activo, perfil_codigo, logo_url,
            (select count(*) from sedes s where s.cliente_id = clientes.id) as sedes,
            (select count(*) from cargas c where c.cliente_id = clientes.id) as cargas`;
 
@@ -167,14 +170,25 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async crearCliente(datos: {
     nombre: string;
+    nombreComercial: string | null;
+    colorPrimario: string | null;
+    colorSecundario: string | null;
     nit: string | null;
     perfilCodigo: CodigoPerfil;
   }): Promise<ClienteAdmin> {
     try {
       const resultado = await this.pool.query(
-        `insert into clientes (nombre, nit, perfil_codigo) values ($1, $2, $3)
+        `insert into clientes (nombre, nombre_comercial, color_primario, color_secundario, nit, perfil_codigo)
+         values ($1, $2, $3, $4, $5, $6)
          returning ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}`,
-        [datos.nombre, datos.nit, datos.perfilCodigo],
+        [
+          datos.nombre,
+          datos.nombreComercial,
+          datos.colorPrimario,
+          datos.colorSecundario,
+          datos.nit,
+          datos.perfilCodigo,
+        ],
       );
       return this.filaACliente(resultado.rows[0]!);
     } catch (error) {
@@ -184,20 +198,37 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async editarCliente(
     id: string,
-    cambios: { nombre?: string; nit?: string | null; activo?: boolean; perfilCodigo?: CodigoPerfil },
+    cambios: {
+      nombre?: string;
+      nombreComercial?: string | null;
+      colorPrimario?: string | null;
+      colorSecundario?: string | null;
+      nit?: string | null;
+      activo?: boolean;
+      perfilCodigo?: CodigoPerfil;
+    },
   ): Promise<ClienteAdmin | null> {
     try {
       const resultado = await this.pool.query(
         `update clientes set
-           nombre        = coalesce($2, nombre),
-           nit           = case when $4 then $3 else nit end,
-           activo        = coalesce($5, activo),
-           perfil_codigo = coalesce($6, perfil_codigo)
+           nombre           = coalesce($2, nombre),
+           nombre_comercial = case when $4 then $3 else nombre_comercial end,
+           color_primario   = case when $6 then $5 else color_primario end,
+           color_secundario = case when $8 then $7 else color_secundario end,
+           nit              = case when $10 then $9 else nit end,
+           activo           = coalesce($11, activo),
+           perfil_codigo    = coalesce($12, perfil_codigo)
          where id = $1
          returning ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}`,
         [
           id,
           cambios.nombre ?? null,
+          cambios.nombreComercial ?? null,
+          "nombreComercial" in cambios,
+          cambios.colorPrimario ?? null,
+          "colorPrimario" in cambios,
+          cambios.colorSecundario ?? null,
+          "colorSecundario" in cambios,
           cambios.nit ?? null,
           "nit" in cambios,
           cambios.activo ?? null,
@@ -398,9 +429,12 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async listarEquipos(filtro: { clienteId?: string; buscar?: string }): Promise<EquipoAdmin[]> {
     const resultado = await this.pool.query(
-      `select e.id, e.cliente_id, cl.nombre as cliente_nombre, e.codigo_interno, e.descripcion,
+      `select e.id, e.cliente_id, cl.nombre as cliente_nombre, e.sede_id,
+              s.nombre as sede_nombre, e.codigo_interno, e.descripcion,
               e.categoria, e.tipo_medidor, e.capacidad_tanque_gal, e.activo
-       from equipos e join clientes cl on cl.id = e.cliente_id
+       from equipos e
+       join clientes cl on cl.id = e.cliente_id
+       left join sedes s on s.id = e.sede_id
        where ($1::uuid is null or e.cliente_id = $1)
          and ($2::text is null or e.codigo_interno ilike '%' || $2 || '%' or e.descripcion ilike '%' || $2 || '%')
        order by cl.nombre, e.codigo_interno`,
@@ -410,6 +444,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
       id: f.id,
       clienteId: f.cliente_id,
       clienteNombre: f.cliente_nombre,
+      sedeId: f.sede_id ?? null,
+      sedeNombre: f.sede_nombre ?? null,
       codigoInterno: f.codigo_interno,
       descripcion: f.descripcion,
       categoria: f.categoria,
@@ -421,6 +457,7 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async crearEquipo(datos: {
     clienteId: string;
+    sedeId: string | null;
     codigoInterno: string;
     qrToken: string;
     descripcion: string | null;
@@ -430,11 +467,14 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
   }): Promise<EquipoAdmin> {
     try {
       const resultado = await this.pool.query(
-        `insert into equipos (cliente_id, codigo_interno, qr_token, descripcion, categoria, tipo_medidor, capacidad_tanque_gal)
-         values ($1, $2, $3, $4, $5, $6, $7)
-         returning id, activo, (select nombre from clientes where id = $1) as cliente_nombre`,
+        `insert into equipos (cliente_id, sede_id, codigo_interno, qr_token, descripcion, categoria, tipo_medidor, capacidad_tanque_gal)
+         values ($1, $2, $3, $4, $5, $6, $7, $8)
+         returning id, activo,
+           (select nombre from clientes where id = $1) as cliente_nombre,
+           (select nombre from sedes where id = $2) as sede_nombre`,
         [
           datos.clienteId,
+          datos.sedeId,
           datos.codigoInterno,
           datos.qrToken,
           datos.descripcion,
@@ -448,6 +488,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
         id: f.id,
         clienteId: datos.clienteId,
         clienteNombre: f.cliente_nombre,
+        sedeId: datos.sedeId,
+        sedeNombre: f.sede_nombre ?? null,
         codigoInterno: datos.codigoInterno,
         descripcion: datos.descripcion,
         categoria: datos.categoria,
@@ -463,6 +505,7 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
   async editarEquipo(
     id: string,
     cambios: {
+      sedeId?: string | null;
       codigoInterno?: string;
       descripcion?: string | null;
       categoria?: string | null;
@@ -474,6 +517,7 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
     try {
       const resultado = await this.pool.query(
         `update equipos set
+           sede_id              = case when $10 then $11::uuid else sede_id end,
            codigo_interno       = coalesce($2, codigo_interno),
            descripcion          = case when $4 then $3 else descripcion end,
            categoria            = coalesce($5, categoria),
@@ -481,9 +525,10 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
            capacidad_tanque_gal = case when $8 then $7 else capacidad_tanque_gal end,
            activo               = coalesce($9, activo)
          where id = $1
-         returning id, cliente_id, codigo_interno, descripcion, categoria, tipo_medidor,
+         returning id, cliente_id, sede_id, codigo_interno, descripcion, categoria, tipo_medidor,
                    capacidad_tanque_gal, activo,
-                   (select nombre from clientes where id = equipos.cliente_id) as cliente_nombre`,
+                   (select nombre from clientes where id = equipos.cliente_id) as cliente_nombre,
+                   (select nombre from sedes where id = equipos.sede_id) as sede_nombre`,
         [
           id,
           cambios.codigoInterno ?? null,
@@ -494,6 +539,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
           cambios.capacidadTanqueGal ?? null,
           "capacidadTanqueGal" in cambios,
           cambios.activo ?? null,
+          "sedeId" in cambios,
+          cambios.sedeId ?? null,
         ],
       );
       const f = resultado.rows[0];
@@ -502,6 +549,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
         id: f.id,
         clienteId: f.cliente_id,
         clienteNombre: f.cliente_nombre,
+        sedeId: f.sede_id ?? null,
+        sedeNombre: f.sede_nombre ?? null,
         codigoInterno: f.codigo_interno,
         descripcion: f.descripcion,
         categoria: f.categoria,
@@ -516,9 +565,12 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async listarOperadores(filtro: { clienteId?: string; buscar?: string }): Promise<OperadorAdmin[]> {
     const resultado = await this.pool.query(
-      `select co.id, co.cliente_id, cl.nombre as cliente_nombre, co.nombre, co.codigo, co.activo,
+      `select co.id, co.cliente_id, cl.nombre as cliente_nombre, co.sede_id,
+              s.nombre as sede_nombre, co.nombre, co.codigo, co.activo,
               (select max(c.registrada_en) from cargas c where c.conductor_id = co.id) as ultima_carga_en
-       from conductores co join clientes cl on cl.id = co.cliente_id
+       from conductores co
+       join clientes cl on cl.id = co.cliente_id
+       left join sedes s on s.id = co.sede_id
        where ($1::uuid is null or co.cliente_id = $1)
          and ($2::text is null or co.nombre ilike '%' || $2 || '%' or co.codigo ilike '%' || $2 || '%')
        order by cl.nombre, co.nombre`,
@@ -528,6 +580,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
       id: f.id,
       clienteId: f.cliente_id,
       clienteNombre: f.cliente_nombre,
+      sedeId: f.sede_id ?? null,
+      sedeNombre: f.sede_nombre ?? null,
       nombre: f.nombre,
       codigo: f.codigo,
       activo: f.activo,
@@ -537,22 +591,27 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async crearOperador(datos: {
     clienteId: string;
+    sedeId: string | null;
     nombre: string;
     codigo: string;
     pinHash: string;
   }): Promise<OperadorAdmin> {
     try {
       const resultado = await this.pool.query(
-        `insert into conductores (cliente_id, nombre, codigo, pin_hash)
-         values ($1, $2, $3, $4)
-         returning id, activo, (select nombre from clientes where id = $1) as cliente_nombre`,
-        [datos.clienteId, datos.nombre, datos.codigo, datos.pinHash],
+        `insert into conductores (cliente_id, sede_id, nombre, codigo, pin_hash)
+         values ($1, $2, $3, $4, $5)
+         returning id, activo,
+           (select nombre from clientes where id = $1) as cliente_nombre,
+           (select nombre from sedes where id = $2) as sede_nombre`,
+        [datos.clienteId, datos.sedeId, datos.nombre, datos.codigo, datos.pinHash],
       );
       const f = resultado.rows[0]!;
       return {
         id: f.id,
         clienteId: datos.clienteId,
         clienteNombre: f.cliente_nombre,
+        sedeId: datos.sedeId,
+        sedeNombre: f.sede_nombre ?? null,
         nombre: datos.nombre,
         codigo: datos.codigo,
         activo: f.activo,
@@ -565,18 +624,26 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async editarOperador(
     id: string,
-    cambios: { nombre?: string; codigo?: string; pinHash?: string; activo?: boolean },
+    cambios: {
+      sedeId?: string | null;
+      nombre?: string;
+      codigo?: string;
+      pinHash?: string;
+      activo?: boolean;
+    },
   ): Promise<OperadorAdmin | null> {
     try {
       const resultado = await this.pool.query(
         `update conductores set
+           sede_id  = case when $6 then $7::uuid else sede_id end,
            nombre   = coalesce($2, nombre),
            codigo   = coalesce($3, codigo),
            pin_hash = coalesce($4, pin_hash),
            activo   = coalesce($5, activo)
          where id = $1
-         returning id, cliente_id, nombre, codigo, activo,
+         returning id, cliente_id, sede_id, nombre, codigo, activo,
                    (select nombre from clientes where id = conductores.cliente_id) as cliente_nombre,
+                   (select nombre from sedes where id = conductores.sede_id) as sede_nombre,
                    (select max(c.registrada_en) from cargas c where c.conductor_id = conductores.id) as ultima_carga_en`,
         [
           id,
@@ -584,6 +651,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
           cambios.codigo ?? null,
           cambios.pinHash ?? null,
           cambios.activo ?? null,
+          "sedeId" in cambios,
+          cambios.sedeId ?? null,
         ],
       );
       const f = resultado.rows[0];
@@ -592,6 +661,8 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
         id: f.id,
         clienteId: f.cliente_id,
         clienteNombre: f.cliente_nombre,
+        sedeId: f.sede_id ?? null,
+        sedeNombre: f.sede_nombre ?? null,
         nombre: f.nombre,
         codigo: f.codigo,
         activo: f.activo,

@@ -118,7 +118,15 @@ export interface CatalogoSede {
   /** Identidad del cliente (DEC-017). logo_clave es la clave del
    *  objeto en el bucket privado — la ruta HTTP la convierte en URL
    *  firmada antes de responder; la clave nunca sale al cliente. */
-  cliente: { id: string; nombre: string; logo_clave: string | null };
+  cliente: {
+    id: string;
+    nombre: string;
+    nombre_comercial: string | null;
+    /** Identidad corporativa (DEC-018): #RRGGBB; el resto lo deriva el Design System. */
+    color_primario: string | null;
+    color_secundario: string | null;
+    logo_clave: string | null;
+  };
   /** Perfil Operativo del cliente (DEC-016): decide el flujo de la PWA. */
   perfil: { codigo: CodigoPerfil; nombre: string };
   sede: {
