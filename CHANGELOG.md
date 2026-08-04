@@ -161,3 +161,20 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 
 - Sobre infraestructura real: aplicar la migración `20260805090000` y configurar la identidad de los clientes reales desde la consola.
 - Unificación de `tema-cliente.ts` (hoy duplicado en consola y Dashboard) en el paquete de UI compartida previsto por DEC-015, cuando el Dashboard se conecte a la API (Fase C).
+
+## [Post-despliegue P.1] — Dirección registrada y corrección del E2E
+
+### Decidido
+
+- DEC-019 (**solo documental, sin implementación**): la siguiente evolución natural de la plataforma es introducir **Organización** por encima de Cliente (`organizaciones` + `clientes.organizacion_id` nullable), quedando la jerarquía Organización → Cliente → Sedes → Equipos → Operadores → Dispositivos. Compatibilidad obligatoria: el tenant y el RBAC siguen siendo el cliente, la identidad corporativa y el Perfil Operativo siguen perteneciendo al cliente, y todo es aditivo (cero cambios en `cargas`, en el dominio y en el contrato `/api/v1`). No se implementa nada hasta que exista un grupo empresarial real y una decisión explícita.
+
+### Corregido
+
+- **El E2E contaminaba producción**: no tenía limpieza, así que cada corrida dejaba una carga fantasma contra el dispensador real de El Trébol y adelantaba `tot_actual_gal` (lo que habría hecho que la siguiente carga real disparara un `SALTO_TOTALIZADOR` falso). Ahora la limpieza es obligatoria, corre siempre —incluso si la prueba falla— y si falla deja el E2E en rojo. El dato de producción fue restituido: 4 cargas reales, totalizador 1255,0, cero residuo.
+- **Consulta del E2E no correlacionada**: el producto cartesiano `from dispensadores d, equipos e, conductores c` con `limit 1` elegía un dispensador de cualquier cliente y volvía la prueba intermitente en cuanto hubo más de uno en la base. Ahora los joins exigen el mismo cliente.
+
+### Desplegado (4-ago-2026)
+
+- Migraciones aplicadas sobre `cuadreapp-prod`: `20260803090000` (módulo Admin — **nunca se había aplicado**), `20260804090000` (perfiles operativos) y `20260805090000` (identidad corporativa). Idempotencia verificada re-ejecutando el SQL y comparando esquema y datos: idénticos.
+- Cuatro servicios de Railway desplegados desde el commit `7de8fda`, todos en SUCCESS: API (`/salud` y `/listo` con base conectada), PWA, Dashboard y Admin.
+- Verificación de producción en verde: 150 + 600 = 750 en la columna generada, CHECK por perfil rechazando formas inválidas, CHECK de color rechazando CSS libre, E2E 4/4 en tres corridas consecutivas y cero regresiones en El Trébol.
