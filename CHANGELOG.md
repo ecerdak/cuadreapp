@@ -120,3 +120,12 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - E2E de producción ejecutado de punta a punta con evidencia (14/14): sign-ups cerrados, enrolamiento real contra GoTrue, RBAC desde la base, catálogo con seed, fotos verificadas EN Storage, carga con veredicto del dominio, idempotencia, y el trigger de `tot_actual_gal` avanzando en producción (el criterio de la Etapa 0, por fin verificado en real). Limpieza total: cero rastro del E2E.
 - Tres bugs de producción encontrados y corregidos en el acto: (1) sin CORS, el navegador bloqueaba toda llamada PWA→API — allowlist con `@fastify/cors`, jamás `*`; (2) la PWA compilada apuntaba a localhost — `VITE_API_URL` fijada en Railway; (3) **toda petición autenticada fallaba con 401**: el proyecto firma ES256/JWKS (default de proyectos nuevos de Supabase) y la API solo verificaba HS256 — el middleware ahora decide por el header del token. 6 pruebas nuevas (192 en el monorepo).
 - Pendiente de la Fase B: B10 — backups activos y una restauración de prueba (acción del propietario en el dashboard de Supabase).
+
+## [Etapa P — Perfiles Operativos e identidad de cliente] (en curso)
+
+### Decidido
+- DEC-016: **Perfiles Operativos** — cada cliente tiene exactamente un perfil (`clientes.perfil_codigo`); cada carga guarda el suyo como snapshot y la historia nunca se reinterpreta. Un perfil es código versionado y probado más una fila administrativa que la consola solo asigna. Códigos de perfil únicamente en cuatro puntos de despacho; prohibido condicionar por cliente en cualquier capa. Perfiles iniciales: `medidor_doble` (El Trébol) y `carga_inventario` («Carga sobre Inventario», Sacyr — nombre visible aprobado, código congelado).
+- DEC-017: **Identidad visual por cliente** — logo como archivo real en el bucket privado `logos-clientes` (la clave del objeto en `clientes.logo_url`, nunca base64 ni URLs públicas permanentes), URL firmada temporal resuelta por la API, fallback a iniciales, formatos PNG/JPEG/WebP con límite 1 MB (SVG excluido hasta tener sanitización segura). La identidad viaja por datos en catálogo/sesión.
+
+### Agregado
+- Documentación de la etapa: reglas RI del perfil «Carga sobre Inventario» en Product Bible §6 y ESPEC §7 (addendum), cambios de esquema en ESPEC §6 (addendum), etapa P en el roadmap, DEC-016/DEC-017 en §9, glosario actualizado.

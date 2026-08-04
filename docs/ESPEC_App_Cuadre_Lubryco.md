@@ -299,6 +299,18 @@ create table alertas (
 - `dispensadores.tot_actual_gal` se actualiza por trigger al aceptar una carga, y solo si `tot_final_gal` es mayor.
 - RLS en todas las tablas por `cliente_id`. El rol `comercial_lubryco` accede únicamente a vistas agregadas (§9), nunca a `cargas` directamente.
 
+### Addendum 4-ago-2026 — Perfiles Operativos (DEC-016) e identidad del cliente (DEC-017)
+
+Cambios de esquema aplicados por `supabase/migrations/20260804090000_perfiles_operativos.sql` (idempotente):
+
+- Nueva tabla `perfiles_operativos (codigo pk, nombre, descripcion, activo)`; seed: `medidor_doble` («Medidor Doble») y `carga_inventario` («Carga sobre Inventario»). RLS habilitado sin políticas (solo la API la lee, con service role).
+- `clientes.perfil_codigo text not null default 'medidor_doble'` con FK al catálogo. `clientes.logo_url` **se reutiliza** para guardar la clave del objeto del logo en el bucket privado `logos-clientes` (nunca una URL ni base64); la API resuelve URL firmada temporal.
+- `cargas.perfil_codigo` (snapshot del perfil al capturar; backfill `medidor_doble` para la historia), `cargas.llegada_gal numeric(6,1)` y `cargas.inventario_final_gal numeric(7,1)` **generada siempre como** `llegada_gal + galones` — la escribe la base, jamás la aplicación.
+- `dispensador_id`, `tanda_inicial_gal`, `tot_inicial_gal`, `tanda_final_gal` y `tot_final_gal` pasan a nullable, protegidas por `check cargas_forma_por_perfil`: para `medidor_doble` las cinco son obligatorias y `llegada_gal` es nula; para `carga_inventario`, exactamente al revés. La integridad de El Trébol queda igual o más estricta que antes.
+- `sedes` gana `activo boolean not null default true`, `ciudad`, `direccion` y `referencia` (identidad visible: «Planta Buga, Valle del Cauca»).
+- `cargas.galones` conserva una única semántica en todo perfil: **galones despachados por Lubryco** (en `medidor_doble` sigue siendo `= tanda_final_gal`).
+- El trigger de `tot_actual_gal` no cambia: con `dispensador_id` nulo su `UPDATE` no matchea filas.
+
 ---
 
 ## 7. Reglas de validación
@@ -325,6 +337,23 @@ Principio rector: **nunca se bloquea un registro.** Todo se guarda y se marca. U
 **Estado resultante:** `inconsistente` si hay alguna bandera de esa clase; `advertencia` si solo hay advertencias; `ok` si no hay ninguna.
 
 **R2 merece una nota de producto:** un salto de totalizador no significa que falte combustible. El totalizador ya contó esos galones, así que el balance del tanque sigue siendo correcto. Lo que falta es **saber a qué equipo fueron**. La UI debe decirlo así, porque si acusa de robo cuando fue un olvido, el supervisor pierde la confianza en el sistema.
+
+### Reglas del perfil «Carga sobre Inventario» (addendum 4-ago-2026, DEC-016)
+
+Las R1–R12 de arriba aplican al perfil `medidor_doble` y están congeladas. El perfil `carga_inventario` valida con su propio conjunto — mismo principio rector (nunca se bloquea un registro), mismo vocabulario de banderas donde la semántica es idéntica:
+
+| #   | Regla                                                                                 | Si falla                      | Bandera                     |
+| --- | ------------------------------------------------------------------------------------- | ----------------------------- | --------------------------- |
+| RI1 | `despachados_gal > 0`                                                                 | inconsistente                 | `SIN_DESPACHO`              |
+| RI2 | Si capacidad conocida: `llegada_gal + despachados_gal <= capacidad_tanque_gal * 1.15` | advertencia                   | `EXCEDE_CAPACIDAD`          |
+| RI3 | Las dos fotos de cámara en vivo (exento `papel_retro`; las correcciones sí)           | inconsistente, no deja cerrar | `FOTO_FALTANTE`             |
+| RI4 | GPS dentro de la geocerca; sin coordenadas o sin geocerca → informativa               | advertencia / info            | `FUERA_DE_SEDE` / `SIN_GPS` |
+| RI5 | No existe otra carga del mismo equipo en los últimos 3 minutos                        | advertencia                   | `POSIBLE_DUPLICADO`         |
+| RI6 | `finalizada_en − iniciada_en` entre 20 s y 60 min                                     | advertencia                   | `TIEMPO_ATIPICO`            |
+
+Cálculo del perfil: `inventario_final = llegada + despachados` (una decimal, aritmética en décimas) — lo calcula el dominio para el feedback en pantalla y lo garantiza la base con la columna generada. `llegada_gal >= 0` es validación estructural de la API (llegar con 0 es válido). Estado resultante: igual que la regla general de arriba.
+
+Flujo de pantalla del perfil (variante del §8.1): Inicio → Equipo → Operador → **Llegada** (foto inicial + «Galones con los que llegó») → Cargando → **Despacho** (foto final + «Galones despachados por Lubryco» + total al salir solo lectura) → Listo. No existen tanda ni totalizador en este perfil.
 
 ### OCR (opcional, después del demo)
 
