@@ -102,7 +102,9 @@ export function FichaCliente() {
               fontSize: 13,
               padding: "10px 15px",
               color: isActive ? TEMA.texto : TEMA.suave,
-              borderBottom: `2px solid ${isActive ? "var(--cliente-primario)" : "transparent"}`,
+              // El subrayado es chrome de CuadreApp; la identidad del
+              // cliente viste su encabezado y sus acciones (DEC-018).
+              borderBottom: `2px solid ${isActive ? TEMA.amarillo : "transparent"}`,
             })}
           >
             {seccion.rotulo}

@@ -104,10 +104,23 @@ describe("piezas del contrato", () => {
 });
 
 describe("marco del tablero", () => {
+  // La identidad llega SIEMPRE de los datos (DEC-018): el marco no
+  // nombra clientes. Aquí se inyecta la del cliente de demostración
+  // para verificar que su tarjeta se pinta igual que en el diseño.
+  const IDENTIDAD_DEMO = {
+    clienteNombre: "Industrias Alimenticias El Trébol S.A.S.",
+    clienteCorto: "El Trébol S.A.S.",
+    sedeVisible: "Planta Buga, Valle del Cauca",
+    logoUrl: null,
+    colorPrimario: "#1E9B4B",
+    colorSecundario: "#0E5C2C",
+    perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
+    medidor: { modelo: "Fill-Rite Serie 900", instalado: "6 jul 2026" },
+  };
   const html = renderToStaticMarkup(
     <MemoryRouter initialEntries={["/hoy"]}>
       <Routes>
-        <Route element={<DisposicionTablero />}>
+        <Route element={<DisposicionTablero identidadInicial={IDENTIDAD_DEMO} />}>
           <Route path="/hoy" element={<div>contenido</div>} />
         </Route>
       </Routes>

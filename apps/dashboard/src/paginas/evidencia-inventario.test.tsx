@@ -5,9 +5,11 @@
 
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 import type { DetalleCarga } from "../datos/puertos";
 import { FuenteSimulada } from "../datos/fuente-simulada";
 import { EvidenciaInventario } from "./Cargas";
+import { DisposicionTablero } from "../disposicion/DisposicionTablero";
 
 const DETALLE_INVENTARIO: DetalleCarga = {
   resumen: {
@@ -76,5 +78,26 @@ describe("identidad del tablero por datos (DEC-017)", () => {
     const detalle = await fuente.detalleCarga(pagina.cargas[0]!.id);
     expect(detalle.inventario).toBeNull();
     expect(detalle.lecturas).not.toBeNull();
+  });
+});
+
+describe("identidad corporativa en el Dashboard (DEC-018)", () => {
+  it("la fuente entrega los colores del cliente como dato", async () => {
+    const fuente = new FuenteSimulada({ latenciaMs: [0, 0] });
+    const identidad = await fuente.identidad();
+    expect(identidad.colorPrimario).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    expect(identidad.colorSecundario).toMatch(/^#[0-9A-Fa-f]{6}$/);
+  });
+
+  it("el marco no nombra clientes: sin fuente arranca con identidad neutra", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <DisposicionTablero />
+      </MemoryRouter>,
+    );
+    // Sin datos no hay tarjeta de cliente ni línea de medidor.
+    expect(html).not.toContain("Iniciales de");
+    expect(html).toContain("datos simulados de");
+    expect(html).toContain("Control de combustible en planta");
   });
 });

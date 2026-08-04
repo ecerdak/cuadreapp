@@ -102,6 +102,8 @@ export class FuenteSimulada implements FuenteDatosTablero {
       clienteCorto: CLIENTE.corto,
       sedeVisible: CLIENTE.sede,
       logoUrl: logoTrebol,
+      colorPrimario: CLIENTE.colorPrimario,
+      colorSecundario: CLIENTE.colorSecundario,
       perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
       medidor: { modelo: MEDIDOR.modelo, instalado: MEDIDOR.instalado },
     }));

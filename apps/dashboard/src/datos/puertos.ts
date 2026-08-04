@@ -88,11 +88,17 @@ export interface DetalleCarga {
  *  fuente — jamás hardcodeada por nombre de cliente. En la fase
  *  simulada la provee FuenteSimulada; al conectar, la API. */
 export interface IdentidadTablero {
+  /** Razón social. */
   clienteNombre: string;
+  /** Nombre comercial (corto), el visible en el marco. */
   clienteCorto: string;
   sedeVisible: string;
   /** null = fallback a iniciales, nunca una imagen rota. */
   logoUrl: string | null;
+  /** Identidad corporativa (DEC-018): la UI deriva el resto del
+   *  Design System; null = paleta CuadreApp. */
+  colorPrimario: string | null;
+  colorSecundario: string | null;
   perfil: { codigo: string; nombre: string };
   /** Solo perfiles con medidor; null para Carga sobre Inventario. */
   medidor: { modelo: string; instalado: string } | null;

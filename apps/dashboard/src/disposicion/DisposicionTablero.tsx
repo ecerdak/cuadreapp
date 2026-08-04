@@ -10,21 +10,21 @@ import { Logotipo, Placa } from "../marca/Logotipo";
 import { useMarca } from "../marca/useMarca";
 import type { IdentidadTablero } from "../datos/puertos";
 import { useFuenteTableroOpcional } from "../datos/proveedor";
-import { CLIENTE, MEDIDOR } from "../datos/contexto-cliente";
+import { variablesTema } from "../tema-cliente";
 import logoLubryco from "../marca/assets/lubryco.webp";
-import logoTrebol from "../marca/assets/trebol.webp";
 
-// Mientras la fuente resuelve, el marco pinta la identidad de
-// demostración (mismos valores que entrega FuenteSimulada): cero
-// parpadeo y el diseño aprobado intacto. Con datos reales (Fase C),
-// la identidad que llega de la API la reemplaza (DEC-017).
-const IDENTIDAD_INICIAL: IdentidadTablero = {
-  clienteNombre: CLIENTE.nombre,
-  clienteCorto: CLIENTE.corto,
-  sedeVisible: CLIENTE.sede,
-  logoUrl: logoTrebol,
-  perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
-  medidor: { modelo: MEDIDOR.modelo, instalado: MEDIDOR.instalado },
+// Identidad NEUTRA mientras la fuente resuelve (DEC-018): el marco
+// jamás nombra a un cliente en el código. La identidad real —nombre,
+// sede, logo y colores— llega SIEMPRE de los datos.
+const IDENTIDAD_NEUTRA: IdentidadTablero = {
+  clienteNombre: "",
+  clienteCorto: "",
+  sedeVisible: "",
+  logoUrl: null,
+  colorPrimario: null,
+  colorSecundario: null,
+  perfil: { codigo: "", nombre: "" },
+  medidor: null,
 };
 
 function inicialesDe(nombre: string): string {
@@ -43,10 +43,12 @@ const PESTANAS = [
   { ruta: "/suministro", rotulo: "Suministro" },
 ];
 
-export function DisposicionTablero() {
+export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero } = {}) {
   useMarca("CuadreApp · Control de combustible en planta");
   const fuente = useFuenteTableroOpcional();
-  const [identidad, setIdentidad] = useState<IdentidadTablero>(IDENTIDAD_INICIAL);
+  const [identidad, setIdentidad] = useState<IdentidadTablero>(
+    props.identidadInicial ?? IDENTIDAD_NEUTRA,
+  );
   useEffect(() => {
     if (!fuente) return;
     let vigente = true;
@@ -63,7 +65,14 @@ export function DisposicionTablero() {
     };
   }, [fuente]);
   return (
-    <div className="min-h-dvh w-full" style={{ background: TEMA.fondo, color: TEMA.texto }}>
+    <div
+      className="min-h-dvh w-full"
+      style={{
+        background: TEMA.fondo,
+        color: TEMA.texto,
+        ...(variablesTema(identidad) as React.CSSProperties),
+      }}
+    >
       <header style={{ borderBottom: `1px solid ${TEMA.linea}`, background: TEMA.panel }}>
         <div
           className="mx-auto flex flex-wrap items-center justify-between px-5 py-4"
@@ -98,44 +107,46 @@ export function DisposicionTablero() {
             >
               Demo
             </span>
-            <div
-              className="flex items-center rounded-md"
-              style={{
-                gap: 10,
-                background: TEMA.panelAlto,
-                border: `1px solid ${TEMA.linea}`,
-                padding: "6px 12px 6px 6px",
-              }}
-            >
-              {identidad.logoUrl ? (
-                <img
-                  src={identidad.logoUrl}
-                  alt={identidad.clienteCorto}
-                  style={{ height: 48, width: 48, borderRadius: 6, objectFit: "contain" }}
-                />
-              ) : (
-                <span
-                  aria-label={`Iniciales de ${identidad.clienteCorto}`}
-                  className="flex items-center justify-center rounded-md font-semibold"
-                  style={{
-                    height: 48,
-                    width: 48,
-                    fontSize: 18,
-                    background: TEMA.panel,
-                    border: `1px solid ${TEMA.linea}`,
-                    color: TEMA.suave,
-                  }}
-                >
-                  {inicialesDe(identidad.clienteCorto) || "?"}
-                </span>
-              )}
-              <div>
-                <div className="font-semibold" style={{ fontSize: 13 }}>
-                  {identidad.clienteCorto}
+            {identidad.clienteCorto ? (
+              <div
+                className="flex items-center rounded-md"
+                style={{
+                  gap: 10,
+                  background: "var(--cliente-primario-suave)",
+                  border: `1px solid var(--cliente-primario-borde)`,
+                  padding: "6px 12px 6px 6px",
+                }}
+              >
+                {identidad.logoUrl ? (
+                  <img
+                    src={identidad.logoUrl}
+                    alt={identidad.clienteCorto}
+                    style={{ height: 48, width: 48, borderRadius: 6, objectFit: "contain" }}
+                  />
+                ) : (
+                  <span
+                    aria-label={`Iniciales de ${identidad.clienteCorto}`}
+                    className="flex items-center justify-center rounded-md font-semibold"
+                    style={{
+                      height: 48,
+                      width: 48,
+                      fontSize: 18,
+                      background: TEMA.panel,
+                      border: `1px solid ${TEMA.linea}`,
+                      color: TEMA.suave,
+                    }}
+                  >
+                    {inicialesDe(identidad.clienteCorto) || "?"}
+                  </span>
+                )}
+                <div>
+                  <div className="font-semibold" style={{ fontSize: 13 }}>
+                    {identidad.clienteCorto}
+                  </div>
+                  <div style={{ fontSize: 10.5, color: TEMA.suave }}>{identidad.sedeVisible}</div>
                 </div>
-                <div style={{ fontSize: 10.5, color: TEMA.suave }}>{identidad.sedeVisible}</div>
               </div>
-            </div>
+            ) : null}
           </div>
         </div>
 
@@ -154,6 +165,9 @@ export function DisposicionTablero() {
                 fontSize: 13,
                 padding: "11px 16px",
                 color: isActive ? TEMA.texto : TEMA.suave,
+                // El subrayado es identidad de CuadreApp (chrome del
+                // producto): el color del cliente acentúa lo que ES del
+                // cliente, nunca la navegación (DEC-018, punto 5).
                 borderBottom: `2px solid ${isActive ? TEMA.amarillo : "transparent"}`,
                 background: "transparent",
               })}
@@ -167,7 +181,8 @@ export function DisposicionTablero() {
       <main className="mx-auto px-5 py-6" style={{ maxWidth: 1180 }}>
         <div className="mb-5 flex flex-wrap items-baseline justify-between" style={{ gap: 8 }}>
           <div style={{ fontSize: 12, color: TEMA.suave }}>
-            {identidad.clienteNombre} · datos simulados de demostración
+            {identidad.clienteNombre ? `${identidad.clienteNombre} · ` : ""}datos simulados de
+            demostración
           </div>
           {identidad.medidor ? (
             <div style={{ fontSize: 11, color: TEMA.suave }}>
