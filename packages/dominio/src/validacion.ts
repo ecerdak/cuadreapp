@@ -4,6 +4,16 @@
 // entorno (DEC-003, DEC-007, DEC-009).
 
 import type { ContextoValidacion, MarcaRegla, RegistroCarga, ResultadoValidacion } from "./tipos";
+import {
+  aGalones,
+  DURACION_MAXIMA_S,
+  DURACION_MINIMA_S,
+  distanciaMetros,
+  enDecimas,
+  enMs,
+  FACTOR_EXCESO_CAPACIDAD,
+  VENTANA_DUPLICADO_MS,
+} from "./nucleo";
 
 // El totalizador Fill-Rite tiene 6 dígitos enteros: después de 999999
 // vuelve a 000000. La tanda tiene 4 enteros + décimas: una sola carga
@@ -12,21 +22,10 @@ import type { ContextoValidacion, MarcaRegla, RegistroCarga, ResultadoValidacion
 const VUELTA_TOTALIZADOR_GAL = 1_000_000;
 const TANDA_MAXIMA_GAL = 9_999.9;
 
-const FACTOR_EXCESO_CAPACIDAD = 1.15; // R6
 // R8 — constante de negocio (Product Bible §6, precisiones aprobadas):
 // un odómetro no puede acumular más km de los que caben en el tiempo
 // calendario transcurrido a esta velocidad sostenida.
 const VELOCIDAD_MAXIMA_PLAUSIBLE_KMH = 100;
-const VENTANA_DUPLICADO_MS = 3 * 60 * 1000; // R11
-const DURACION_MINIMA_S = 20; // R12
-const DURACION_MAXIMA_S = 60 * 60; // R12
-
-// Toda la aritmética de galones se hace en décimas enteras para que la
-// representación flotante (0.1 + 0.2) nunca dispare una bandera falsa.
-const enDecimas = (gal: number): number => Math.round(gal * 10);
-const aGalones = (decimas: number): number => decimas / 10;
-
-const enMs = (fecha: string | Date): number => new Date(fecha).getTime();
 
 export function deltaTotalizador(
   totInicialGal: number,
@@ -157,16 +156,6 @@ export function reglaR9(registro: RegistroCarga): MarcaRegla | null {
   if (registro.origen === "papel_retro") return null;
   if (registro.fotoInicial && registro.fotoFinal) return null;
   return { bandera: "FOTO_FALTANTE", clase: "inconsistente", bloqueaCierre: true };
-}
-
-function distanciaMetros(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const RADIO_TIERRA_M = 6_371_000;
-  const rad = (grados: number) => (grados * Math.PI) / 180;
-  const dLat = rad(lat2 - lat1);
-  const dLng = rad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 2 * RADIO_TIERRA_M * Math.asin(Math.sqrt(a));
 }
 
 /** R10 — el GPS está dentro de la geocerca de la sede. Cuando no hay

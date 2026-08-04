@@ -88,3 +88,50 @@ export interface ResultadoValidacion {
   bloqueaAvance: boolean;
   bloqueaCierre: boolean;
 }
+
+/* ============================================================
+   Perfiles Operativos (DEC-016)
+   ============================================================ */
+
+/** Códigos congelados de los perfiles. El nombre visible vive en el
+ *  catálogo (`perfiles_operativos`) y en PERFILES; el código, aquí. */
+export const CODIGOS_PERFIL = ["medidor_doble", "carga_inventario"] as const;
+export type CodigoPerfil = (typeof CODIGOS_PERFIL)[number];
+
+/** Lo que el operador capturó en el perfil «Carga sobre Inventario»:
+ *  con cuántos galones llegó el carrotanque y cuántos despachó
+ *  Lubryco. El inventario final NUNCA se captura — se calcula. */
+export interface RegistroCargaInventario {
+  llegadaGal: number;
+  despachadosGal: number;
+  iniciadaEn: string | Date;
+  finalizadaEn: string | Date;
+  lat: number | null;
+  lng: number | null;
+  origen: OrigenCarga;
+  /** La foto existe y fue tomada con cámara en vivo (nunca galería). */
+  fotoInicial: boolean;
+  fotoFinal: boolean;
+}
+
+/** Estado del mundo del perfil «Carga sobre Inventario»: no hay
+ *  dispensador ni contador del equipo — solo capacidad y geocerca. */
+export interface ContextoInventario {
+  equipo: {
+    capacidadTanqueGal: number | null;
+    ultimaCargaFinalizadaEn: string | Date | null;
+  };
+  sede: {
+    lat: number | null;
+    lng: number | null;
+    radioGeocercaM: number;
+  };
+}
+
+/** Mismo sobre común de veredicto que ResultadoValidacion, más el
+ *  cálculo propio del perfil. La API y la PWA tratan ambos igual. */
+export interface ResultadoInventario extends ResultadoValidacion {
+  /** llegada + despachados, con una decimal. La base lo garantiza con
+   *  una columna generada; este valor es para feedback y respuesta. */
+  inventarioFinalGal: number;
+}
