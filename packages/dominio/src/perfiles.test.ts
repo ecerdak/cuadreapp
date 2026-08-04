@@ -100,6 +100,11 @@ describe("catálogo de perfiles del dominio", () => {
     expect(PERFILES.carga_inventario.nombre).toBe("Carga sobre Inventario");
   });
 
+  it("declara qué perfil requiere medidor (dispensador con totalizador)", () => {
+    expect(PERFILES.medidor_doble.requiereMedidor).toBe(true);
+    expect(PERFILES.carga_inventario.requiereMedidor).toBe(false);
+  });
+
   it("esCodigoPerfil acepta los códigos congelados y rechaza lo demás", () => {
     expect(esCodigoPerfil("medidor_doble")).toBe(true);
     expect(esCodigoPerfil("carga_inventario")).toBe(true);

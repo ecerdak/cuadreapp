@@ -10,6 +10,7 @@ import type {
   Equipo,
   FuenteAdmin,
   Operador,
+  PerfilOperativo,
   Resumen,
   Sede,
   Tablero,
@@ -54,6 +55,13 @@ export class FuenteAdminHttp implements FuenteAdmin {
     return cuerpo.cargas;
   }
 
+  async perfiles(): Promise<PerfilOperativo[]> {
+    const cuerpo = await json<{ perfiles: PerfilOperativo[] }>(
+      await solicitar("/api/v1/admin/perfiles"),
+    );
+    return cuerpo.perfiles;
+  }
+
   async clientes(buscar?: string): Promise<Cliente[]> {
     const cuerpo = await json<{ clientes: Cliente[] }>(
       await solicitar(`/api/v1/admin/clientes${query({ buscar })}`),
@@ -61,22 +69,52 @@ export class FuenteAdminHttp implements FuenteAdmin {
     return cuerpo.clientes;
   }
 
-  async crearCliente(datos: { nombre: string; nit: string | null }): Promise<Cliente> {
+  async crearCliente(datos: {
+    nombre: string;
+    nit: string | null;
+    perfilCodigo: string;
+  }): Promise<Cliente> {
     return json(
-      await solicitar("/api/v1/admin/clientes", { method: "POST", body: JSON.stringify(datos) }),
+      await solicitar("/api/v1/admin/clientes", {
+        method: "POST",
+        body: JSON.stringify({
+          nombre: datos.nombre,
+          nit: datos.nit,
+          perfil_codigo: datos.perfilCodigo,
+        }),
+      }),
     );
   }
 
   async editarCliente(
     id: string,
-    cambios: Partial<Pick<Cliente, "nombre" | "nit" | "activo">>,
+    cambios: Partial<Pick<Cliente, "nombre" | "nit" | "activo" | "perfilCodigo">>,
   ): Promise<Cliente> {
     return json(
       await solicitar(`/api/v1/admin/clientes/${id}`, {
         method: "PATCH",
-        body: JSON.stringify(cambios),
+        body: JSON.stringify({
+          nombre: cambios.nombre,
+          ...("nit" in cambios ? { nit: cambios.nit } : {}),
+          activo: cambios.activo,
+          ...(cambios.perfilCodigo ? { perfil_codigo: cambios.perfilCodigo } : {}),
+        }),
       }),
     );
+  }
+
+  async subirLogo(id: string, archivo: Blob): Promise<Cliente> {
+    return json(
+      await solicitar(`/api/v1/admin/clientes/${id}/logo`, {
+        method: "PUT",
+        body: archivo,
+        headers: { "content-type": archivo.type },
+      }),
+    );
+  }
+
+  async eliminarLogo(id: string): Promise<Cliente> {
+    return json(await solicitar(`/api/v1/admin/clientes/${id}/logo`, { method: "DELETE" }));
   }
 
   async sedes(clienteId: string): Promise<Sede[]> {
@@ -89,8 +127,10 @@ export class FuenteAdminHttp implements FuenteAdmin {
   async crearSede(datos: {
     clienteId: string;
     nombre: string;
-    dispensadorNombre: string;
-    totInstalacionGal: number;
+    ciudad: string | null;
+    direccion: string | null;
+    referencia: string | null;
+    dispensador: { nombre: string; totInstalacionGal: number } | null;
   }): Promise<Sede> {
     return json(
       await solicitar("/api/v1/admin/sedes", {
@@ -98,7 +138,33 @@ export class FuenteAdminHttp implements FuenteAdmin {
         body: JSON.stringify({
           cliente_id: datos.clienteId,
           nombre: datos.nombre,
-          dispensador: { nombre: datos.dispensadorNombre, tot_instalacion_gal: datos.totInstalacionGal },
+          ciudad: datos.ciudad,
+          direccion: datos.direccion,
+          referencia: datos.referencia,
+          dispensador: datos.dispensador
+            ? {
+                nombre: datos.dispensador.nombre,
+                tot_instalacion_gal: datos.dispensador.totInstalacionGal,
+              }
+            : null,
+        }),
+      }),
+    );
+  }
+
+  async editarSede(
+    id: string,
+    cambios: Partial<Pick<Sede, "nombre" | "ciudad" | "direccion" | "referencia" | "activo">>,
+  ): Promise<Sede> {
+    return json(
+      await solicitar(`/api/v1/admin/sedes/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          nombre: cambios.nombre,
+          ...("ciudad" in cambios ? { ciudad: cambios.ciudad } : {}),
+          ...("direccion" in cambios ? { direccion: cambios.direccion } : {}),
+          ...("referencia" in cambios ? { referencia: cambios.referencia } : {}),
+          activo: cambios.activo,
         }),
       }),
     );

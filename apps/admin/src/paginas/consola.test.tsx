@@ -1,14 +1,24 @@
-// Pruebas de la consola: el dashboard administrativo y el tablero
-// Sacyr renderizan los datos de una fuente inyectada (fake), y las
-// pantallas de catálogo muestran sus columnas y acciones.
+// Pruebas de la consola: el dashboard administrativo y el tablero por
+// cliente renderizan los datos de una fuente inyectada (fake), las
+// pantallas de catálogo muestran sus columnas y acciones, y el
+// contrato de identidad (perfil, logo, sedes — DEC-016/DEC-017) se
+// cumple de punta a punta contra el fake.
 
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { ProveedorAdmin } from "../datos/proveedor";
-import type { Carga, FuenteAdmin, Resumen as ResumenDatos, Tablero } from "../datos/puertos";
+import type {
+  Carga,
+  Cliente,
+  FuenteAdmin,
+  Resumen as ResumenDatos,
+  Sede,
+  Tablero as TableroDatos,
+} from "../datos/puertos";
 import { Resumen } from "./Resumen";
-import { Sacyr } from "./Sacyr";
+import { Tablero } from "./Tablero";
+import { Clientes, LogoCliente } from "./Clientes";
 import { Entrar } from "./Entrar";
 
 const CARGA: Carga = {
@@ -18,7 +28,10 @@ const CARGA: Carga = {
   sedeNombre: "EDS Lubryco Buga",
   equipoCodigo: "SMW-477",
   operadorNombre: "Operadora EDS",
-  galones: 650,
+  galones: 600,
+  perfilCodigo: "carga_inventario",
+  llegadaGal: 150,
+  inventarioFinalGal: 750,
   duracionS: 312,
   estado: "ok",
   banderas: [],
@@ -38,7 +51,7 @@ const RESUMEN: ResumenDatos = {
   ],
 };
 
-const TABLERO: Tablero = {
+const TABLERO: TableroDatos = {
   clienteId: "cl1",
   clienteNombre: "Sacyr",
   hoy: {
@@ -67,21 +80,108 @@ const TABLERO: Tablero = {
   historial: [CARGA],
 };
 
-function fuenteFalsa(): FuenteAdmin {
+function clienteFalso(cambios: Partial<Cliente> = {}): Cliente {
   return {
+    id: "cl1",
+    nombre: "Sacyr",
+    nit: null,
+    activo: true,
+    sedes: 1,
+    cargas: 3,
+    perfilCodigo: "carga_inventario",
+    logoUrl: null,
+    ...cambios,
+  };
+}
+
+function sedeFalsa(cambios: Partial<Sede> = {}): Sede {
+  return {
+    id: "s1",
+    clienteId: "cl1",
+    nombre: "Frente de Obra",
+    ciudad: null,
+    direccion: null,
+    referencia: null,
+    activo: true,
+    radioGeocercaM: 150,
+    dispensadores: [],
+    ...cambios,
+  };
+}
+
+function fuenteFalsa(): FuenteAdmin & { estado: { clientes: Cliente[]; sedes: Sede[] } } {
+  const estado = { clientes: [clienteFalso()], sedes: [sedeFalsa()] };
+  return {
+    estado,
     resumen: async () => RESUMEN,
     cargas: async () => [CARGA],
-    clientes: async () => [{ id: "cl1", nombre: "Sacyr", nit: null, activo: true, sedes: 1 }],
-    crearCliente: async () => ({ id: "x", nombre: "", nit: null, activo: true, sedes: 0 }),
-    editarCliente: async () => ({ id: "x", nombre: "", nit: null, activo: true, sedes: 0 }),
-    sedes: async () => [],
-    crearSede: async () => ({
-      id: "s",
-      clienteId: "cl1",
-      nombre: "",
-      radioGeocercaM: 150,
-      dispensadores: [],
-    }),
+    perfiles: async () => [
+      { codigo: "medidor_doble", nombre: "Medidor Doble", descripcion: null, activo: true },
+      {
+        codigo: "carga_inventario",
+        nombre: "Carga sobre Inventario",
+        descripcion: null,
+        activo: true,
+      },
+    ],
+    clientes: async () => estado.clientes,
+    crearCliente: async (datos) => {
+      const cliente = clienteFalso({
+        id: `cl${estado.clientes.length + 1}`,
+        nombre: datos.nombre,
+        nit: datos.nit,
+        perfilCodigo: datos.perfilCodigo,
+        cargas: 0,
+        sedes: 0,
+      });
+      estado.clientes.push(cliente);
+      return cliente;
+    },
+    editarCliente: async (id, cambios) => {
+      const cliente = estado.clientes.find((c) => c.id === id)!;
+      Object.assign(cliente, {
+        ...cambios,
+        nit: "nit" in cambios ? (cambios.nit ?? null) : cliente.nit,
+      });
+      return cliente;
+    },
+    subirLogo: async (id) => {
+      const cliente = estado.clientes.find((c) => c.id === id)!;
+      cliente.logoUrl = `https://firmada.prueba/clientes/${id}/logo.png`;
+      return cliente;
+    },
+    eliminarLogo: async (id) => {
+      const cliente = estado.clientes.find((c) => c.id === id)!;
+      cliente.logoUrl = null;
+      return cliente;
+    },
+    sedes: async (clienteId) => estado.sedes.filter((s) => s.clienteId === clienteId),
+    crearSede: async (datos) => {
+      const sede = sedeFalsa({
+        id: `s${estado.sedes.length + 1}`,
+        clienteId: datos.clienteId,
+        nombre: datos.nombre,
+        ciudad: datos.ciudad,
+        direccion: datos.direccion,
+        referencia: datos.referencia,
+        dispensadores: datos.dispensador
+          ? [
+              {
+                id: "d1",
+                nombre: datos.dispensador.nombre,
+                totActualGal: datos.dispensador.totInstalacionGal,
+              },
+            ]
+          : [],
+      });
+      estado.sedes.push(sede);
+      return sede;
+    },
+    editarSede: async (id, cambios) => {
+      const sede = estado.sedes.find((s) => s.id === id)!;
+      Object.assign(sede, cambios);
+      return sede;
+    },
     equipos: async () => [],
     crearEquipo: async () => ({}) as never,
     editarEquipo: async () => ({}) as never,
@@ -97,14 +197,7 @@ function fuenteFalsa(): FuenteAdmin {
   };
 }
 
-/** Render con datos ya resueltos: dos pasadas de renderizado con espera. */
 async function renderConDatos(elemento: JSX.Element): Promise<string> {
-  // useConsulta resuelve en microtareas; en renderToStaticMarkup los
-  // efectos no corren, así que probamos el markup con datos inyectando
-  // la consulta resuelta vía render en dos fases no es posible sin DOM.
-  // Estrategia: montar con react-dom/client en un contenedor jsdom-less
-  // no aplica — usamos los componentes de presentación internos vía
-  // fuente síncrona y verificamos el estado "cargando" + contrato.
   return renderToStaticMarkup(elemento);
 }
 
@@ -131,24 +224,115 @@ describe("dashboard administrativo (Resumen)", () => {
   });
 });
 
-describe("tablero Sacyr", () => {
+describe("tablero por cliente (sin nombres hardcodeados)", () => {
   it("monta con la fuente inyectada", async () => {
     const html = await renderConDatos(
       <ProveedorAdmin fuente={fuenteFalsa()}>
         <MemoryRouter>
-          <Sacyr />
+          <Tablero />
         </MemoryRouter>
       </ProveedorAdmin>,
     );
     expect(html).toContain("animate-pulse");
   });
 
-  it("el tablero del cliente trae día, por-carrotanque, operadora y evidencia", async () => {
+  it("el tablero del cliente trae día, por-equipo, operadores y evidencia", async () => {
     const tablero = await fuenteFalsa().tablero("cl1");
     expect(tablero.clienteNombre).toBe("Sacyr");
     expect(tablero.hoy.operadores).toContain("Operadora EDS");
     expect(tablero.porEquipo.map((e) => e.equipoCodigo)).toEqual(["SMW-477", "TKL-102"]);
     expect(tablero.historial[0]!.fotos[0]!.url).toContain("https://");
+  });
+
+  it("una carga del perfil Carga sobre Inventario trae llegó/despachado/total (150+600=750)", async () => {
+    const tablero = await fuenteFalsa().tablero("cl1");
+    const carga = tablero.historial[0]!;
+    expect(carga.llegadaGal).toBe(150);
+    expect(carga.galones).toBe(600);
+    expect(carga.inventarioFinalGal).toBe(750);
+    expect(carga.perfilCodigo).toBe("carga_inventario");
+  });
+});
+
+describe("identidad del cliente (DEC-016/DEC-017)", () => {
+  it("crear cliente con perfil y luego subir su logo (contrato completo del puerto)", async () => {
+    const fuente = fuenteFalsa();
+    const cliente = await fuente.crearCliente({
+      nombre: "Constructora Piloto",
+      nit: null,
+      perfilCodigo: "carga_inventario",
+    });
+    expect(cliente.perfilCodigo).toBe("carga_inventario");
+    expect(cliente.logoUrl).toBeNull();
+
+    const conLogo = await fuente.subirLogo(cliente.id, new Blob(["png"], { type: "image/png" }));
+    expect(conLogo.logoUrl).toContain("https://firmada.prueba/");
+
+    const sinLogo = await fuente.eliminarLogo(cliente.id);
+    expect(sinLogo.logoUrl).toBeNull(); // fallback a iniciales, nunca imagen rota
+  });
+
+  it("cambiar el perfil de un cliente conserva su historia (solo cambia el campo)", async () => {
+    const fuente = fuenteFalsa();
+    const cliente = await fuente.editarCliente("cl1", { perfilCodigo: "medidor_doble" });
+    expect(cliente.perfilCodigo).toBe("medidor_doble");
+    expect(cliente.cargas).toBe(3); // la historia sigue ahí
+  });
+
+  it("crear y editar sedes con identidad; sede sin dispensador para perfil sin medidor", async () => {
+    const fuente = fuenteFalsa();
+    const sede = await fuente.crearSede({
+      clienteId: "cl1",
+      nombre: "Obra Norte",
+      ciudad: "Cali, Valle del Cauca",
+      direccion: null,
+      referencia: "Km 4 vía Yumbo",
+      dispensador: null,
+    });
+    expect(sede.dispensadores).toHaveLength(0);
+    expect(sede.ciudad).toBe("Cali, Valle del Cauca");
+
+    const editada = await fuente.editarSede(sede.id, { activo: false, ciudad: "Yumbo, Valle" });
+    expect(editada.activo).toBe(false);
+    expect(editada.ciudad).toBe("Yumbo, Valle");
+  });
+
+  it("cliente con múltiples sedes: el puerto las lista todas", async () => {
+    const fuente = fuenteFalsa();
+    await fuente.crearSede({
+      clienteId: "cl1",
+      nombre: "Obra Sur",
+      ciudad: null,
+      direccion: null,
+      referencia: null,
+      dispensador: null,
+    });
+    expect(await fuente.sedes("cl1")).toHaveLength(2);
+  });
+
+  it("la pantalla Clientes monta con la fuente nueva (columna Perfil incluida)", async () => {
+    const html = await renderConDatos(
+      <ProveedorAdmin fuente={fuenteFalsa()}>
+        <MemoryRouter>
+          <Clientes />
+        </MemoryRouter>
+      </ProveedorAdmin>,
+    );
+    expect(html).toContain("animate-pulse");
+  });
+
+  it("LogoCliente cae a iniciales cuando no hay logo — jamás una imagen rota", () => {
+    const html = renderToStaticMarkup(
+      <LogoCliente nombre="Industrias Alimenticias El Trébol S.A.S." logoUrl={null} />,
+    );
+    expect(html).toContain("IA");
+    expect(html).not.toContain("<img");
+
+    const conLogo = renderToStaticMarkup(
+      <LogoCliente nombre="Sacyr" logoUrl="https://firmada/logo.png" />,
+    );
+    expect(conLogo).toContain("<img");
+    expect(conLogo).toContain('alt="Logo de Sacyr"');
   });
 });
 

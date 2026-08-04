@@ -74,12 +74,17 @@ export class SesionVencida extends Error {
 
 /** Único camino a la API: adjunta el token, renueva una vez ante 401. */
 export async function solicitar(ruta: string, opciones: RequestInit = {}): Promise<Response> {
+  // JSON por defecto SOLO si quien llama no fijó su propio content-type
+  // (el logo del cliente sube binario: image/png, image/jpeg, image/webp).
+  const tieneContentType = Object.keys((opciones.headers as Record<string, string>) ?? {}).some(
+    (clave) => clave.toLowerCase() === "content-type",
+  );
   const ejecutar = () =>
     fetch(`${URL_API}${ruta}`, {
       ...opciones,
       headers: {
+        ...(opciones.body && !tieneContentType ? { "content-type": "application/json" } : {}),
         ...(opciones.headers ?? {}),
-        ...(opciones.body ? { "content-type": "application/json" } : {}),
         ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
       },
     });

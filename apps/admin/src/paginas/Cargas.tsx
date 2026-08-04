@@ -101,7 +101,7 @@ export function Cargas() {
           ) : null}
         </div>
         <p className="px-5 pb-4" style={{ fontSize: 11, color: TEMA.suave }}>
-          La evidencia fotográfica se consulta en el tablero del cliente (pestaña Sacyr).
+          La evidencia fotográfica se consulta en el tablero del cliente (pestaña Tablero).
         </p>
       </Panel>
     </div>

@@ -92,7 +92,13 @@ export interface CargaAdmin {
   sedeNombre: string;
   equipoCodigo: string;
   operadorNombre: string;
+  /** Galones despachados por Lubryco — todo perfil (DEC-016). */
   galones: number;
+  /** Snapshot del perfil con el que nació la carga. */
+  perfilCodigo: string;
+  /** Solo carga_inventario; null en medidor_doble. */
+  llegadaGal: number | null;
+  inventarioFinalGal: number | null;
   duracionS: number;
   estado: EstadoCarga;
   banderas: Bandera[];

@@ -2,18 +2,35 @@
 // interfaz (patrón del Dashboard, DEC-015). La implementación real es
 // el cliente HTTP contra /api/v1/admin; las pruebas inyectan un fake.
 
+/** Fila del catálogo perfiles_operativos (DEC-016). */
+export interface PerfilOperativo {
+  codigo: string;
+  nombre: string;
+  descripcion: string | null;
+  activo: boolean;
+}
+
 export interface Cliente {
   id: string;
   nombre: string;
   nit: string | null;
   activo: boolean;
   sedes: number;
+  /** Para advertir al cambiar el perfil de un cliente con historia. */
+  cargas: number;
+  perfilCodigo: string;
+  /** URL firmada temporal del logo (DEC-017); null = fallback iniciales. */
+  logoUrl: string | null;
 }
 
 export interface Sede {
   id: string;
   clienteId: string;
   nombre: string;
+  ciudad: string | null;
+  direccion: string | null;
+  referencia: string | null;
+  activo: boolean;
   radioGeocercaM: number;
   dispensadores: Array<{ id: string; nombre: string; totActualGal: number }>;
 }
@@ -69,7 +86,13 @@ export interface Carga {
   sedeNombre: string;
   equipoCodigo: string;
   operadorNombre: string;
+  /** Galones despachados por Lubryco — todo perfil (DEC-016). */
   galones: number;
+  /** Snapshot del perfil con el que nació la carga. */
+  perfilCodigo: string;
+  /** Solo Carga sobre Inventario; null en Medidor Doble. */
+  llegadaGal: number | null;
+  inventarioFinalGal: number | null;
   duracionS: number;
   estado: "ok" | "advertencia" | "inconsistente";
   banderas: string[];
@@ -111,20 +134,32 @@ export interface FuenteAdmin {
   resumen(): Promise<Resumen>;
   cargas(filtro?: { clienteId?: string; limite?: number }): Promise<Carga[]>;
 
+  perfiles(): Promise<PerfilOperativo[]>;
+
   clientes(buscar?: string): Promise<Cliente[]>;
-  crearCliente(datos: { nombre: string; nit: string | null }): Promise<Cliente>;
+  crearCliente(datos: { nombre: string; nit: string | null; perfilCodigo: string }): Promise<Cliente>;
   editarCliente(
     id: string,
-    cambios: Partial<Pick<Cliente, "nombre" | "nit" | "activo">>,
+    cambios: Partial<Pick<Cliente, "nombre" | "nit" | "activo" | "perfilCodigo">>,
   ): Promise<Cliente>;
+  /** Sube (o reemplaza) el logo — binario real, jamás base64 (DEC-017). */
+  subirLogo(id: string, archivo: Blob): Promise<Cliente>;
+  eliminarLogo(id: string): Promise<Cliente>;
 
   sedes(clienteId: string): Promise<Sede[]>;
+  /** dispensador null: el perfil del cliente no requiere medidor. */
   crearSede(datos: {
     clienteId: string;
     nombre: string;
-    dispensadorNombre: string;
-    totInstalacionGal: number;
+    ciudad: string | null;
+    direccion: string | null;
+    referencia: string | null;
+    dispensador: { nombre: string; totInstalacionGal: number } | null;
   }): Promise<Sede>;
+  editarSede(
+    id: string,
+    cambios: Partial<Pick<Sede, "nombre" | "ciudad" | "direccion" | "referencia" | "activo">>,
+  ): Promise<Sede>;
 
   equipos(filtro?: { clienteId?: string; buscar?: string }): Promise<Equipo[]>;
   crearEquipo(datos: {

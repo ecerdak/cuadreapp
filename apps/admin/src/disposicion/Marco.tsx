@@ -15,7 +15,7 @@ const PESTANAS = [
   { ruta: "/equipos", rotulo: "Equipos" },
   { ruta: "/operadores", rotulo: "Operadores" },
   { ruta: "/dispositivos", rotulo: "Dispositivos" },
-  { ruta: "/sacyr", rotulo: "Sacyr" },
+  { ruta: "/tablero", rotulo: "Tablero" },
 ];
 
 export function Marco() {

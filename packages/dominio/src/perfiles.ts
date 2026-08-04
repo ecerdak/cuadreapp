@@ -31,11 +31,21 @@ export interface EntradaCargaInventario {
 
 export type EntradaPorPerfil = EntradaMedidorDoble | EntradaCargaInventario;
 
-/** Catálogo del dominio: código congelado + nombre visible de cada
- *  perfil. Espejo probado de la fila administrativa en la base. */
-export const PERFILES: Record<CodigoPerfil, { codigo: CodigoPerfil; nombre: string }> = {
-  medidor_doble: { codigo: "medidor_doble", nombre: "Medidor Doble" },
-  carga_inventario: { codigo: "carga_inventario", nombre: "Carga sobre Inventario" },
+/** Catálogo del dominio: código congelado + nombre visible + metadatos
+ *  estructurales de cada perfil. Espejo probado de la fila
+ *  administrativa en la base. `requiereMedidor`: el perfil captura
+ *  contra un dispensador con medidor (tanda/totalizador) — la consola
+ *  lo usa para exigir dispensador y totalizador inicial en la sede. */
+export const PERFILES: Record<
+  CodigoPerfil,
+  { codigo: CodigoPerfil; nombre: string; requiereMedidor: boolean }
+> = {
+  medidor_doble: { codigo: "medidor_doble", nombre: "Medidor Doble", requiereMedidor: true },
+  carga_inventario: {
+    codigo: "carga_inventario",
+    nombre: "Carga sobre Inventario",
+    requiereMedidor: false,
+  },
 };
 
 export function esCodigoPerfil(valor: string): valor is CodigoPerfil {

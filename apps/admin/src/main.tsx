@@ -14,7 +14,7 @@ import { Clientes } from "./paginas/Clientes";
 import { Equipos } from "./paginas/Equipos";
 import { Operadores } from "./paginas/Operadores";
 import { Dispositivos } from "./paginas/Dispositivos";
-import { Sacyr } from "./paginas/Sacyr";
+import { Tablero } from "./paginas/Tablero";
 
 function ConSesion() {
   if (!haySesion()) return <Navigate to="/entrar" replace />;
@@ -35,7 +35,9 @@ createRoot(document.getElementById("raiz")!).render(
             <Route path="/equipos" element={<Equipos />} />
             <Route path="/operadores" element={<Operadores />} />
             <Route path="/dispositivos" element={<Dispositivos />} />
-            <Route path="/sacyr" element={<Sacyr />} />
+            <Route path="/tablero" element={<Tablero />} />
+            {/* Compatibilidad con marcadores viejos de la ruta piloto. */}
+            <Route path="/sacyr" element={<Tablero />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/resumen" replace />} />

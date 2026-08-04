@@ -31,6 +31,7 @@ function traducirUnicidad(error: unknown): never {
 const SELECT_CARGA = `
   select c.id, c.registrada_en, cl.nombre as cliente_nombre, s.nombre as sede_nombre,
          e.codigo_interno, co.nombre as operador_nombre, c.galones, c.estado, c.banderas,
+         c.perfil_codigo, c.llegada_gal, c.inventario_final_gal,
          c.notas,
          extract(epoch from (c.finalizada_en - c.iniciada_en))::int as duracion_s,
          coalesce(json_agg(json_build_object('momento', f.momento, 'ruta', f.storage_path))
@@ -53,6 +54,9 @@ function filaACarga(fila: Record<string, unknown>): CargaAdmin {
     equipoCodigo: fila.codigo_interno as string,
     operadorNombre: fila.operador_nombre as string,
     galones: Number(fila.galones),
+    perfilCodigo: fila.perfil_codigo as string,
+    llegadaGal: numeroONulo(fila.llegada_gal as string | null),
+    inventarioFinalGal: numeroONulo(fila.inventario_final_gal as string | null),
     duracionS: Number(fila.duracion_s ?? 0),
     estado: fila.estado as EstadoCarga,
     banderas: fila.banderas as Bandera[],
