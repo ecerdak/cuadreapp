@@ -61,7 +61,20 @@ export interface CandadoDetalle {
 
 export interface DetalleCarga {
   resumen: CargaResumen;
-  lecturas: { tandaInicial: number; totInicial: number; tandaFinal: number; totFinal: number };
+  /** Perfil Medidor Doble; null cuando la carga es de otro perfil. */
+  lecturas: {
+    tandaInicial: number;
+    totInicial: number;
+    tandaFinal: number;
+    totFinal: number;
+  } | null;
+  /** Perfil «Carga sobre Inventario» (DEC-016); null en Medidor Doble.
+   *  Cada carga se muestra según SU perfil (snapshot), no el del cliente. */
+  inventario: {
+    llegadaGal: number;
+    despachadosGal: number;
+    totalSalidaGal: number;
+  } | null;
   lecturaEquipo: number | null;
   tipoLectura: string | null;
   duracionSegundos: number;
@@ -69,6 +82,20 @@ export interface DetalleCarga {
   galNoRegistrados: number | null;
   notas: string | null;
   fotos: { inicial: string | null; final: string | null }; // urls (en esta fase, data-uris)
+}
+
+/** Identidad visual del cliente (DEC-017): viaja por DATOS desde la
+ *  fuente — jamás hardcodeada por nombre de cliente. En la fase
+ *  simulada la provee FuenteSimulada; al conectar, la API. */
+export interface IdentidadTablero {
+  clienteNombre: string;
+  clienteCorto: string;
+  sedeVisible: string;
+  /** null = fallback a iniciales, nunca una imagen rota. */
+  logoUrl: string | null;
+  perfil: { codigo: string; nombre: string };
+  /** Solo perfiles con medidor; null para Carga sobre Inventario. */
+  medidor: { modelo: string; instalado: string } | null;
 }
 
 export interface EquipoResumen {
@@ -109,6 +136,7 @@ export interface ResumenSuministro {
 }
 
 export interface FuenteDatosTablero {
+  identidad(): Promise<IdentidadTablero>;
   resumenHoy(): Promise<ResumenHoy>;
   listarCargas(filtro: FiltroCargas): Promise<PaginaCargas>;
   detalleCarga(id: string): Promise<DetalleCarga>;

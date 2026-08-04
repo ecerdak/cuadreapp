@@ -3,13 +3,38 @@
 // header (móvil resuelve con scroll horizontal), línea de contexto y el
 // pie de dos frases.
 
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { TEMA } from "../tema";
 import { Logotipo, Placa } from "../marca/Logotipo";
 import { useMarca } from "../marca/useMarca";
+import type { IdentidadTablero } from "../datos/puertos";
+import { useFuenteTableroOpcional } from "../datos/proveedor";
 import { CLIENTE, MEDIDOR } from "../datos/contexto-cliente";
 import logoLubryco from "../marca/assets/lubryco.webp";
 import logoTrebol from "../marca/assets/trebol.webp";
+
+// Mientras la fuente resuelve, el marco pinta la identidad de
+// demostración (mismos valores que entrega FuenteSimulada): cero
+// parpadeo y el diseño aprobado intacto. Con datos reales (Fase C),
+// la identidad que llega de la API la reemplaza (DEC-017).
+const IDENTIDAD_INICIAL: IdentidadTablero = {
+  clienteNombre: CLIENTE.nombre,
+  clienteCorto: CLIENTE.corto,
+  sedeVisible: CLIENTE.sede,
+  logoUrl: logoTrebol,
+  perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
+  medidor: { modelo: MEDIDOR.modelo, instalado: MEDIDOR.instalado },
+};
+
+function inicialesDe(nombre: string): string {
+  return nombre
+    .split(/\s+/)
+    .filter((palabra) => /^[a-záéíóúñ]/i.test(palabra))
+    .slice(0, 2)
+    .map((palabra) => palabra[0]!.toUpperCase())
+    .join("");
+}
 
 const PESTANAS = [
   { ruta: "/hoy", rotulo: "Hoy" },
@@ -20,6 +45,23 @@ const PESTANAS = [
 
 export function DisposicionTablero() {
   useMarca("CuadreApp · Control de combustible en planta");
+  const fuente = useFuenteTableroOpcional();
+  const [identidad, setIdentidad] = useState<IdentidadTablero>(IDENTIDAD_INICIAL);
+  useEffect(() => {
+    if (!fuente) return;
+    let vigente = true;
+    void fuente
+      .identidad()
+      .then((datos) => {
+        if (vigente) setIdentidad(datos);
+      })
+      .catch(() => {
+        // sin identidad de la fuente, el marco conserva la de demostración
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [fuente]);
   return (
     <div className="min-h-dvh w-full" style={{ background: TEMA.fondo, color: TEMA.texto }}>
       <header style={{ borderBottom: `1px solid ${TEMA.linea}`, background: TEMA.panel }}>
@@ -65,16 +107,33 @@ export function DisposicionTablero() {
                 padding: "6px 12px 6px 6px",
               }}
             >
-              <img
-                src={logoTrebol}
-                alt={CLIENTE.corto}
-                style={{ height: 48, width: 48, borderRadius: 6 }}
-              />
+              {identidad.logoUrl ? (
+                <img
+                  src={identidad.logoUrl}
+                  alt={identidad.clienteCorto}
+                  style={{ height: 48, width: 48, borderRadius: 6, objectFit: "contain" }}
+                />
+              ) : (
+                <span
+                  aria-label={`Iniciales de ${identidad.clienteCorto}`}
+                  className="flex items-center justify-center rounded-md font-semibold"
+                  style={{
+                    height: 48,
+                    width: 48,
+                    fontSize: 18,
+                    background: TEMA.panel,
+                    border: `1px solid ${TEMA.linea}`,
+                    color: TEMA.suave,
+                  }}
+                >
+                  {inicialesDe(identidad.clienteCorto) || "?"}
+                </span>
+              )}
               <div>
                 <div className="font-semibold" style={{ fontSize: 13 }}>
-                  {CLIENTE.corto}
+                  {identidad.clienteCorto}
                 </div>
-                <div style={{ fontSize: 10.5, color: TEMA.suave }}>{CLIENTE.sede}</div>
+                <div style={{ fontSize: 10.5, color: TEMA.suave }}>{identidad.sedeVisible}</div>
               </div>
             </div>
           </div>
@@ -108,11 +167,13 @@ export function DisposicionTablero() {
       <main className="mx-auto px-5 py-6" style={{ maxWidth: 1180 }}>
         <div className="mb-5 flex flex-wrap items-baseline justify-between" style={{ gap: 8 }}>
           <div style={{ fontSize: 12, color: TEMA.suave }}>
-            {CLIENTE.nombre} · datos simulados de demostración
+            {identidad.clienteNombre} · datos simulados de demostración
           </div>
-          <div style={{ fontSize: 11, color: TEMA.suave }}>
-            Medidor {MEDIDOR.modelo} · instalado {MEDIDOR.instalado}
-          </div>
+          {identidad.medidor ? (
+            <div style={{ fontSize: 11, color: TEMA.suave }}>
+              Medidor {identidad.medidor.modelo} · instalado {identidad.medidor.instalado}
+            </div>
+          ) : null}
         </div>
 
         <Outlet />

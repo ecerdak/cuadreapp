@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
+import type { DetalleCarga } from "../datos/puertos";
 import { useFuenteTablero } from "../datos/proveedor";
 import { useConsulta } from "../datos/consulta";
 import {
@@ -263,6 +264,15 @@ function PanelEvidencia(props: { id: string }) {
     );
 
   const { datos } = consulta;
+
+  // Despacho por perfil (DEC-016): cada carga se muestra según SU
+  // perfil — el snapshot con el que nació, no el del cliente.
+  if (datos.inventario) {
+    return <EvidenciaInventario datos={datos} />;
+  }
+  const lecturas = datos.lecturas;
+  if (!lecturas) return null; // forma imposible: toda carga trae lecturas o inventario
+
   const { resumen } = datos;
   const sinFotoFinal = resumen.banderas.includes("FOTO_FALTANTE");
   const mensajes = resumen.banderas
@@ -290,14 +300,14 @@ function PanelEvidencia(props: { id: string }) {
             {
               rot: "Antes de cargar",
               foto: datos.fotos.inicial,
-              tanda: datos.lecturas.tandaInicial,
-              tot: datos.lecturas.totInicial,
+              tanda: lecturas.tandaInicial,
+              tot: lecturas.totInicial,
             },
             {
               rot: "Después de cargar",
               foto: sinFotoFinal ? null : datos.fotos.final,
-              tanda: datos.lecturas.tandaFinal,
-              tot: datos.lecturas.totFinal,
+              tanda: lecturas.tandaFinal,
+              tot: lecturas.totFinal,
             },
           ] as const
         ).map((f) => (
@@ -382,6 +392,111 @@ function PanelEvidencia(props: { id: string }) {
           </div>
         ) : null}
       </div>
+    </Panel>
+  );
+}
+
+/* Vista de evidencia del perfil «Carga sobre Inventario» (DEC-016):
+   Llegó con · Despachado por Lubryco · Total al salir, las dos fotos
+   del carrotanque, operador, duración y observaciones. Exportada para
+   probarse como componente puro. */
+export function EvidenciaInventario(props: { datos: DetalleCarga }) {
+  const { datos } = props;
+  const { resumen } = datos;
+  const inventario = datos.inventario!;
+  const sinFotoFinal = resumen.banderas.includes("FOTO_FALTANTE");
+  const minutos = Math.floor(datos.duracionSegundos / 60);
+  const duracion = `${minutos} min ${String(Math.round(datos.duracionSegundos % 60)).padStart(2, "0")} s`;
+  const mensajes = resumen.banderas
+    .map((bandera) => MENSAJE_SUPERVISOR[bandera])
+    .filter((mensaje): mensaje is string => Boolean(mensaje));
+
+  return (
+    <Panel className="p-5 lg:col-span-2" alto>
+      <div className="flex items-start justify-between">
+        <div>
+          <Eyebrow>Evidencia de la carga</Eyebrow>
+          <div className="mt-2 font-semibold" style={{ fontSize: 16 }}>
+            {resumen.equipoCodigo} · {formatearGal(resumen.galones)} gal despachados
+          </div>
+          <div style={{ fontSize: 12, color: TEMA.suave, marginTop: 2 }}>
+            {resumen.equipoDescripcion} · {resumen.conductorNombre} · {resumen.fecha} {resumen.hora} ·{" "}
+            {duracion}
+          </div>
+        </div>
+        <Chip estado={resumen.estado} />
+      </div>
+
+      <div className="mt-4 rounded-md px-4 py-3" style={{ border: `1px solid ${TEMA.linea}` }}>
+        {(
+          [
+            ["Llegó con", inventario.llegadaGal, false],
+            ["Despachado por Lubryco", inventario.despachadosGal, false],
+            ["Total al salir", inventario.totalSalidaGal, true],
+          ] as const
+        ).map(([rotulo, valor, destacado]) => (
+          <div
+            key={rotulo}
+            className="flex items-baseline justify-between py-1"
+            style={{ fontSize: 11, color: TEMA.suave }}
+          >
+            <span>{rotulo}</span>
+            <span
+              className={`font-mono ${destacado ? "font-bold" : "font-semibold"}`}
+              style={{ fontSize: destacado ? 15 : 13, color: TEMA.texto }}
+            >
+              {formatearGal(valor)} gal
+            </span>
+          </div>
+        ))}
+        <div style={{ fontSize: 10, color: TEMA.suave, marginTop: 4 }}>
+          El total lo calcula el sistema — el operador nunca lo escribe.
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2" style={{ gap: 10 }}>
+        {(
+          [
+            { rot: "Llegada", foto: datos.fotos.inicial },
+            { rot: "Salida", foto: sinFotoFinal ? null : datos.fotos.final },
+          ] as const
+        ).map((f) => (
+          <div key={f.rot}>
+            <div style={{ fontSize: 11, color: TEMA.suave, marginBottom: 6 }}>{f.rot}</div>
+            <div
+              className="flex items-center justify-center overflow-hidden rounded-md"
+              style={{ height: 138, background: "#0A1017", border: `1px solid ${TEMA.linea}` }}
+            >
+              {f.foto ? (
+                <img
+                  src={f.foto}
+                  alt={`Foto del carrotanque — ${f.rot.toLowerCase()}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span className="px-3 text-center" style={{ fontSize: 11, color: TEMA.ambar }}>
+                  Sin foto. El operador cerró la carga sin capturar el carrotanque.
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {mensajes.length > 0 ? (
+        <div className="mt-4 flex flex-col" style={{ gap: 6 }}>
+          {mensajes.map((mensaje) => (
+            <div key={mensaje} style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.5 }}>
+              {mensaje}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {datos.notas ? (
+        <div className="mt-4" style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.5 }}>
+          <span style={{ color: TEMA.texto }}>Observaciones:</span> {datos.notas}
+        </div>
+      ) : null}
     </Panel>
   );
 }

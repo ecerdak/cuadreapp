@@ -10,12 +10,15 @@ import type {
   DetalleCarga,
   FiltroCargas,
   FuenteDatosTablero,
+  IdentidadTablero,
   PaginaCargas,
   ResumenEquipos,
   ResumenHoy,
   ResumenSuministro,
   Veredicto,
 } from "./puertos";
+import { CLIENTE, MEDIDOR } from "./contexto-cliente";
+import logoTrebol from "../marca/assets/trebol.webp";
 import {
   balanceSimulado,
   CARGAS_SIMULADAS,
@@ -88,6 +91,20 @@ export class FuenteSimulada implements FuenteDatosTablero {
       throw new Error("Fallo simulado de la fuente de datos (?simular-error)");
     }
     return datos();
+  }
+
+  identidad(): Promise<IdentidadTablero> {
+    // El escenario simulado ES El Trébol: su identidad viaja como dato
+    // (DEC-017) — mismos valores del contexto de presentación previo,
+    // así el diseño aprobado queda visualmente intacto.
+    return this.responder(() => ({
+      clienteNombre: CLIENTE.nombre,
+      clienteCorto: CLIENTE.corto,
+      sedeVisible: CLIENTE.sede,
+      logoUrl: logoTrebol,
+      perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
+      medidor: { modelo: MEDIDOR.modelo, instalado: MEDIDOR.instalado },
+    }));
   }
 
   resumenHoy(): Promise<ResumenHoy> {
@@ -166,6 +183,7 @@ export class FuenteSimulada implements FuenteDatosTablero {
           tandaFinal: carga.tandaFinal,
           totFinal: carga.totFinal,
         },
+        inventario: null, // el escenario simulado es medidor_doble
         lecturaEquipo: carga.lecturaEquipo,
         tipoLectura: EQUIPOS_SIMULADOS.find((equipo) => equipo.codigo === carga.equipoCodigo)!
           .tipoMedidor,

@@ -17,3 +17,10 @@ export function useFuenteTablero(): FuenteDatosTablero {
   if (!fuente) throw new Error("Falta ProveedorDatosTablero en la raíz del tablero");
   return fuente;
 }
+
+/** Variante tolerante para el MARCO (identidad, DEC-017): sin
+ *  proveedor devuelve null y el marco conserva su identidad de
+ *  demostración — permite renderizarlo aislado (pruebas de fidelidad). */
+export function useFuenteTableroOpcional(): FuenteDatosTablero | null {
+  return useContext(ContextoFuente);
+}
