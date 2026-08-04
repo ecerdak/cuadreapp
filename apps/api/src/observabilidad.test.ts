@@ -36,6 +36,7 @@ describe("Observabilidad por defecto (DEC-012)", () => {
         "sede_id",
         "usuario_id",
         "banderas",
+        "perfil",
         "version_api",
         "version_dominio",
       ].sort(),

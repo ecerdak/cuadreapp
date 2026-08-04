@@ -2,7 +2,13 @@
 // Postgres (Supabase como infraestructura, DEC-009); las pruebas usan
 // un repositorio en memoria.
 
-import type { Bandera, ContextoValidacion, EstadoCarga } from "@cuadreapp/dominio";
+import type {
+  Bandera,
+  CodigoPerfil,
+  ContextoInventario,
+  ContextoValidacion,
+  EstadoCarga,
+} from "@cuadreapp/dominio";
 
 /** Contexto resuelto por la base para validar un registro. Además de los
  *  datos de validación trae los ids que el cliente NO manda (cliente_id
@@ -14,6 +20,15 @@ export interface ContextoRegistro {
   validacion: ContextoValidacion;
 }
 
+/** Contexto del perfil «Carga sobre Inventario» (DEC-016): sin
+ *  dispensador, la sede viene de la sesión del dispositivo y el equipo
+ *  y el conductor deben pertenecer al cliente de esa sede. */
+export interface ContextoRegistroInventario {
+  clienteId: string;
+  sedeId: string;
+  validacion: ContextoInventario;
+}
+
 /** Resumen de una carga ya persistida (para la respuesta idempotente). */
 export interface CargaPersistida {
   id: string;
@@ -21,21 +36,31 @@ export interface CargaPersistida {
   banderas: Bandera[];
   galones: number;
   galNoRegistrados: number | null;
+  /** Solo perfil carga_inventario; null en medidor_doble. */
+  llegadaGal: number | null;
+  inventarioFinalGal: number | null;
 }
 
-/** Fila lista para insertar en `cargas`. Los nombres siguen las columnas. */
+/** Fila lista para insertar en `cargas`. Los nombres siguen las columnas.
+ *  Las columnas del medidor son propias del perfil medidor_doble y
+ *  llegada_gal del perfil carga_inventario — el CHECK de la base exige
+ *  la forma exacta por perfil. inventario_final_gal NO está aquí: es
+ *  una columna generada, jamás la escribe la aplicación. */
 export interface NuevaCarga {
   id: string;
+  perfil_codigo: CodigoPerfil;
   cliente_id: string;
   sede_id: string;
-  dispensador_id: string;
+  dispensador_id: string | null;
   equipo_id: string;
   conductor_id: string;
-  tanda_inicial_gal: number;
-  tot_inicial_gal: number;
-  tanda_final_gal: number;
-  tot_final_gal: number;
+  tanda_inicial_gal: number | null;
+  tot_inicial_gal: number | null;
+  tanda_final_gal: number | null;
+  tot_final_gal: number | null;
+  /** Galones despachados por Lubryco — misma semántica en todo perfil. */
   galones: number;
+  llegada_gal: number | null;
   lectura_equipo: number | null;
   tipo_lectura: string | null;
   iniciada_en: string;
@@ -68,6 +93,14 @@ export interface RepositorioCargas {
     equipoId: string;
     conductorId: string;
   }): Promise<ContextoRegistro | null>;
+  /** Perfil carga_inventario: la sede viene de la sesión; null si la
+   *  sede no existe o el equipo/conductor no son de su cliente o están
+   *  inactivos. */
+  obtenerContextoInventario(referencias: {
+    sedeId: string;
+    equipoId: string;
+    conductorId: string;
+  }): Promise<ContextoRegistroInventario | null>;
   insertarCarga(carga: NuevaCarga, fotos: NuevaFoto[]): Promise<void>;
 }
 
@@ -82,7 +115,22 @@ export interface CodigoEnrolamientoValido {
 }
 
 export interface CatalogoSede {
-  sede: { id: string; nombre: string; lat: number | null; lng: number | null; radio_geocerca_m: number };
+  /** Identidad del cliente (DEC-017). logo_clave es la clave del
+   *  objeto en el bucket privado — la ruta HTTP la convierte en URL
+   *  firmada antes de responder; la clave nunca sale al cliente. */
+  cliente: { id: string; nombre: string; logo_clave: string | null };
+  /** Perfil Operativo del cliente (DEC-016): decide el flujo de la PWA. */
+  perfil: { codigo: CodigoPerfil; nombre: string };
+  sede: {
+    id: string;
+    nombre: string;
+    /** «Planta Buga, Valle del Cauca» = nombre + ciudad (identidad visible). */
+    ciudad: string | null;
+    direccion: string | null;
+    lat: number | null;
+    lng: number | null;
+    radio_geocerca_m: number;
+  };
   dispensadores: Array<{
     id: string;
     nombre: string;

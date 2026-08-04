@@ -1,6 +1,7 @@
 // Fake en memoria del RepositorioAdmin + sesión de administrador para
 // las pruebas de la consola. Mismo contrato que Postgres, cero base.
 
+import type { CodigoPerfil } from "@cuadreapp/dominio";
 import type { SesionAutenticada } from "../seguridad/tipos.js";
 import type {
   CargaAdmin,
@@ -9,6 +10,7 @@ import type {
   DispositivoAdmin,
   EquipoAdmin,
   OperadorAdmin,
+  PerfilOperativoAdmin,
   RepositorioAdmin,
   ResumenAdmin,
   SedeAdmin,
@@ -26,6 +28,7 @@ export function sesionAdmin(): SesionAutenticada {
     clienteId: null,
     sedeId: null,
     permisos: ["admin.leer", "admin.gestionar"],
+    perfil: null,
   };
 }
 
@@ -36,6 +39,10 @@ const uuid = () => {
 };
 
 export class RepositorioAdminFalso implements RepositorioAdmin {
+  perfiles: PerfilOperativoAdmin[] = [
+    { codigo: "carga_inventario", nombre: "Carga sobre Inventario", descripcion: null, activo: true },
+    { codigo: "medidor_doble", nombre: "Medidor Doble", descripcion: null, activo: true },
+  ];
   clientes: ClienteAdmin[] = [];
   sedes: SedeAdmin[] = [];
   equipos: EquipoAdmin[] = [];
@@ -66,22 +73,39 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
     return this.cargas.slice(0, filtro.limite);
   }
 
+  async listarPerfiles(): Promise<PerfilOperativoAdmin[]> {
+    return this.perfiles;
+  }
+
   async listarClientes(buscar?: string): Promise<ClienteAdmin[]> {
     return buscar
       ? this.clientes.filter((c) => c.nombre.toLowerCase().includes(buscar.toLowerCase()))
       : this.clientes;
   }
 
-  async crearCliente(datos: { nombre: string; nit: string | null }): Promise<ClienteAdmin> {
+  async crearCliente(datos: {
+    nombre: string;
+    nit: string | null;
+    perfilCodigo: CodigoPerfil;
+  }): Promise<ClienteAdmin> {
     if (this.clientes.some((c) => c.nombre === datos.nombre)) throw new ConflictoUnicidad();
-    const cliente = { id: uuid(), nombre: datos.nombre, nit: datos.nit, activo: true, sedes: 0 };
+    const cliente: ClienteAdmin = {
+      id: uuid(),
+      nombre: datos.nombre,
+      nit: datos.nit,
+      activo: true,
+      sedes: 0,
+      cargas: 0,
+      perfilCodigo: datos.perfilCodigo,
+      logoClave: null,
+    };
     this.clientes.push(cliente);
     return cliente;
   }
 
   async editarCliente(
     id: string,
-    cambios: { nombre?: string; nit?: string | null; activo?: boolean },
+    cambios: { nombre?: string; nit?: string | null; activo?: boolean; perfilCodigo?: CodigoPerfil },
   ): Promise<ClienteAdmin | null> {
     const cliente = this.clientes.find((c) => c.id === id);
     if (!cliente) return null;
@@ -89,8 +113,30 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
       nombre: cambios.nombre ?? cliente.nombre,
       nit: "nit" in cambios ? (cambios.nit ?? null) : cliente.nit,
       activo: cambios.activo ?? cliente.activo,
+      perfilCodigo: cambios.perfilCodigo ?? cliente.perfilCodigo,
     });
     return cliente;
+  }
+
+  async guardarLogoCliente(
+    id: string,
+    clave: string,
+  ): Promise<{ cliente: ClienteAdmin; claveAnterior: string | null } | null> {
+    const cliente = this.clientes.find((c) => c.id === id);
+    if (!cliente) return null;
+    const claveAnterior = cliente.logoClave;
+    cliente.logoClave = clave;
+    return { cliente, claveAnterior };
+  }
+
+  async quitarLogoCliente(
+    id: string,
+  ): Promise<{ cliente: ClienteAdmin; claveAnterior: string | null } | null> {
+    const cliente = this.clientes.find((c) => c.id === id);
+    if (!cliente) return null;
+    const claveAnterior = cliente.logoClave;
+    cliente.logoClave = null;
+    return { cliente, claveAnterior };
   }
 
   async listarSedes(clienteId: string): Promise<SedeAdmin[]> {
@@ -100,29 +146,66 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
   async crearSede(datos: {
     clienteId: string;
     nombre: string;
+    ciudad: string | null;
+    direccion: string | null;
+    referencia: string | null;
     lat: number | null;
     lng: number | null;
     radioGeocercaM: number;
-    dispensador: { nombre: string; totInstalacionGal: number };
+    dispensador: { nombre: string; totInstalacionGal: number } | null;
   }): Promise<SedeAdmin> {
     const sede: SedeAdmin = {
       id: uuid(),
       clienteId: datos.clienteId,
       nombre: datos.nombre,
+      ciudad: datos.ciudad,
+      direccion: datos.direccion,
+      referencia: datos.referencia,
+      activo: true,
       lat: datos.lat,
       lng: datos.lng,
       radioGeocercaM: datos.radioGeocercaM,
-      dispensadores: [
-        {
-          id: uuid(),
-          nombre: datos.dispensador.nombre,
-          totActualGal: datos.dispensador.totInstalacionGal,
-        },
-      ],
+      dispensadores: datos.dispensador
+        ? [
+            {
+              id: uuid(),
+              nombre: datos.dispensador.nombre,
+              totActualGal: datos.dispensador.totInstalacionGal,
+            },
+          ]
+        : [],
     };
     this.sedes.push(sede);
     const cliente = this.clientes.find((c) => c.id === datos.clienteId);
     if (cliente) cliente.sedes += 1;
+    return sede;
+  }
+
+  async editarSede(
+    id: string,
+    cambios: {
+      nombre?: string;
+      ciudad?: string | null;
+      direccion?: string | null;
+      referencia?: string | null;
+      lat?: number | null;
+      lng?: number | null;
+      radioGeocercaM?: number;
+      activo?: boolean;
+    },
+  ): Promise<SedeAdmin | null> {
+    const sede = this.sedes.find((s) => s.id === id);
+    if (!sede) return null;
+    Object.assign(sede, {
+      nombre: cambios.nombre ?? sede.nombre,
+      ciudad: "ciudad" in cambios ? (cambios.ciudad ?? null) : sede.ciudad,
+      direccion: "direccion" in cambios ? (cambios.direccion ?? null) : sede.direccion,
+      referencia: "referencia" in cambios ? (cambios.referencia ?? null) : sede.referencia,
+      lat: "lat" in cambios ? (cambios.lat ?? null) : sede.lat,
+      lng: "lng" in cambios ? (cambios.lng ?? null) : sede.lng,
+      radioGeocercaM: cambios.radioGeocercaM ?? sede.radioGeocercaM,
+      activo: cambios.activo ?? sede.activo,
+    });
     return sede;
   }
 
@@ -236,11 +319,12 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
   }
 
   async crearCodigo(datos: { sedeId: string; codigo: string; expiraEn: string }): Promise<CodigoAdmin> {
+    const sede = this.sedes.find((s) => s.id === datos.sedeId);
     const codigo: CodigoAdmin = {
       id: uuid(),
       sedeId: datos.sedeId,
-      sedeNombre: this.sedes.find((s) => s.id === datos.sedeId)?.nombre ?? "?",
-      clienteNombre: "Sacyr",
+      sedeNombre: sede?.nombre ?? "?",
+      clienteNombre: this.clientes.find((c) => c.id === sede?.clienteId)?.nombre ?? "?",
       codigo: datos.codigo,
       expiraEn: datos.expiraEn,
       usadoEn: null,

@@ -200,7 +200,21 @@ describe("GET /api/v1/catalogo", () => {
   it("entrega el catálogo con el alcance de la sesión (incluye pin_hash para verificación offline)", async () => {
     const { app, repositorioSeguridad } = armarAplicacion();
     repositorioSeguridad.catalogo = {
-      sede: { id: ID_SEDE, nombre: "Planta Buga", lat: null, lng: null, radio_geocerca_m: 150 },
+      cliente: {
+        id: ID_CLIENTE,
+        nombre: "Industrias Alimenticias El Trébol S.A.S.",
+        logo_clave: "clientes/x/logo.png",
+      },
+      perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
+      sede: {
+        id: ID_SEDE,
+        nombre: "Planta Buga",
+        ciudad: "Buga, Valle del Cauca",
+        direccion: null,
+        lat: null,
+        lng: null,
+        radio_geocerca_m: 150,
+      },
       dispensadores: [{ id: "d1", nombre: "Isla 1", tot_actual_gal: 1847.0, tolerancia_tanda_gal: 1.0 }],
       equipos: [],
       conductores: [{ id: "c1", nombre: "Duván Bonilla", codigo: "07", pin_hash: "$2a$10$hash" }],

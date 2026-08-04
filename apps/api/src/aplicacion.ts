@@ -27,6 +27,9 @@ export interface Dependencias {
   repositorioAdmin?: RepositorioAdmin;
   proveedorIdentidad: ProveedorIdentidad;
   almacenFotos: AlmacenFotos;
+  /** Bucket privado de logos de clientes (DEC-017). Sin él, el logo
+   *  del catálogo/admin queda en null (fallback a iniciales). */
+  almacenLogos?: AlmacenFotos;
   /** Secreto HS256 del proyecto de Supabase para verificar los JWT localmente. */
   secretoJwt: string;
   /** JWKS del proyecto: obligatorio con proyectos que firman ES256/RS256. */
@@ -59,7 +62,9 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
         : /^https:\/\/[a-z0-9-]+\.up\.railway\.app$/.test(origen);
       listo(null, ok);
     },
-    methods: ["GET", "POST", "OPTIONS"],
+    // PATCH/PUT/DELETE: la consola admin edita catálogos y administra
+    // el logo del cliente (DEC-017) desde el navegador.
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["content-type", "authorization"],
     exposedHeaders: ["x-request-id"],
     maxAge: 86400,
@@ -120,6 +125,7 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
     });
     registrarRutaCatalogo(rutas, {
       repositorioSeguridad: dependencias.repositorioSeguridad,
+      almacenLogos: dependencias.almacenLogos ?? null,
       autenticar,
     });
     registrarRutaFotos(rutas, { almacen: dependencias.almacenFotos, autenticar });
@@ -128,6 +134,7 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
       registrarRutasAdmin(rutas, {
         repositorio: dependencias.repositorioAdmin,
         almacenFotos: dependencias.almacenFotos,
+        almacenLogos: dependencias.almacenLogos ?? null,
         autenticar,
       });
     }

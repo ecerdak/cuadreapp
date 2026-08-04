@@ -3,6 +3,8 @@
 // único interlocutor del cliente y el proveedor se puede cambiar sin
 // tocar la PWA.
 
+import type { CodigoPerfil } from "@cuadreapp/dominio";
+
 /** Identidad + alcance + permisos resueltos por el RBAC propio (DEC-004). */
 export interface SesionAutenticada {
   usuarioId: string;
@@ -11,6 +13,9 @@ export interface SesionAutenticada {
   clienteId: string | null; // null: alcance multicliente (comercial_lubryco)
   sedeId: string | null;
   permisos: string[];
+  /** Perfil Operativo del cliente de la sesión (DEC-016); null cuando
+   *  la sesión no tiene cliente (alcance multicliente/admin). */
+  perfil: CodigoPerfil | null;
 }
 
 export interface TokensEmitidos {
@@ -33,10 +38,14 @@ export interface ProveedorIdentidad {
   crearIdentidadDispositivo(): Promise<{ usuarioId: string; tokens: TokensEmitidos } | null>;
 }
 
-/** Destino de la evidencia fotográfica (bucket privado de Storage). */
+/** Destino de archivos en un bucket privado de Storage (evidencia
+ *  fotográfica, logos de clientes — DEC-017). Nadie lee sin URL
+ *  firmada; solo la API escribe. */
 export interface AlmacenFotos {
   guardar(ruta: string, bytes: Uint8Array, tipo: string): Promise<void>;
-  /** URL temporal de lectura para la consola admin (bucket privado).
-   *  null si el proveedor no puede firmarla. */
+  /** URL temporal de lectura (bucket privado). null si el proveedor
+   *  no puede firmarla. */
   urlFirmada(ruta: string, segundos: number): Promise<string | null>;
+  /** Borra el objeto. No falla si ya no existe (idempotente). */
+  eliminar(ruta: string): Promise<void>;
 }

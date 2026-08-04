@@ -22,6 +22,8 @@ export interface ContextoObservable {
   banderas?: string[];
   resultado?: string;
   error?: string;
+  /** Perfil Operativo con el que se despachó la petición (DEC-016). */
+  perfil?: string;
 }
 
 export interface EventoSolicitud {
@@ -36,6 +38,7 @@ export interface EventoSolicitud {
   sede_id: string | null;
   usuario_id: string | null;
   banderas: string[] | null;
+  perfil: string | null;
   version_api: string;
   version_dominio: string;
 }
@@ -99,6 +102,7 @@ export function registrarObservabilidad(
       sede_id: solicitud.observable.sedeId ?? null,
       usuario_id: solicitud.observable.usuarioId ?? null,
       banderas: solicitud.observable.banderas ?? null,
+      perfil: solicitud.observable.perfil ?? null,
       version_api: VERSION_API,
       version_dominio: VERSION_DOMINIO,
     });

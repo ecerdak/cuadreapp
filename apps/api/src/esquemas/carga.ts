@@ -38,3 +38,37 @@ export const esquemaCargaEntrante = z
   .strict();
 
 export type CargaEntrante = z.infer<typeof esquemaCargaEntrante>;
+
+/** Perfil «Carga sobre Inventario» (DEC-016): el operador registra con
+ *  cuántos galones llegó el carrotanque y cuántos despachó Lubryco.
+ *  Sin dispensador, sin tandas ni totalizadores. El inventario final
+ *  jamás viaja en la petición — lo calcula el dominio y lo garantiza
+ *  la base. */
+export const esquemaCargaInventarioEntrante = z
+  .object({
+    id: z.string().uuid(),
+    equipo_id: z.string().uuid(),
+    conductor_id: z.string().uuid(),
+
+    llegada_gal: z.number().finite().nonnegative(),
+    despachados_gal: z.number().finite().nonnegative(),
+
+    iniciada_en: z.string().datetime({ offset: true }),
+    finalizada_en: z.string().datetime({ offset: true }),
+
+    lat: z.number().min(-90).max(90).nullable().optional(),
+    lng: z.number().min(-180).max(180).nullable().optional(),
+    precision_gps_m: z.number().finite().nonnegative().nullable().optional(),
+
+    origen: z.enum(["app", "papel_retro", "correccion"]).default("app"),
+
+    foto_inicial_path: z.string().min(1).nullable().optional(),
+    foto_final_path: z.string().min(1).nullable().optional(),
+
+    notas: z.string().max(2000).nullable().optional(),
+    device_id: z.string().max(200).nullable().optional(),
+    version_app: z.string().max(50).nullable().optional(),
+  })
+  .strict();
+
+export type CargaInventarioEntrante = z.infer<typeof esquemaCargaInventarioEntrante>;

@@ -78,6 +78,7 @@ export function registrarRutasAuth(
       cliente_id: sesion.clienteId,
       sede_id: sesion.sedeId,
       permisos: sesion.permisos,
+      perfil: sesion.perfil,
     });
   });
 }

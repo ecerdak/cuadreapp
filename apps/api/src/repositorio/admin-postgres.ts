@@ -10,13 +10,14 @@ import type {
   DispositivoAdmin,
   EquipoAdmin,
   OperadorAdmin,
+  PerfilOperativoAdmin,
   RepositorioAdmin,
   ResumenAdmin,
   SedeAdmin,
   TableroCliente,
 } from "./admin.js";
 import { ConflictoUnicidad } from "./admin.js";
-import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
+import type { Bandera, CodigoPerfil, EstadoCarga } from "@cuadreapp/dominio";
 
 const numeroONulo = (valor: string | null): number | null => (valor === null ? null : Number(valor));
 
@@ -120,32 +121,58 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
     return resultado.rows.map(filaACarga);
   }
 
-  async listarClientes(buscar?: string): Promise<ClienteAdmin[]> {
+  async listarPerfiles(): Promise<PerfilOperativoAdmin[]> {
     const resultado = await this.pool.query(
-      `select c.id, c.nombre, c.nit, c.activo,
-              (select count(*) from sedes s where s.cliente_id = c.id) as sedes
-       from clientes c
-       where ($1::text is null or c.nombre ilike '%' || $1 || '%')
-       order by c.nombre`,
-      [buscar ?? null],
+      `select codigo, nombre, descripcion, activo from perfiles_operativos order by nombre`,
     );
     return resultado.rows.map((f) => ({
-      id: f.id,
+      codigo: f.codigo,
       nombre: f.nombre,
-      nit: f.nit,
+      descripcion: f.descripcion,
       activo: f.activo,
-      sedes: Number(f.sedes),
     }));
   }
 
-  async crearCliente(datos: { nombre: string; nit: string | null }): Promise<ClienteAdmin> {
+  private filaACliente(f: Record<string, unknown>): ClienteAdmin {
+    return {
+      id: f.id as string,
+      nombre: f.nombre as string,
+      nit: (f.nit as string | null) ?? null,
+      activo: f.activo as boolean,
+      sedes: Number(f.sedes ?? 0),
+      cargas: Number(f.cargas ?? 0),
+      perfilCodigo: f.perfil_codigo as CodigoPerfil,
+      logoClave: (f.logo_url as string | null) ?? null,
+    };
+  }
+
+  private static readonly COLUMNAS_CLIENTE = `id, nombre, nit, activo, perfil_codigo, logo_url,
+           (select count(*) from sedes s where s.cliente_id = clientes.id) as sedes,
+           (select count(*) from cargas c where c.cliente_id = clientes.id) as cargas`;
+
+  async listarClientes(buscar?: string): Promise<ClienteAdmin[]> {
+    const resultado = await this.pool.query(
+      `select ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}
+       from clientes
+       where ($1::text is null or nombre ilike '%' || $1 || '%')
+       order by nombre`,
+      [buscar ?? null],
+    );
+    return resultado.rows.map((f) => this.filaACliente(f));
+  }
+
+  async crearCliente(datos: {
+    nombre: string;
+    nit: string | null;
+    perfilCodigo: CodigoPerfil;
+  }): Promise<ClienteAdmin> {
     try {
       const resultado = await this.pool.query(
-        `insert into clientes (nombre, nit) values ($1, $2) returning id, nombre, nit, activo`,
-        [datos.nombre, datos.nit],
+        `insert into clientes (nombre, nit, perfil_codigo) values ($1, $2, $3)
+         returning ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}`,
+        [datos.nombre, datos.nit, datos.perfilCodigo],
       );
-      const f = resultado.rows[0]!;
-      return { id: f.id, nombre: f.nombre, nit: f.nit, activo: f.activo, sedes: 0 };
+      return this.filaACliente(resultado.rows[0]!);
     } catch (error) {
       traducirUnicidad(error);
     }
@@ -153,30 +180,91 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
 
   async editarCliente(
     id: string,
-    cambios: { nombre?: string; nit?: string | null; activo?: boolean },
+    cambios: { nombre?: string; nit?: string | null; activo?: boolean; perfilCodigo?: CodigoPerfil },
   ): Promise<ClienteAdmin | null> {
     try {
       const resultado = await this.pool.query(
         `update clientes set
-           nombre = coalesce($2, nombre),
-           nit    = case when $4 then $3 else nit end,
-           activo = coalesce($5, activo)
+           nombre        = coalesce($2, nombre),
+           nit           = case when $4 then $3 else nit end,
+           activo        = coalesce($5, activo),
+           perfil_codigo = coalesce($6, perfil_codigo)
          where id = $1
-         returning id, nombre, nit, activo,
-           (select count(*) from sedes s where s.cliente_id = clientes.id) as sedes`,
-        [id, cambios.nombre ?? null, cambios.nit ?? null, "nit" in cambios, cambios.activo ?? null],
+         returning ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}`,
+        [
+          id,
+          cambios.nombre ?? null,
+          cambios.nit ?? null,
+          "nit" in cambios,
+          cambios.activo ?? null,
+          cambios.perfilCodigo ?? null,
+        ],
       );
       const f = resultado.rows[0];
       if (!f) return null;
-      return { id: f.id, nombre: f.nombre, nit: f.nit, activo: f.activo, sedes: Number(f.sedes) };
+      return this.filaACliente(f);
     } catch (error) {
       traducirUnicidad(error);
     }
   }
 
+  async guardarLogoCliente(
+    id: string,
+    clave: string,
+  ): Promise<{ cliente: ClienteAdmin; claveAnterior: string | null } | null> {
+    const anterior = await this.pool.query(`select logo_url from clientes where id = $1`, [id]);
+    if (!anterior.rows[0]) return null;
+    const resultado = await this.pool.query(
+      `update clientes set logo_url = $2 where id = $1
+       returning ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}`,
+      [id, clave],
+    );
+    return {
+      cliente: this.filaACliente(resultado.rows[0]!),
+      claveAnterior: anterior.rows[0].logo_url ?? null,
+    };
+  }
+
+  async quitarLogoCliente(
+    id: string,
+  ): Promise<{ cliente: ClienteAdmin; claveAnterior: string | null } | null> {
+    const anterior = await this.pool.query(`select logo_url from clientes where id = $1`, [id]);
+    if (!anterior.rows[0]) return null;
+    const resultado = await this.pool.query(
+      `update clientes set logo_url = null where id = $1
+       returning ${RepositorioAdminPostgres.COLUMNAS_CLIENTE}`,
+      [id],
+    );
+    return {
+      cliente: this.filaACliente(resultado.rows[0]!),
+      claveAnterior: anterior.rows[0].logo_url ?? null,
+    };
+  }
+
+  private static readonly COLUMNAS_SEDE = `s.id, s.cliente_id, s.nombre, s.ciudad, s.direccion,
+              s.referencia, s.activo, s.lat, s.lng, s.radio_geocerca_m`;
+
+  private filaASede(f: Record<string, unknown>): SedeAdmin {
+    return {
+      id: f.id as string,
+      clienteId: f.cliente_id as string,
+      nombre: f.nombre as string,
+      ciudad: (f.ciudad as string | null) ?? null,
+      direccion: (f.direccion as string | null) ?? null,
+      referencia: (f.referencia as string | null) ?? null,
+      activo: (f.activo as boolean | undefined) ?? true,
+      lat: numeroONulo(f.lat as string | null),
+      lng: numeroONulo(f.lng as string | null),
+      radioGeocercaM: Number(f.radio_geocerca_m),
+      dispensadores: ((f.dispensadores as Array<{ id: string; nombre: string; tot: string }>) ?? []).map(
+        (d) => ({ id: d.id, nombre: d.nombre, totActualGal: Number(d.tot) }),
+      ),
+    };
+  }
+
   async listarSedes(clienteId: string): Promise<SedeAdmin[]> {
     const resultado = await this.pool.query(
-      `select s.id, s.cliente_id, s.nombre, s.lat, s.lng, s.radio_geocerca_m,
+      `select ${RepositorioAdminPostgres.COLUMNAS_SEDE},
               coalesce(json_agg(json_build_object('id', d.id, 'nombre', d.nombre, 'tot', d.tot_actual_gal))
                        filter (where d.id is not null), '[]') as dispensadores
        from sedes s left join dispensadores d on d.sede_id = s.id
@@ -184,57 +272,123 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
        group by s.id order by s.nombre`,
       [clienteId],
     );
-    return resultado.rows.map((f) => ({
-      id: f.id,
-      clienteId: f.cliente_id,
-      nombre: f.nombre,
-      lat: numeroONulo(f.lat),
-      lng: numeroONulo(f.lng),
-      radioGeocercaM: Number(f.radio_geocerca_m),
-      dispensadores: (f.dispensadores as Array<{ id: string; nombre: string; tot: string }>).map(
-        (d) => ({ id: d.id, nombre: d.nombre, totActualGal: Number(d.tot) }),
-      ),
-    }));
+    return resultado.rows.map((f) => this.filaASede(f));
   }
 
   async crearSede(datos: {
     clienteId: string;
     nombre: string;
+    ciudad: string | null;
+    direccion: string | null;
+    referencia: string | null;
     lat: number | null;
     lng: number | null;
     radioGeocercaM: number;
-    dispensador: { nombre: string; totInstalacionGal: number };
+    dispensador: { nombre: string; totInstalacionGal: number } | null;
   }): Promise<SedeAdmin> {
     const conexion = await this.pool.connect();
     try {
       await conexion.query("begin");
       const sede = await conexion.query(
-        `insert into sedes (cliente_id, nombre, lat, lng, radio_geocerca_m)
-         values ($1, $2, $3, $4, $5) returning id`,
-        [datos.clienteId, datos.nombre, datos.lat, datos.lng, datos.radioGeocercaM],
+        `insert into sedes (cliente_id, nombre, ciudad, direccion, referencia, lat, lng, radio_geocerca_m)
+         values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
+        [
+          datos.clienteId,
+          datos.nombre,
+          datos.ciudad,
+          datos.direccion,
+          datos.referencia,
+          datos.lat,
+          datos.lng,
+          datos.radioGeocercaM,
+        ],
       );
       const sedeId = sede.rows[0]!.id as string;
-      const dispensador = await conexion.query(
-        `insert into dispensadores (sede_id, nombre, tot_instalacion_gal, tot_actual_gal, fecha_instalacion)
-         values ($1, $2, $3, $3, now()) returning id, nombre, tot_actual_gal`,
-        [sedeId, datos.dispensador.nombre, datos.dispensador.totInstalacionGal],
-      );
+      // El dispensador (y su totalizador inicial) solo existe cuando el
+      // perfil del cliente lo requiere — lo decide la consola, no aquí.
+      let dispensadores: SedeAdmin["dispensadores"] = [];
+      if (datos.dispensador) {
+        const dispensador = await conexion.query(
+          `insert into dispensadores (sede_id, nombre, tot_instalacion_gal, tot_actual_gal, fecha_instalacion)
+           values ($1, $2, $3, $3, now()) returning id, nombre, tot_actual_gal`,
+          [sedeId, datos.dispensador.nombre, datos.dispensador.totInstalacionGal],
+        );
+        const d = dispensador.rows[0]!;
+        dispensadores = [{ id: d.id, nombre: d.nombre, totActualGal: Number(d.tot_actual_gal) }];
+      }
       await conexion.query("commit");
-      const d = dispensador.rows[0]!;
       return {
         id: sedeId,
         clienteId: datos.clienteId,
         nombre: datos.nombre,
+        ciudad: datos.ciudad,
+        direccion: datos.direccion,
+        referencia: datos.referencia,
+        activo: true,
         lat: datos.lat,
         lng: datos.lng,
         radioGeocercaM: datos.radioGeocercaM,
-        dispensadores: [{ id: d.id, nombre: d.nombre, totActualGal: Number(d.tot_actual_gal) }],
+        dispensadores,
       };
     } catch (error) {
       await conexion.query("rollback");
       traducirUnicidad(error);
     } finally {
       conexion.release();
+    }
+  }
+
+  async editarSede(
+    id: string,
+    cambios: {
+      nombre?: string;
+      ciudad?: string | null;
+      direccion?: string | null;
+      referencia?: string | null;
+      lat?: number | null;
+      lng?: number | null;
+      radioGeocercaM?: number;
+      activo?: boolean;
+    },
+  ): Promise<SedeAdmin | null> {
+    try {
+      const resultado = await this.pool.query(
+        `update sedes s set
+           nombre           = coalesce($2, nombre),
+           ciudad           = case when $4 then $3 else ciudad end,
+           direccion        = case when $6 then $5 else direccion end,
+           referencia       = case when $8 then $7 else referencia end,
+           lat              = case when $10 then $9 else lat end,
+           lng              = case when $12 then $11 else lng end,
+           radio_geocerca_m = coalesce($13, radio_geocerca_m),
+           activo           = coalesce($14, activo)
+         where s.id = $1
+         returning ${RepositorioAdminPostgres.COLUMNAS_SEDE},
+           (select coalesce(json_agg(json_build_object('id', d.id, 'nombre', d.nombre, 'tot', d.tot_actual_gal))
+                            filter (where d.id is not null), '[]')
+            from dispensadores d where d.sede_id = s.id) as dispensadores`,
+        [
+          id,
+          cambios.nombre ?? null,
+          cambios.ciudad ?? null,
+          "ciudad" in cambios,
+          cambios.direccion ?? null,
+          "direccion" in cambios,
+          cambios.referencia ?? null,
+          "referencia" in cambios,
+          cambios.lat ?? null,
+          "lat" in cambios,
+          cambios.lng ?? null,
+          "lng" in cambios,
+          cambios.radioGeocercaM ?? null,
+          cambios.activo ?? null,
+        ],
+      );
+      const f = resultado.rows[0];
+      if (!f) return null;
+      return this.filaASede(f);
+    } catch (error) {
+      traducirUnicidad(error);
     }
   }
 

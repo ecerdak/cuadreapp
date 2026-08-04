@@ -72,6 +72,8 @@ describe.runIf(Boolean(URL_BD))("E2E base de datos real (migraciones + seed apli
     await repo.insertarCarga(
       {
         id,
+        perfil_codigo: "medidor_doble",
+        llegada_gal: null,
         cliente_id: contexto!.clienteId,
         sede_id: contexto!.sedeId,
         dispensador_id: fila.dispensador_id,

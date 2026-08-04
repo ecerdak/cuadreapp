@@ -112,4 +112,15 @@ export class AlmacenFotosSupabase implements AlmacenFotos {
     const cuerpo = (await respuesta.json()) as { signedURL?: string };
     return cuerpo.signedURL ? `${this.config.url}/storage/v1${cuerpo.signedURL}` : null;
   }
+
+  async eliminar(ruta: string): Promise<void> {
+    // Idempotente: un 404 (ya no existe) no es un error.
+    const respuesta = await fetch(`${this.config.url}/storage/v1/object/${this.bucket}/${ruta}`, {
+      method: "DELETE",
+      headers: { authorization: `Bearer ${this.config.claveServiceRole}` },
+    });
+    if (!respuesta.ok && respuesta.status !== 404) {
+      throw new Error(`Storage respondió ${respuesta.status}`);
+    }
+  }
 }

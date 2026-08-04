@@ -32,6 +32,7 @@ const app = construirAplicacion({
   repositorioAdmin: new RepositorioAdminPostgres(pool),
   proveedorIdentidad: new ProveedorIdentidadSupabase(configSupabase),
   almacenFotos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_FOTOS),
+  almacenLogos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_LOGOS),
   secretoJwt: config.SUPABASE_JWT_SECRET,
   jwks: createRemoteJWKSet(new URL(`${config.SUPABASE_URL}/auth/v1/.well-known/jwks.json`)),
   origenesCors: config.CORS_ORIGENES?.split(",").map((origen) => origen.trim()),

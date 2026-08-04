@@ -2,7 +2,15 @@
 // catálogos y lecturas operativas — cero reglas de negocio (DEC-011).
 // Implementación real: Postgres; pruebas: fake en memoria.
 
-import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
+import type { Bandera, CodigoPerfil, EstadoCarga } from "@cuadreapp/dominio";
+
+/** Fila del catálogo perfiles_operativos (DEC-016). */
+export interface PerfilOperativoAdmin {
+  codigo: string;
+  nombre: string;
+  descripcion: string | null;
+  activo: boolean;
+}
 
 export interface ClienteAdmin {
   id: string;
@@ -10,12 +18,22 @@ export interface ClienteAdmin {
   nit: string | null;
   activo: boolean;
   sedes: number;
+  /** Para la advertencia de cambio de perfil con historia (DEC-016). */
+  cargas: number;
+  perfilCodigo: CodigoPerfil;
+  /** Clave del objeto en el bucket privado de logos (DEC-017). Las
+   *  rutas HTTP la convierten en URL firmada — jamás sale tal cual. */
+  logoClave: string | null;
 }
 
 export interface SedeAdmin {
   id: string;
   clienteId: string;
   nombre: string;
+  ciudad: string | null;
+  direccion: string | null;
+  referencia: string | null;
+  activo: boolean;
   lat: number | null;
   lng: number | null;
   radioGeocercaM: number;
@@ -117,22 +135,54 @@ export interface RepositorioAdmin {
   resumen(inicioHoyIso: string, ahoraIso: string): Promise<ResumenAdmin>;
   listarCargas(filtro: { clienteId?: string; limite: number }): Promise<CargaAdmin[]>;
 
+  /** Catálogo de Perfiles Operativos (DEC-016), para el selector. */
+  listarPerfiles(): Promise<PerfilOperativoAdmin[]>;
+
   listarClientes(buscar?: string): Promise<ClienteAdmin[]>;
-  crearCliente(datos: { nombre: string; nit: string | null }): Promise<ClienteAdmin>;
+  crearCliente(datos: {
+    nombre: string;
+    nit: string | null;
+    perfilCodigo: CodigoPerfil;
+  }): Promise<ClienteAdmin>;
   editarCliente(
     id: string,
-    cambios: { nombre?: string; nit?: string | null; activo?: boolean },
+    cambios: { nombre?: string; nit?: string | null; activo?: boolean; perfilCodigo?: CodigoPerfil },
   ): Promise<ClienteAdmin | null>;
+  /** Registra la clave del logo (DEC-017); devuelve la anterior para
+   *  que la ruta borre el objeto viejo si cambió de extensión. */
+  guardarLogoCliente(
+    id: string,
+    clave: string,
+  ): Promise<{ cliente: ClienteAdmin; claveAnterior: string | null } | null>;
+  quitarLogoCliente(id: string): Promise<{ cliente: ClienteAdmin; claveAnterior: string | null } | null>;
 
   listarSedes(clienteId: string): Promise<SedeAdmin[]>;
+  /** dispensador null: sedes de perfiles sin medidor (carga_inventario)
+   *  no requieren dispensador ni totalizador inicial. */
   crearSede(datos: {
     clienteId: string;
     nombre: string;
+    ciudad: string | null;
+    direccion: string | null;
+    referencia: string | null;
     lat: number | null;
     lng: number | null;
     radioGeocercaM: number;
-    dispensador: { nombre: string; totInstalacionGal: number };
+    dispensador: { nombre: string; totInstalacionGal: number } | null;
   }): Promise<SedeAdmin>;
+  editarSede(
+    id: string,
+    cambios: {
+      nombre?: string;
+      ciudad?: string | null;
+      direccion?: string | null;
+      referencia?: string | null;
+      lat?: number | null;
+      lng?: number | null;
+      radioGeocercaM?: number;
+      activo?: boolean;
+    },
+  ): Promise<SedeAdmin | null>;
 
   listarEquipos(filtro: { clienteId?: string; buscar?: string }): Promise<EquipoAdmin[]>;
   crearEquipo(datos: {

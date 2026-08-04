@@ -14,6 +14,7 @@ import type {
   CargaPersistida,
   CatalogoSede,
   ContextoRegistro,
+  ContextoRegistroInventario,
   NuevaCarga,
   NuevaFoto,
   RepositorioCargas,
@@ -46,6 +47,23 @@ export function sesionDispositivo(): SesionAutenticada {
     clienteId: ID_CLIENTE,
     sedeId: ID_SEDE,
     permisos: ["cargas.registrar", "cargas.subir_foto", "catalogo.leer"],
+    perfil: "medidor_doble",
+  };
+}
+
+/** Dispositivo de un cliente con perfil «Carga sobre Inventario». */
+export function sesionDispositivoInventario(): SesionAutenticada {
+  return { ...sesionDispositivo(), perfil: "carga_inventario" };
+}
+
+export function contextoInventarioBase(): ContextoRegistroInventario {
+  return {
+    clienteId: ID_CLIENTE,
+    sedeId: ID_SEDE,
+    validacion: {
+      equipo: { capacidadTanqueGal: 1000.0, ultimaCargaFinalizadaEn: null },
+      sede: { lat: 3.9, lng: -76.3, radioGeocercaM: 150 },
+    },
   };
 }
 
@@ -70,6 +88,7 @@ export class RepositorioCargasFalso implements RepositorioCargas {
   cargas = new Map<string, CargaPersistida>();
   inserciones: Array<{ carga: NuevaCarga; fotos: NuevaFoto[] }> = [];
   contexto: ContextoRegistro | null = contextoRegistroBase();
+  contextoInventario: ContextoRegistroInventario | null = contextoInventarioBase();
 
   async buscarCargaPorId(id: string): Promise<CargaPersistida | null> {
     return this.cargas.get(id) ?? null;
@@ -77,6 +96,10 @@ export class RepositorioCargasFalso implements RepositorioCargas {
 
   async obtenerContextoRegistro(): Promise<ContextoRegistro | null> {
     return this.contexto;
+  }
+
+  async obtenerContextoInventario(): Promise<ContextoRegistroInventario | null> {
+    return this.contextoInventario;
   }
 
   async insertarCarga(carga: NuevaCarga, fotos: NuevaFoto[]): Promise<void> {
@@ -87,6 +110,10 @@ export class RepositorioCargasFalso implements RepositorioCargas {
       banderas: carga.banderas,
       galones: carga.galones,
       galNoRegistrados: carga.gal_no_registrados,
+      llegadaGal: carga.llegada_gal,
+      // Espejo de la columna generada de la base: llegada + despachados.
+      inventarioFinalGal:
+        carga.llegada_gal === null ? null : Math.round((carga.llegada_gal + carga.galones) * 10) / 10,
     });
   }
 }
@@ -154,6 +181,7 @@ export class ProveedorIdentidadFalso implements ProveedorIdentidad {
 
 export class AlmacenFotosFalso implements AlmacenFotos {
   guardadas: Array<{ ruta: string; bytes: number; tipo: string }> = [];
+  eliminadas: string[] = [];
 
   async guardar(ruta: string, bytes: Uint8Array, tipo: string): Promise<void> {
     this.guardadas.push({ ruta, bytes: bytes.length, tipo });
@@ -162,6 +190,10 @@ export class AlmacenFotosFalso implements AlmacenFotos {
   async urlFirmada(ruta: string): Promise<string | null> {
     return `https://firmada.prueba/${ruta}`;
   }
+
+  async eliminar(ruta: string): Promise<void> {
+    this.eliminadas.push(ruta);
+  }
 }
 
 export function armarAplicacion(sobre: Partial<Dependencias> = {}) {
@@ -169,6 +201,7 @@ export function armarAplicacion(sobre: Partial<Dependencias> = {}) {
   const repositorioSeguridad = new RepositorioSeguridadFalso();
   const proveedorIdentidad = new ProveedorIdentidadFalso();
   const almacenFotos = new AlmacenFotosFalso();
+  const almacenLogos = new AlmacenFotosFalso();
   const eventos: EventoSolicitud[] = [];
 
   const app = construirAplicacion({
@@ -176,12 +209,21 @@ export function armarAplicacion(sobre: Partial<Dependencias> = {}) {
     repositorioSeguridad,
     proveedorIdentidad,
     almacenFotos,
+    almacenLogos,
     secretoJwt: SECRETO_PRUEBA,
     emitirEvento: (evento) => eventos.push(evento),
     ...sobre,
   });
 
-  return { app, repositorio, repositorioSeguridad, proveedorIdentidad, almacenFotos, eventos };
+  return {
+    app,
+    repositorio,
+    repositorioSeguridad,
+    proveedorIdentidad,
+    almacenFotos,
+    almacenLogos,
+    eventos,
+  };
 }
 
 export function cuerpoCargaBase(cambios: Record<string, unknown> = {}): Record<string, unknown> {

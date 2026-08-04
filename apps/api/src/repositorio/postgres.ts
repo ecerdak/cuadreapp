@@ -16,13 +16,14 @@ import type {
   CatalogoSede,
   CodigoEnrolamientoValido,
   ContextoRegistro,
+  ContextoRegistroInventario,
   NuevaCarga,
   NuevaFoto,
   RepositorioCargas,
   RepositorioSeguridad,
 } from "./tipos.js";
 import type { SesionAutenticada } from "../seguridad/tipos.js";
-import type { Bandera, EstadoCarga, TipoMedidor } from "@cuadreapp/dominio";
+import type { Bandera, CodigoPerfil, EstadoCarga, TipoMedidor } from "@cuadreapp/dominio";
 
 // pg entrega los numeric como texto para no perder precisión.
 const numeroONulo = (valor: string | null): number | null => (valor === null ? null : Number(valor));
@@ -32,7 +33,8 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
 
   async buscarCargaPorId(id: string): Promise<CargaPersistida | null> {
     const resultado = await this.pool.query(
-      `select id, estado, banderas, galones, gal_no_registrados
+      `select id, estado, banderas, galones, gal_no_registrados,
+              llegada_gal, inventario_final_gal
        from cargas
        where id = $1`,
       [id],
@@ -45,6 +47,8 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
       banderas: fila.banderas as Bandera[],
       galones: Number(fila.galones),
       galNoRegistrados: numeroONulo(fila.gal_no_registrados),
+      llegadaGal: numeroONulo(fila.llegada_gal),
+      inventarioFinalGal: numeroONulo(fila.inventario_final_gal),
     };
   }
 
@@ -103,6 +107,50 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
     };
   }
 
+  async obtenerContextoInventario(referencias: {
+    sedeId: string;
+    equipoId: string;
+    conductorId: string;
+  }): Promise<ContextoRegistroInventario | null> {
+    // La sede viene de la sesión del dispositivo (no hay dispensador
+    // del cual derivarla); equipo y conductor deben pertenecer al
+    // cliente de esa sede — integridad de tenant en una sola consulta.
+    const resultado = await this.pool.query(
+      `select s.cliente_id,
+              s.id as sede_id,
+              e.capacidad_tanque_gal,
+              s.lat  as sede_lat,
+              s.lng  as sede_lng,
+              s.radio_geocerca_m,
+              (select max(c.finalizada_en)
+               from cargas c
+               where c.equipo_id = e.id) as ultima_carga_finalizada_en
+       from sedes s
+       join equipos e      on e.id = $2 and e.cliente_id = s.cliente_id and e.activo
+       join conductores co on co.id = $3 and co.cliente_id = s.cliente_id and co.activo
+       where s.id = $1`,
+      [referencias.sedeId, referencias.equipoId, referencias.conductorId],
+    );
+    const fila = resultado.rows[0];
+    if (!fila) return null;
+
+    return {
+      clienteId: fila.cliente_id,
+      sedeId: fila.sede_id,
+      validacion: {
+        equipo: {
+          capacidadTanqueGal: numeroONulo(fila.capacidad_tanque_gal),
+          ultimaCargaFinalizadaEn: fila.ultima_carga_finalizada_en ?? null,
+        },
+        sede: {
+          lat: numeroONulo(fila.sede_lat),
+          lng: numeroONulo(fila.sede_lng),
+          radioGeocercaM: Number(fila.radio_geocerca_m),
+        },
+      },
+    };
+  }
+
   async insertarCarga(carga: NuevaCarga, fotos: NuevaFoto[]): Promise<void> {
     const cliente = await this.pool.connect();
     try {
@@ -110,24 +158,25 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
 
       await cliente.query(
         `insert into cargas (
-           id, cliente_id, sede_id, dispensador_id, equipo_id, conductor_id,
-           tanda_inicial_gal, tot_inicial_gal, tanda_final_gal, tot_final_gal, galones,
+           id, perfil_codigo, cliente_id, sede_id, dispensador_id, equipo_id, conductor_id,
+           tanda_inicial_gal, tot_inicial_gal, tanda_final_gal, tot_final_gal, galones, llegada_gal,
            lectura_equipo, tipo_lectura,
            iniciada_en, finalizada_en,
            lat, lng, precision_gps_m, dentro_geocerca,
            origen, estado, banderas, gal_no_registrados,
            notas, device_id, version_app
          ) values (
-           $1, $2, $3, $4, $5, $6,
-           $7, $8, $9, $10, $11,
-           $12, $13,
+           $1, $2, $3, $4, $5, $6, $7,
+           $8, $9, $10, $11, $12, $13,
            $14, $15,
-           $16, $17, $18, $19,
-           $20, $21, $22, $23,
-           $24, $25, $26
+           $16, $17,
+           $18, $19, $20, $21,
+           $22, $23, $24, $25,
+           $26, $27, $28
          )`,
         [
           carga.id,
+          carga.perfil_codigo,
           carga.cliente_id,
           carga.sede_id,
           carga.dispensador_id,
@@ -138,6 +187,7 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
           carga.tanda_final_gal,
           carga.tot_final_gal,
           carga.galones,
+          carga.llegada_gal,
           carga.lectura_equipo,
           carga.tipo_lectura,
           carga.iniciada_en,
@@ -180,12 +230,14 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
   async obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null> {
     const resultado = await this.pool.query(
       `select u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo as rol,
+              cl.perfil_codigo as perfil,
               coalesce(array_agg(rp.permiso_codigo) filter (where rp.permiso_codigo is not null), '{}') as permisos
        from usuarios u
        join roles r on r.id = u.rol_id
+       left join clientes cl on cl.id = u.cliente_id
        left join rol_permisos rp on rp.rol_id = u.rol_id
        where u.id = $1 and u.activo
-       group by u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo`,
+       group by u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo, cl.perfil_codigo`,
       [usuarioId],
     );
     const fila = resultado.rows[0];
@@ -197,6 +249,7 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
       clienteId: fila.cliente_id,
       sedeId: fila.sede_id,
       permisos: fila.permisos,
+      perfil: (fila.perfil as CodigoPerfil | null) ?? null,
     };
   }
 
@@ -256,10 +309,21 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
   }
 
   async obtenerCatalogo(clienteId: string, sedeId: string | null): Promise<CatalogoSede | null> {
+    const columnas = `s.id, s.nombre, s.ciudad, s.direccion, s.lat, s.lng, s.radio_geocerca_m,
+              cl.id as cliente_id, cl.nombre as cliente_nombre, cl.logo_url as logo_clave,
+              p.codigo as perfil_codigo, p.nombre as perfil_nombre`;
     const sede = await this.pool.query(
       sedeId
-        ? `select id, nombre, lat, lng, radio_geocerca_m from sedes where id = $1 and cliente_id = $2`
-        : `select id, nombre, lat, lng, radio_geocerca_m from sedes where cliente_id = $1 limit 1`,
+        ? `select ${columnas}
+           from sedes s
+           join clientes cl on cl.id = s.cliente_id
+           join perfiles_operativos p on p.codigo = cl.perfil_codigo
+           where s.id = $1 and s.cliente_id = $2`
+        : `select ${columnas}
+           from sedes s
+           join clientes cl on cl.id = s.cliente_id
+           join perfiles_operativos p on p.codigo = cl.perfil_codigo
+           where s.cliente_id = $1 limit 1`,
       sedeId ? [sedeId, clienteId] : [clienteId],
     );
     const filaSede = sede.rows[0];
@@ -283,9 +347,20 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
     ]);
 
     return {
+      cliente: {
+        id: filaSede.cliente_id,
+        nombre: filaSede.cliente_nombre,
+        logo_clave: filaSede.logo_clave ?? null,
+      },
+      perfil: {
+        codigo: filaSede.perfil_codigo as CodigoPerfil,
+        nombre: filaSede.perfil_nombre,
+      },
       sede: {
         id: filaSede.id,
         nombre: filaSede.nombre,
+        ciudad: filaSede.ciudad ?? null,
+        direccion: filaSede.direccion ?? null,
         lat: numeroONulo(filaSede.lat),
         lng: numeroONulo(filaSede.lng),
         radio_geocerca_m: Number(filaSede.radio_geocerca_m),
