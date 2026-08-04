@@ -18,7 +18,7 @@ export const TEMA = {
   verde: "#3FAE7E",
   ambar: "#E2A233",
   rojo: "#E2594C",
-  trebol: "#1E9B4B",
+  verdeMarca: "#1E9B4B",
 } as const;
 
 export const COLOR_ESTADO: Record<EstadoCarga, string> = {

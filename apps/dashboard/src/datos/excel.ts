@@ -7,7 +7,6 @@
 
 import type { DetalleCarga, FuenteDatosTablero } from "./puertos";
 import { TEXTO_ESTADO } from "../tema";
-import { CLIENTE, MEDIDOR } from "./contexto-cliente";
 
 type Alcance = "dia" | "mes";
 
@@ -40,9 +39,12 @@ export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcanc
     return hoja;
   };
 
-  const [pagina, hoy] = await Promise.all([
+  // Identidad por datos (DEC-017): el archivo lleva al cliente de la
+  // fuente, jamás un nombre hardcodeado.
+  const [pagina, hoy, identidad] = await Promise.all([
     fuente.listarCargas({ estado: "todas" }),
     fuente.resumenHoy(),
+    fuente.identidad(),
   ]);
   const hoyFecha = hoy.cargasDeHoy[0]?.fecha ?? "";
   const seleccion =
@@ -52,9 +54,11 @@ export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcanc
   const libro = XLSX.utils.book_new();
   const encabezado = [
     ["CUADRE · Control de combustible en planta"],
-    ["Cliente", CLIENTE.nombre],
-    ["Sede", CLIENTE.sede],
-    ["Medidor", `${MEDIDOR.modelo} · instalado ${MEDIDOR.instalado}`],
+    ["Cliente", identidad.clienteNombre],
+    ["Sede", identidad.sedeVisible],
+    ...(identidad.medidor
+      ? [["Medidor", `${identidad.medidor.modelo} · instalado ${identidad.medidor.instalado}`]]
+      : []),
     ["Alcance", alcance === "dia" ? "Detalle del día" : "Detalle de los últimos 14 días"],
     ["Proveedor", "Lubryco S.A.S. — Buga, Valle del Cauca"],
     [],
@@ -147,7 +151,13 @@ export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcanc
     );
   }
 
+  // Nombre de archivo derivado del cliente (sin espacios ni tildes).
+  const rotulo = identidad.clienteCorto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
   const nombre =
-    alcance === "dia" ? `Cuadre_El_Trebol_dia_${hoyFecha}.xlsx` : "Cuadre_El_Trebol_14_dias.xlsx";
+    alcance === "dia" ? `Cuadre_${rotulo}_dia_${hoyFecha}.xlsx` : `Cuadre_${rotulo}_14_dias.xlsx`;
   XLSX.writeFile(libro, nombre);
 }

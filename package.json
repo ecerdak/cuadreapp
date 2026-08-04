@@ -12,7 +12,8 @@
     "formato": "prettier --write .",
     "formato:verificar": "prettier --check .",
     "fronteras": "depcruise apps packages",
-    "verificar": "pnpm lint && pnpm formato:verificar && pnpm fronteras && pnpm -r typecheck && pnpm -r test"
+    "sin-clientes": "node scripts/sin-nombres-de-cliente.mjs",
+    "verificar": "pnpm lint && pnpm formato:verificar && pnpm fronteras && pnpm sin-clientes && pnpm -r typecheck && pnpm -r test"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
