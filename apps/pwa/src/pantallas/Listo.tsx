@@ -63,11 +63,28 @@ export function Listo(props: {
           />
           <FilaResumen rotulo="Conductor" valor={carga.resumen.conductorNombre} />
           <FilaResumen rotulo="Hora" valor={hora} />
-          <FilaResumen
-            rotulo="Medidor"
-            valor={`${entero(payload.tot_inicial_gal)} → ${entero(payload.tot_final_gal)}`}
-          />
-          {payload.lectura_equipo !== null ? (
+          {"tot_inicial_gal" in payload ? (
+            <FilaResumen
+              rotulo="Medidor"
+              valor={`${entero(payload.tot_inicial_gal)} → ${entero(payload.tot_final_gal)}`}
+            />
+          ) : (
+            <>
+              <FilaResumen rotulo="Llegó con" valor={`${formatearGal(payload.llegada_gal)} gal`} />
+              <FilaResumen
+                rotulo="Despachado por Lubryco"
+                valor={`${formatearGal(payload.despachados_gal)} gal`}
+              />
+              {carga.resumen.inventarioFinalGal !== undefined ? (
+                <FilaResumen
+                  rotulo="Total al salir"
+                  valor={`${formatearGal(carga.resumen.inventarioFinalGal)} gal`}
+                  destacado
+                />
+              ) : null}
+            </>
+          )}
+          {"lectura_equipo" in payload && payload.lectura_equipo !== null ? (
             <FilaResumen
               rotulo="Contador del equipo"
               valor={payload.lectura_equipo.toLocaleString("es-CO", { minimumFractionDigits: 1 })}

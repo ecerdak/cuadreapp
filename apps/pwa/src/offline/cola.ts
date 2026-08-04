@@ -3,7 +3,7 @@
 // módulo no contiene reglas de negocio — solo colas, contexto local y
 // contabilidad de reintentos.
 
-import type { ContextoValidacion, ResultadoValidacion } from "@cuadreapp/dominio";
+import type { ContextoInventario, ContextoValidacion, ResultadoValidacion } from "@cuadreapp/dominio";
 import type { BdLocal, CargaLocal, PayloadCarga, VeredictoServidor } from "./bd";
 import type { DispensadorCatalogo, EquipoCatalogo, SedeCatalogo } from "../datos/catalogo";
 
@@ -53,18 +53,22 @@ export async function encolarCarga(bd: BdLocal, entrada: EntradaCola): Promise<v
 
     // Avanzar el contexto local — espejo del comportamiento del servidor
     // (el totalizador solo hacia adelante), para que la SIGUIENTE carga
-    // valide bien aunque siga sin haber señal.
-    const claveDispensador = `dispensador:${payload.dispensador_id}`;
-    const dispensador = await bd.contexto.get(claveDispensador);
-    if (!dispensador || (dispensador.totActualGal ?? 0) < payload.tot_final_gal) {
-      await bd.contexto.put({ clave: claveDispensador, totActualGal: payload.tot_final_gal });
+    // valide bien aunque siga sin haber señal. Solo el perfil con
+    // medidor tiene dispensador que avanzar.
+    if ("dispensador_id" in payload) {
+      const claveDispensador = `dispensador:${payload.dispensador_id}`;
+      const dispensador = await bd.contexto.get(claveDispensador);
+      if (!dispensador || (dispensador.totActualGal ?? 0) < payload.tot_final_gal) {
+        await bd.contexto.put({ clave: claveDispensador, totActualGal: payload.tot_final_gal });
+      }
     }
 
     const claveEquipo = `equipo:${payload.equipo_id}`;
     const equipo = await bd.contexto.get(claveEquipo);
     await bd.contexto.put({
       clave: claveEquipo,
-      ultimaLectura: payload.lectura_equipo ?? equipo?.ultimaLectura ?? null,
+      ultimaLectura:
+        ("lectura_equipo" in payload ? payload.lectura_equipo : null) ?? equipo?.ultimaLectura ?? null,
       ultimaCargaFinalizadaEn: payload.finalizada_en,
     });
   });
@@ -88,6 +92,23 @@ export async function obtenerContextoValidacion(
     equipo: {
       tipoMedidor: equipo.tipoMedidor,
       ultimaLectura: contextoEquipo?.ultimaLectura ?? equipo.ultimaLecturaConocida,
+      capacidadTanqueGal: equipo.capacidadTanqueGal,
+      ultimaCargaFinalizadaEn: contextoEquipo?.ultimaCargaFinalizadaEn ?? null,
+    },
+    sede: { lat: sede.lat, lng: sede.lng, radioGeocercaM: sede.radioGeocercaM },
+  };
+}
+
+/** Contexto del perfil «Carga sobre Inventario»: sin dispensador —
+ *  solo capacidad del carrotanque, última carga del equipo y geocerca. */
+export async function obtenerContextoInventario(
+  bd: BdLocal,
+  equipo: EquipoCatalogo,
+  sede: SedeCatalogo,
+): Promise<ContextoInventario> {
+  const contextoEquipo = await bd.contexto.get(`equipo:${equipo.id}`);
+  return {
+    equipo: {
       capacidadTanqueGal: equipo.capacidadTanqueGal,
       ultimaCargaFinalizadaEn: contextoEquipo?.ultimaCargaFinalizadaEn ?? null,
     },

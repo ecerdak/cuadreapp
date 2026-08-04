@@ -4,11 +4,23 @@
 // sesión se maneja vía ServicioSesion y el catálogo llega cacheado en
 // Dexie. La única autoridad de negocio invocada es el dominio.
 
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { validarCarga, type ContextoValidacion, type RegistroCarga } from "@cuadreapp/dominio";
-import type { BdLocal, PayloadCarga } from "./offline/bd";
-import { contarPendientes, encolarCarga, obtenerContextoValidacion } from "./offline/cola";
+import {
+  validarCarga,
+  validarCargaInventario,
+  type ContextoInventario,
+  type ContextoValidacion,
+  type RegistroCarga,
+  type RegistroCargaInventario,
+} from "@cuadreapp/dominio";
+import type { BdLocal, PayloadCargaInventario, PayloadCargaMedidor } from "./offline/bd";
+import {
+  contarPendientes,
+  encolarCarga,
+  obtenerContextoInventario,
+  obtenerContextoValidacion,
+} from "./offline/cola";
 import { cargarBorrador, guardarBorrador, limpiarBorrador } from "./offline/borrador";
 import type { ClienteApi } from "./offline/sincronizador";
 import { obtenerEstadoSync, sincronizarConEstado, suscribirEstadoSync } from "./offline/estado-sync";
@@ -34,6 +46,8 @@ import { Conductor } from "./pantallas/Conductor";
 import { AntesDeCargar } from "./pantallas/AntesDeCargar";
 import { Cargando } from "./pantallas/Cargando";
 import { DespuesDeCargar } from "./pantallas/DespuesDeCargar";
+import { Llegada } from "./pantallas/Llegada";
+import { Despacho } from "./pantallas/Despacho";
 import { Listo } from "./pantallas/Listo";
 import { Enrolar } from "./pantallas/Enrolar";
 import { Diagnostico } from "./pantallas/Diagnostico";
@@ -47,6 +61,7 @@ import {
   type Confirmacion as ConfirmacionPendiente,
   type PasoWizard,
 } from "./flujo/navegacion";
+import { derivarAvance, derivarPasoAnterior, flujoDe, pasoSiguiente } from "./flujo/perfiles";
 
 type EstadoSesion = "cargando" | "sin_enrolar" | "activa" | "offline" | "vencida";
 
@@ -72,6 +87,9 @@ interface Borrador {
   fotoFinal: Foto | null;
   nota: string;
   finalizadaEn: string | null;
+  /** Perfil «Carga sobre Inventario» (DEC-016). Vacíos en el otro flujo. */
+  llegada: string;
+  despachados: string;
 }
 
 const borradorVacio = (): Borrador => ({
@@ -88,6 +106,8 @@ const borradorVacio = (): Borrador => ({
   fotoFinal: null,
   nota: "",
   finalizadaEn: null,
+  llegada: "",
+  despachados: "",
 });
 
 export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesion }) {
@@ -97,6 +117,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   const [paso, setPaso] = useState<Paso>("inicio");
   const [borrador, setBorrador] = useState<Borrador>(borradorVacio);
   const [contexto, setContexto] = useState<ContextoValidacion | null>(null);
+  const [contextoInventario, setContextoInventario] = useState<ContextoInventario | null>(null);
   const [idReciente, setIdReciente] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [almacenEnRiesgo, setAlmacenEnRiesgo] = useState(false);
@@ -149,6 +170,32 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     ? catalogoLocalDesdeRemoto(catalogoCacheado.datos)
     : null;
 
+  // El punto de despacho de la PWA (DEC-016): el perfil del catálogo
+  // decide el flujo; retroceso y avance se derivan de su definición.
+  const flujo = flujoDe(catalogo?.perfil ?? "medidor_doble");
+  const pasoAnterior = useMemo(() => derivarPasoAnterior(flujo), [flujo]);
+  const avance = useMemo(() => derivarAvance(flujo), [flujo]);
+
+  // Identidad del cliente (DEC-017): logo cacheado como bytes → URL de
+  // objeto; sin logo, la cabecera cae al fallback de iniciales.
+  const urlLogoCliente = useMemo(() => {
+    if (!catalogoCacheado?.logoBytes) return null;
+    return URL.createObjectURL(
+      new Blob([catalogoCacheado.logoBytes], { type: catalogoCacheado.logoTipo ?? "image/png" }),
+    );
+  }, [catalogoCacheado?.logoBytes, catalogoCacheado?.logoTipo]);
+  useEffect(() => {
+    return () => {
+      if (urlLogoCliente) URL.revokeObjectURL(urlLogoCliente);
+    };
+  }, [urlLogoCliente]);
+
+  const sedeVisible = catalogo
+    ? catalogo.sede.ciudad
+      ? `${catalogo.sede.nombre}, ${catalogo.sede.ciudad}`
+      : catalogo.sede.nombre
+    : undefined;
+
   // RC1-A2: el "hoy" del negocio es America/Bogota, no UTC (spec §13).
   const hoy = fechaLocalHoy();
   const cargasHoy =
@@ -172,13 +219,17 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     conductor: borrador.conductor !== null,
     fotoInicial: borrador.fotoInicial !== null,
     fotoFinal: borrador.fotoFinal !== null,
-    lecturas: borrador.tandaFinal !== "" || borrador.totFinal !== "" || borrador.lecturaEquipo !== "",
+    lecturas:
+      borrador.tandaFinal !== "" ||
+      borrador.totFinal !== "" ||
+      borrador.lecturaEquipo !== "" ||
+      borrador.despachados !== "",
     iniciada: borrador.iniciadaEn !== null,
   };
 
   /** Retroceso de UN paso, con la confirmación que dicte el modelo. */
   function atras() {
-    const decision = decidirAtras(paso, datosDependientes, { guardando });
+    const decision = decidirAtras(paso, datosDependientes, { guardando }, pasoAnterior);
     if (decision.tipo === "bloqueado") return;
     const ejecutar = () => {
       if (decision.limpiar) cambiar(decision.limpiar);
@@ -229,7 +280,9 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
       return;
     }
     const aplicar = () => {
-      if (cambia) cambiar(invalidacionPorCambioDeEquipo());
+      // La invalidación limpia también los campos del perfil inventario
+      // (vacíos en el otro flujo: limpiar de más es inocuo).
+      if (cambia) cambiar({ ...invalidacionPorCambioDeEquipo(), llegada: "", despachados: "" });
       setConfirmacion(null);
       void seleccionarEquipo(equipo);
     };
@@ -248,11 +301,15 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     void cargarBorrador(bd).then(async (guardado) => {
       if (guardado && guardado.paso !== "inicio" && guardado.paso !== "listo") {
         const datos = guardado.datos as Borrador;
-        setBorrador(datos);
+        // Borradores de versiones previas no traen los campos nuevos.
+        setBorrador({ ...borradorVacio(), ...datos });
         if (datos.equipo) {
-          setContexto(
-            await obtenerContextoValidacion(bd, catalogo.dispensador, datos.equipo, catalogo.sede),
-          );
+          if (catalogo.dispensador) {
+            setContexto(
+              await obtenerContextoValidacion(bd, catalogo.dispensador, datos.equipo, catalogo.sede),
+            );
+          }
+          setContextoInventario(await obtenerContextoInventario(bd, datos.equipo, catalogo.sede));
         }
         setPaso(guardado.paso as Paso);
       }
@@ -281,7 +338,13 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
 
   const shell = (paso: string | undefined, contenido: ReactNode) => (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <CabezaApp paso={paso} sede={catalogo?.sede.nombre} />
+      <CabezaApp
+        paso={paso}
+        sede={sedeVisible}
+        avance={avance}
+        cliente={catalogo?.cliente?.nombre}
+        logoCliente={urlLogoCliente}
+      />
       <div className="flex-1" style={{ paddingBottom: 22 }}>
         {contenido}
       </div>
@@ -342,15 +405,20 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
   /* ============ Flujo del conductor (7 pasos) ============ */
 
   async function seleccionarEquipo(equipo: EquipoCatalogo) {
-    const contextoNuevo = await obtenerContextoValidacion(
-      bd,
-      catalogo!.dispensador,
-      equipo,
-      catalogo!.sede,
-    );
-    setContexto(contextoNuevo);
-    cambiar({ equipo, totInicial: formatearGal(contextoNuevo.dispensador.totActualGal) });
-    setPaso("conductor");
+    if (flujo.perfil === "medidor_doble" && catalogo!.dispensador) {
+      const contextoNuevo = await obtenerContextoValidacion(
+        bd,
+        catalogo!.dispensador,
+        equipo,
+        catalogo!.sede,
+      );
+      setContexto(contextoNuevo);
+      cambiar({ equipo, totInicial: formatearGal(contextoNuevo.dispensador.totActualGal) });
+    } else {
+      setContextoInventario(await obtenerContextoInventario(bd, equipo, catalogo!.sede));
+      cambiar({ equipo });
+    }
+    setPaso(pasoSiguiente(flujo, "equipo") ?? "conductor");
     void capturarGps().then((gps) => cambiar({ gps }));
   }
 
@@ -422,9 +490,9 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     }
 
     const id = crypto.randomUUID();
-    const payload: PayloadCarga = {
+    const payload: PayloadCargaMedidor = {
       id,
-      dispensador_id: catalogo!.dispensador.id,
+      dispensador_id: catalogo!.dispensador!.id,
       equipo_id: borrador.equipo.id,
       conductor_id: borrador.conductor.id,
       tanda_inicial_gal: tandaInicial,
@@ -473,6 +541,91 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
     setGuardando(false);
     setPaso("listo");
     void sincronizarConEstado(bd, api); // intento inmediato; sin señal, la cola espera al sincronizador
+  }
+
+  /** Guardado del perfil «Carga sobre Inventario» (DEC-016): llegada +
+   *  despachados; el total lo calcula el dominio — jamás el operador. */
+  async function guardarInventario() {
+    if (!contextoInventario || !borrador.equipo || !borrador.conductor || !borrador.iniciadaEn) return;
+    if (guardando) return; // un toque = una carga (cero duplicados)
+    setGuardando(true);
+    setAviso(null);
+
+    const llegada = aNumero(borrador.llegada);
+    const despachados = aNumero(borrador.despachados);
+    if (llegada === null || despachados === null) {
+      setAviso("Revisa los números: hay campos vacíos o inválidos.");
+      setGuardando(false);
+      return;
+    }
+    const finalizadaEn = borrador.finalizadaEn ?? new Date().toISOString();
+
+    const registro: RegistroCargaInventario = {
+      llegadaGal: llegada,
+      despachadosGal: despachados,
+      iniciadaEn: borrador.iniciadaEn,
+      finalizadaEn,
+      lat: borrador.gps?.lat ?? null,
+      lng: borrador.gps?.lng ?? null,
+      origen: "app",
+      fotoInicial: borrador.fotoInicial !== null,
+      fotoFinal: borrador.fotoFinal !== null,
+    };
+
+    // La única decisión de negocio: el dominio. La UI obedece.
+    const veredicto = validarCargaInventario(registro, contextoInventario);
+    if (veredicto.bloqueaCierre) {
+      setAviso(MENSAJES_BANDERA.FOTO_FALTANTE);
+      setGuardando(false);
+      return;
+    }
+
+    const id = crypto.randomUUID();
+    const payload: PayloadCargaInventario = {
+      id,
+      equipo_id: borrador.equipo.id,
+      conductor_id: borrador.conductor.id,
+      llegada_gal: llegada,
+      despachados_gal: despachados,
+      iniciada_en: borrador.iniciadaEn,
+      finalizada_en: finalizadaEn,
+      lat: borrador.gps?.lat ?? null,
+      lng: borrador.gps?.lng ?? null,
+      precision_gps_m: borrador.gps?.precision ?? null,
+      origen: "app",
+      foto_inicial_path: borrador.fotoInicial ? `cargas/${id}/inicial.webp` : null,
+      foto_final_path: borrador.fotoFinal ? `cargas/${id}/final.webp` : null,
+      notas: borrador.nota.trim() === "" ? null : borrador.nota.trim(),
+      device_id: obtenerDeviceId(),
+      version_app: VERSION_APP,
+    };
+
+    try {
+      await encolarCarga(bd, {
+        payload,
+        veredicto,
+        resumen: {
+          equipoCodigo: borrador.equipo.codigo,
+          conductorNombre: borrador.conductor.nombre,
+          galones: despachados,
+          llegadaGal: llegada,
+          inventarioFinalGal: veredicto.inventarioFinalGal,
+        },
+        fotos: { inicial: borrador.fotoInicial, final: borrador.fotoFinal },
+      });
+    } catch {
+      setAviso(
+        "No se pudo guardar en el teléfono (¿almacenamiento lleno?). Libera espacio e intenta de nuevo — tu registro sigue en pantalla.",
+      );
+      setGuardando(false);
+      return;
+    }
+    await limpiarBorrador(bd);
+
+    setIdReciente(id);
+    setGuardando(false);
+    setPaso("listo");
+    void sincronizarConEstado(bd, api);
   }
 
   // Saludo de Inicio: el último conductor que usó este dispositivo.
@@ -535,7 +688,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           }
           onIdentificado={(conductor) => {
             cambiar({ conductor });
-            setPaso("antes");
+            setPaso(pasoSiguiente(flujo, "conductor") ?? "antes");
           }}
           onAtras={atras}
         />
@@ -570,7 +723,7 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           totInicialGal={aNumero(borrador.totInicial)}
           onTermine={() => {
             cambiar({ finalizadaEn: new Date().toISOString() });
-            setPaso("despues");
+            setPaso(pasoSiguiente(flujo, "cargando") ?? "despues");
           }}
           onAtras={atras}
         />
@@ -595,6 +748,35 @@ export function App(props: { bd: BdLocal; api: ClienteApi; sesion: ServicioSesio
           onNota={(valor) => cambiar({ nota: valor })}
           onFoto={(foto) => cambiar({ fotoFinal: foto })}
           onGuardar={() => void guardar()}
+          onAtras={atras}
+          guardando={guardando}
+        />
+      )}
+
+      {paso === "llegada" && (
+        <Llegada
+          llegada={borrador.llegada}
+          fotoInicial={borrador.fotoInicial}
+          onLlegada={(valor) => cambiar({ llegada: valor })}
+          onFoto={(foto) => cambiar({ fotoInicial: foto })}
+          onEmpezarACargar={() => {
+            cambiar({ iniciadaEn: borrador.iniciadaEn ?? new Date().toISOString() });
+            setPaso("cargando");
+          }}
+          onAtras={atras}
+        />
+      )}
+
+      {paso === "despacho" && (
+        <Despacho
+          llegada={borrador.llegada}
+          despachados={borrador.despachados}
+          fotoFinal={borrador.fotoFinal}
+          nota={borrador.nota}
+          onDespachados={(valor) => cambiar({ despachados: valor })}
+          onNota={(valor) => cambiar({ nota: valor })}
+          onFoto={(foto) => cambiar({ fotoFinal: foto })}
+          onGuardar={() => void guardarInventario()}
           onAtras={atras}
           guardando={guardando}
         />

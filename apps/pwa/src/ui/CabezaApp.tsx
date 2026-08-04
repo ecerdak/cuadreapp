@@ -14,9 +14,19 @@ export function CabezaApp(props: {
   paso?: string;
   sede?: string;
   avance?: { porPaso: Record<string, number>; total: number };
+  /** Identidad del cliente (DEC-017): nombre y logo cacheado. Sin
+   *  logo, iniciales del cliente — jamás una imagen rota. */
+  cliente?: string;
+  logoCliente?: string | null;
 }) {
   const { porPaso, total: TOTAL } = props.avance ?? AVANCE_POR_DEFECTO;
   const avance = props.paso ? (porPaso[props.paso] ?? 0) : 0;
+  const iniciales = (props.cliente ?? "")
+    .split(/\s+/)
+    .filter((palabra) => /^[a-záéíóúñ]/i.test(palabra))
+    .slice(0, 2)
+    .map((palabra) => palabra[0]!.toUpperCase())
+    .join("");
   return (
     <div style={{ borderBottom: `1px solid ${C.lineaSuave}` }}>
       <div className="flex items-center justify-between px-4 py-3">
@@ -26,7 +36,30 @@ export function CabezaApp(props: {
           <Logotipo tam={28} />
           <Placa tam={9.5} />
         </div>
-        {props.sede ? <span style={{ fontSize: 10, color: C.suave }}>{props.sede}</span> : null}
+        <div className="flex items-center" style={{ gap: 7 }}>
+          {props.logoCliente ? (
+            <img
+              src={props.logoCliente}
+              alt={props.cliente ? `Logo de ${props.cliente}` : "Logo del cliente"}
+              style={{ height: 20, width: "auto", maxWidth: 56, objectFit: "contain" }}
+            />
+          ) : props.cliente ? (
+            <span
+              aria-label={`Iniciales de ${props.cliente}`}
+              className="flex items-center justify-center rounded font-semibold"
+              style={{
+                width: 20,
+                height: 20,
+                fontSize: 9,
+                background: C.lineaSuave,
+                color: C.suave,
+              }}
+            >
+              {iniciales || "?"}
+            </span>
+          ) : null}
+          {props.sede ? <span style={{ fontSize: 10, color: C.suave }}>{props.sede}</span> : null}
+        </div>
       </div>
       {avance > 0 && (
         <div className="flex px-4 pb-3" style={{ gap: 4 }}>

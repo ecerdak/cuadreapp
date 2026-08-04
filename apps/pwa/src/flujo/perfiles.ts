@@ -15,7 +15,16 @@ import type { CodigoPerfil } from "@cuadreapp/dominio";
 /** Todos los pasos posibles del wizard (unión de todos los perfiles).
  *  ÚNICA definición — App, navegación y cabecera la importan de aquí. */
 export type PasoWizard =
-  "inicio" | "equipo" | "conductor" | "antes" | "cargando" | "despues" | "listo" | "diagnostico";
+  | "inicio"
+  | "equipo"
+  | "conductor"
+  | "antes"
+  | "cargando"
+  | "despues"
+  | "llegada"
+  | "despacho"
+  | "listo"
+  | "diagnostico";
 
 export interface DefinicionFlujo {
   perfil: CodigoPerfil;
@@ -29,17 +38,53 @@ export const FLUJO_MEDIDOR_DOBLE: DefinicionFlujo = {
   pasos: ["inicio", "equipo", "conductor", "antes", "cargando", "despues", "listo"],
 };
 
-/** Paso inmediatamente anterior, derivado de la secuencia. */
+/** Flujo «Carga sobre Inventario» (Sacyr, DEC-016): llegada (foto +
+ *  galones con los que llegó) → cargando → despacho (foto + galones
+ *  despachados por Lubryco; el total al salir se calcula, jamás se
+ *  teclea). Sin tandas ni totalizadores. */
+export const FLUJO_CARGA_INVENTARIO: DefinicionFlujo = {
+  perfil: "carga_inventario",
+  pasos: ["inicio", "equipo", "conductor", "llegada", "cargando", "despacho", "listo"],
+};
+
+const FLUJOS: Record<CodigoPerfil, DefinicionFlujo> = {
+  medidor_doble: FLUJO_MEDIDOR_DOBLE,
+  carga_inventario: FLUJO_CARGA_INVENTARIO,
+};
+
+/** Selector de flujo — el punto de despacho de la PWA (DEC-016). */
+export function flujoDe(perfil: CodigoPerfil): DefinicionFlujo {
+  return FLUJOS[perfil];
+}
+
+/** Paso inmediatamente anterior, derivado de la secuencia. Los pasos
+ *  que no pertenecen al flujo quedan en null (inalcanzables). */
 export function derivarPasoAnterior(flujo: DefinicionFlujo): Record<PasoWizard, PasoWizard | null> {
-  const anterior = { inicio: null, listo: null, diagnostico: "inicio" } as Record<
-    PasoWizard,
-    PasoWizard | null
-  >;
+  const anterior: Record<PasoWizard, PasoWizard | null> = {
+    inicio: null,
+    equipo: null,
+    conductor: null,
+    antes: null,
+    cargando: null,
+    despues: null,
+    llegada: null,
+    despacho: null,
+    listo: null,
+    diagnostico: "inicio",
+  };
   flujo.pasos.forEach((paso, indice) => {
     if (paso === "inicio" || paso === "listo") return;
     anterior[paso] = flujo.pasos[indice - 1] ?? null;
   });
   return anterior;
+}
+
+/** Paso siguiente en la secuencia del flujo (avance hacia adelante,
+ *  ahora también derivado del dato — no más setPaso hardcodeados). */
+export function pasoSiguiente(flujo: DefinicionFlujo, paso: PasoWizard): PasoWizard | null {
+  const indice = flujo.pasos.indexOf(paso);
+  if (indice === -1) return null;
+  return flujo.pasos[indice + 1] ?? null;
 }
 
 /** Barra de avance: los pasos de captura (entre inicio y listo) valen

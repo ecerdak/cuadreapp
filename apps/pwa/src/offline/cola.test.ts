@@ -25,7 +25,13 @@ const EQUIPO: EquipoCatalogo = {
   ultimaLecturaConocida: 1086.5,
   capacidadTanqueGal: 80.0,
 };
-const SEDE: SedeCatalogo = { nombre: "Planta Buga", lat: null, lng: null, radioGeocercaM: 150 };
+const SEDE: SedeCatalogo = {
+  nombre: "Planta Buga",
+  ciudad: null,
+  lat: null,
+  lng: null,
+  radioGeocercaM: 150,
+};
 
 function payloadBase(cambios: Partial<PayloadCarga> = {}): PayloadCarga {
   return {

@@ -252,11 +252,14 @@ export function Tarjeta(props: { children: ReactNode; className?: string }) {
 }
 
 /* Fila rótulo-valor de las tarjetas de resumen (Cargando, Listo). */
-export function FilaResumen(props: { rotulo: string; valor: ReactNode }) {
+export function FilaResumen(props: { rotulo: string; valor: ReactNode; destacado?: boolean }) {
   return (
     <div className="flex items-baseline justify-between py-1">
       <span style={{ fontSize: 11.5, color: C.suave }}>{props.rotulo}</span>
-      <span className="font-mono" style={{ fontSize: 12.5 }}>
+      <span
+        className={`font-mono ${props.destacado ? "font-bold" : ""}`}
+        style={{ fontSize: props.destacado ? 14 : 12.5 }}
+      >
         {props.valor}
       </span>
     </div>

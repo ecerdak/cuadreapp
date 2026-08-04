@@ -15,7 +15,11 @@ export function CamaraEnVivo(props: {
   instruccion?: string;
   foto: { bytes: ArrayBuffer; tipo: string } | null;
   onFoto: (foto: { bytes: ArrayBuffer; tipo: string }) => void;
+  /** Imagen de guía de encuadre. Por defecto, la carátula Fill-Rite
+   *  (flujo original); null = visor neutro sin marco (otros perfiles). */
+  guia?: string | null;
 }) {
+  const guia = props.guia === undefined ? guiaFillRite : props.guia;
   const entrada = useRef<HTMLInputElement>(null);
   const [procesando, setProcesando] = useState(false);
   const tomada = props.foto !== null;
@@ -57,29 +61,33 @@ export function CamaraEnVivo(props: {
         className="relative overflow-hidden rounded-xl"
         style={{ height: 244, background: "#05090D", border: `1px solid ${C.linea}` }}
       >
-        <img
-          src={urlFoto ?? guiaFillRite}
-          alt={tomada ? props.etiqueta : "Guía de encuadre: carátula del medidor"}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: tomada ? "none" : "brightness(0.82) saturate(0.9)",
-          }}
-        />
-        {/* marco guía sobre la carátula */}
-        <div
-          className="absolute"
-          style={{
-            left: "12%",
-            right: "12%",
-            top: "26%",
-            height: "40%",
-            border: `2px solid ${tomada ? C.verde : C.amarillo}`,
-            borderRadius: 6,
-            boxShadow: "0 0 0 9999px rgba(4,8,12,.42)",
-          }}
-        />
+        {urlFoto || guia ? (
+          <img
+            src={urlFoto ?? guia!}
+            alt={tomada ? props.etiqueta : "Guía de encuadre"}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: tomada ? "none" : "brightness(0.82) saturate(0.9)",
+            }}
+          />
+        ) : null}
+        {/* marco guía (solo cuando hay imagen de guía o foto tomada) */}
+        {urlFoto || guia ? (
+          <div
+            className="absolute"
+            style={{
+              left: "12%",
+              right: "12%",
+              top: "26%",
+              height: "40%",
+              border: `2px solid ${tomada ? C.verde : C.amarillo}`,
+              borderRadius: 6,
+              boxShadow: "0 0 0 9999px rgba(4,8,12,.42)",
+            }}
+          />
+        ) : null}
         <div className="absolute left-0 right-0 flex justify-center" style={{ top: 12 }}>
           <span
             className="rounded-full px-3 py-1 font-semibold"

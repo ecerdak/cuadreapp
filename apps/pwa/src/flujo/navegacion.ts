@@ -114,13 +114,18 @@ export function decidirAtras(
   paso: PasoWizard,
   datos: DatosDependientes,
   opciones?: { guardando?: boolean },
+  /** Mapa de retroceso del flujo ACTIVO (DEC-016). Por defecto, el
+   *  del flujo original — las pruebas y llamadas previas no cambian. */
+  anterior: Record<PasoWizard, PasoWizard | null> = PASO_ANTERIOR,
 ): DecisionAtras {
-  if (!puedeVolver(paso, opciones)) return { tipo: "bloqueado" };
-  const destino = PASO_ANTERIOR[paso]!;
+  if (opciones?.guardando) return { tipo: "bloqueado" };
+  const destino = anterior[paso];
+  if (destino === null) return { tipo: "bloqueado" };
 
-  // antes → conductor: la foto inicial pertenece al momento de la
-  // captura; al retroceder se descarta, y JAMÁS sin confirmación.
-  if (paso === "antes" && datos.fotoInicial) {
+  // antes/llegada → conductor: la foto inicial pertenece al momento de
+  // la captura; al retroceder se descarta, y JAMÁS sin confirmación.
+  // (Misma regla en ambos perfiles: la semántica es del wizard.)
+  if ((paso === "antes" || paso === "llegada") && datos.fotoInicial) {
     return {
       tipo: "volver",
       destino,
@@ -129,13 +134,13 @@ export function decidirAtras(
     };
   }
 
-  // cargando → antes: se conserva TODO (el cronómetro no se detiene);
-  // se avisa para que el operador entienda qué está pasando.
+  // cargando → antes/llegada: se conserva TODO (el cronómetro no se
+  // detiene); se avisa para que el operador entienda qué está pasando.
   if (paso === "cargando") {
     return { tipo: "volver", destino, confirmar: CONFIRMACIONES.volverConCargaIniciada };
   }
 
-  // despues → cargando, conductor → equipo, equipo → inicio,
+  // despues/despacho → cargando, conductor → equipo, equipo → inicio,
   // diagnostico → inicio: no se pierde nada, retroceso directo.
   return { tipo: "volver", destino };
 }

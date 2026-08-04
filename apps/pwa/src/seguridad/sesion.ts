@@ -72,7 +72,33 @@ export class ServicioSesion {
     try {
       const respuesta = await this.http.solicitar("/api/v1/catalogo");
       if (!respuesta.ok) return false;
-      await this.bd.catalogo.put({ clave: "catalogo", datos: await respuesta.json() });
+      const datos = await respuesta.json();
+
+      // DEC-017: el logo del cliente se cachea como BYTES — la URL
+      // firmada expira, los bytes no. Mejor esfuerzo: sin logo (o sin
+      // poder bajarlo) la UI cae a iniciales, jamás a imagen rota.
+      let logo: { logoBytes: ArrayBuffer; logoTipo: string } | undefined;
+      const urlLogo: string | null = datos?.cliente?.logo_url ?? null;
+      if (urlLogo) {
+        try {
+          const imagen = await fetch(urlLogo);
+          if (imagen.ok) {
+            logo = {
+              logoBytes: await imagen.arrayBuffer(),
+              logoTipo: imagen.headers.get("content-type") ?? "image/png",
+            };
+          }
+        } catch {
+          // sin señal suficiente para la imagen: se conserva el logo
+          // cacheado anterior si lo había
+          const previo = await this.bd.catalogo.get("catalogo");
+          if (previo?.logoBytes) {
+            logo = { logoBytes: previo.logoBytes, logoTipo: previo.logoTipo ?? "image/png" };
+          }
+        }
+      }
+
+      await this.bd.catalogo.put({ clave: "catalogo", datos, ...logo });
       return true;
     } catch {
       return false;

@@ -3,7 +3,7 @@
 // offline. Este módulo solo define formas y la conversión del contrato
 // remoto a las formas locales que usa el flujo — cero lógica de negocio.
 
-import type { TipoMedidor } from "@cuadreapp/dominio";
+import { esCodigoPerfil, PERFILES, type CodigoPerfil, type TipoMedidor } from "@cuadreapp/dominio";
 import type { CatalogoRemoto } from "./contratos";
 
 export interface DispensadorCatalogo {
@@ -33,36 +33,59 @@ export interface ConductorCatalogo {
 
 export interface SedeCatalogo {
   nombre: string;
+  /** Identidad visible: «Planta Buga, Valle del Cauca» = nombre + ciudad. */
+  ciudad: string | null;
   lat: number | null;
   lng: number | null;
   radioGeocercaM: number;
 }
 
+export interface ClienteCatalogo {
+  nombre: string;
+  /** URL firmada temporal del logo (DEC-017); los bytes se cachean aparte. */
+  logoUrl: string | null;
+}
+
 export interface CatalogoLocal {
+  /** Perfil Operativo del cliente (DEC-016): decide el flujo del wizard. */
+  perfil: CodigoPerfil;
+  cliente: ClienteCatalogo | null;
   sede: SedeCatalogo;
-  /** El piloto tiene un solo dispensador por sede; si llegan más, la UI elegirá. */
-  dispensador: DispensadorCatalogo;
+  /** Solo perfiles con medidor. El piloto tiene un dispensador por sede. */
+  dispensador: DispensadorCatalogo | null;
   equipos: EquipoCatalogo[];
   conductores: ConductorCatalogo[];
 }
 
 export function catalogoLocalDesdeRemoto(remoto: CatalogoRemoto): CatalogoLocal | null {
-  const dispensador = remoto.dispensadores[0];
-  if (!dispensador) return null;
+  // Catálogos cacheados antes de la Etapa P no traen perfil: son de
+  // El Trébol → medidor_doble (compatibilidad hacia atrás).
+  const codigo = remoto.perfil?.codigo;
+  const perfil: CodigoPerfil = codigo && esCodigoPerfil(codigo) ? codigo : "medidor_doble";
+
+  const dispensador = remoto.dispensadores[0] ?? null;
+  // Un perfil con medidor no puede operar sin dispensador (igual que
+  // siempre); uno sin medidor no lo necesita.
+  if (PERFILES[perfil].requiereMedidor && !dispensador) return null;
 
   return {
+    perfil,
+    cliente: remoto.cliente ? { nombre: remoto.cliente.nombre, logoUrl: remoto.cliente.logo_url } : null,
     sede: {
       nombre: remoto.sede.nombre,
+      ciudad: remoto.sede.ciudad ?? null,
       lat: remoto.sede.lat,
       lng: remoto.sede.lng,
       radioGeocercaM: remoto.sede.radio_geocerca_m,
     },
-    dispensador: {
-      id: dispensador.id,
-      nombre: dispensador.nombre,
-      totConocidoGal: dispensador.tot_actual_gal,
-      toleranciaTandaGal: dispensador.tolerancia_tanda_gal,
-    },
+    dispensador: dispensador
+      ? {
+          id: dispensador.id,
+          nombre: dispensador.nombre,
+          totConocidoGal: dispensador.tot_actual_gal,
+          toleranciaTandaGal: dispensador.tolerancia_tanda_gal,
+        }
+      : null,
     equipos: remoto.equipos.map((equipo) => ({
       id: equipo.id,
       codigo: equipo.codigo_interno,

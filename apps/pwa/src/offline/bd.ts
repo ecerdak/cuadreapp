@@ -7,8 +7,9 @@ import type { Bandera, EstadoCarga } from "@cuadreapp/dominio";
 import type { CatalogoRemoto, PerfilMe } from "../datos/contratos";
 import type { BorradorGuardado } from "./borrador";
 
-/** Cuerpo exacto del POST /api/v1/cargas (contrato snake_case de la API). */
-export interface PayloadCarga {
+/** Cuerpo exacto del POST /api/v1/cargas — perfil medidor_doble
+ *  (contrato snake_case de la API, intacto desde la Etapa S). */
+export interface PayloadCargaMedidor {
   id: string;
   dispensador_id: string;
   equipo_id: string;
@@ -31,6 +32,30 @@ export interface PayloadCarga {
   version_app: string | null;
 }
 
+/** Cuerpo del POST /api/v1/cargas — perfil carga_inventario (DEC-016):
+ *  llegada + despachados; el inventario final JAMÁS viaja — lo calcula
+ *  el dominio y lo garantiza la base. */
+export interface PayloadCargaInventario {
+  id: string;
+  equipo_id: string;
+  conductor_id: string;
+  llegada_gal: number;
+  despachados_gal: number;
+  iniciada_en: string;
+  finalizada_en: string;
+  lat: number | null;
+  lng: number | null;
+  precision_gps_m: number | null;
+  origen: "app";
+  foto_inicial_path: string | null;
+  foto_final_path: string | null;
+  notas: string | null;
+  device_id: string | null;
+  version_app: string | null;
+}
+
+export type PayloadCarga = PayloadCargaMedidor | PayloadCargaInventario;
+
 export interface VeredictoServidor {
   estado: EstadoCarga;
   banderas: Bandera[];
@@ -42,7 +67,15 @@ export interface CargaLocal {
   id: string; // el mismo uuid del payload: reintento = mismo id (idempotencia, spec §10.4)
   creadaEn: string;
   payload: PayloadCarga;
-  resumen: { equipoCodigo: string; conductorNombre: string; galones: number };
+  resumen: {
+    equipoCodigo: string;
+    conductorNombre: string;
+    /** Galones despachados por Lubryco — todo perfil (DEC-016). */
+    galones: number;
+    /** Solo carga_inventario: para el recibo Llegó/Despachado/Total. */
+    llegadaGal?: number;
+    inventarioFinalGal?: number;
+  };
   /** Veredicto local del dominio, para mostrar de inmediato. El servidor es la autoridad. */
   estadoLocal: EstadoCarga;
   banderasLocales: Bandera[];
@@ -86,6 +119,10 @@ export interface PerfilCacheado {
 export interface CatalogoCacheado {
   clave: string; // "catalogo"
   datos: CatalogoRemoto;
+  /** Logo del cliente cacheado como bytes (DEC-017): la URL firmada
+   *  expira; los bytes no — la identidad funciona 100% offline. */
+  logoBytes?: ArrayBuffer;
+  logoTipo?: string;
 }
 
 export type BdLocal = Dexie & {
