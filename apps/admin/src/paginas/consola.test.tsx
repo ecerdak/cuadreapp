@@ -20,6 +20,7 @@ import { Resumen } from "./Resumen";
 import { Clientes } from "./Clientes";
 import { LogoCliente } from "./cliente/LogoCliente";
 import { FichaCliente } from "./cliente/FichaCliente";
+import { AvisoPreview, URL_DASHBOARD } from "./cliente/Dashboard";
 import { Entrar } from "./Entrar";
 
 const CARGA: Carga = {
@@ -240,6 +241,32 @@ describe("dashboard administrativo (Resumen)", () => {
     expect(resumen.alertas).toHaveLength(1);
     const cargas = await fuente.cargas();
     expect(cargas[0]).toMatchObject({ equipoCodigo: "SMW-477", operadorNombre: "Operadora EDS" });
+  });
+});
+
+describe("la pestaña Dashboard de la ficha es una VISTA PREVIA (Etapa P.2)", () => {
+  const html = renderToStaticMarkup(<AvisoPreview />);
+
+  it("se anuncia como vista previa y explica dónde vive el Dashboard real", () => {
+    expect(html).toContain("Vista previa administrativa");
+    expect(html).toContain("enlace único para todas las empresas");
+  });
+
+  it("ofrece Abrir Dashboard y Copiar enlace, ambos hacia el Dashboard oficial", () => {
+    expect(html).toContain("Abrir Dashboard");
+    expect(html).toContain("Copiar enlace");
+    expect(html).toContain(`href="${URL_DASHBOARD}"`);
+    expect(html).toContain('target="_blank"');
+  });
+
+  it("el enlace es el del Dashboard, jamás una ruta del Admin", () => {
+    expect(URL_DASHBOARD).toMatch(/^https?:\/\//);
+    expect(URL_DASHBOARD).not.toContain("/clientes/");
+    expect(URL_DASHBOARD).not.toContain("admin");
+  });
+
+  it("no hay una URL por cliente: el enlace no lleva identificador alguno", () => {
+    expect(URL_DASHBOARD).not.toMatch(/cliente|tenant|empresa|[?&]id=/i);
   });
 });
 

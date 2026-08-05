@@ -25,11 +25,12 @@ Runbook de despliegue, verificación, respaldo y recuperación. Complementa el P
 | `CORS_ORIGENES`             | Opcional: lista separada por comas de orígenes de navegador permitidos; sin ella se permiten los `*.up.railway.app`. Fijarla a los dominios definitivos al salir del piloto   |
 | `PORT`                      | La inyecta Railway                                                                                                                                                            |
 
-### PWA (Vercel)
+### Frontends (build-time, Vite los incrusta)
 
-| Variable       | Qué es                           |
-| -------------- | -------------------------------- |
-| `VITE_API_URL` | URL pública de la API en Railway |
+| Variable             | Aplica a              | Qué es                                                                                 |
+| -------------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| `VITE_API_URL`       | PWA, Dashboard, Admin | URL pública de la API en Railway                                                       |
+| `VITE_DASHBOARD_URL` | Admin                 | URL del Dashboard de Cliente, para «Abrir Dashboard» y «Copiar enlace» de la ficha ERP |
 
 Tras asignar el dominio real de la API, **fijar `connect-src` de la CSP** (`apps/pwa/vercel.json`) a ese dominio exacto en vez del comodín `https://*.up.railway.app`.
 
@@ -51,8 +52,9 @@ El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisi�
 | Servicio               | Settings → Config-as-code file   | Variables                                                       |
 | ---------------------- | -------------------------------- | --------------------------------------------------------------- |
 | `@cuadreapp/api`       | `railway.json` (raíz, ya activo) | las del §2                                                      |
-| `@cuadreapp/dashboard` | `railway.dashboard.json`         | ninguna (fase simulada)                                         |
+| `@cuadreapp/dashboard` | `railway.dashboard.json`         | `VITE_API_URL=https://<dominio-público-de-la-api>` (¡en build!) |
 | `@cuadreapp/pwa`       | `railway.pwa.json`               | `VITE_API_URL=https://<dominio-público-de-la-api>` (¡en build!) |
+| `@cuadreapp/admin`     | `railway.admin.json`             | `VITE_API_URL` + `VITE_DASHBOARD_URL`                           |
 
 - Root Directory de los tres servicios: la raíz del repo (el build necesita el workspace completo de pnpm).
 - Si algún servicio tiene un Custom Start Command puesto a mano en la UI, **bórralo**: manda el archivo de config.
@@ -126,3 +128,31 @@ enrolamiento, revocaciones) se hace en la consola — el SQL manual queda
 retirado de la operación. Los usuarios admin adicionales siguen siendo un
 paso de infraestructura hasta que exista la pantalla de usuarios (fuera del
 alcance del piloto).
+
+## 8. Dar de alta a un supervisor en el Dashboard de Cliente
+
+El Dashboard es **uno solo para todas las empresas**
+(https://cuadreappdashboard-production.up.railway.app): no hay URL,
+subdominio ni despliegue por cliente. Quien inicia sesión determina qué
+empresa se carga. Alta de un supervisor (mismo paso manual que el admin,
+hasta que exista la pantalla de usuarios):
+
+1. Consola Admin: crear el cliente con su identidad, perfil, sedes,
+   equipos, operadores y dispositivos.
+2. Supabase → Authentication → Add user: email y contraseña del supervisor.
+3. Insertar su fila en `usuarios`:
+   - `rol_id = 1` (supervisor) o `2` (admin_cliente),
+   - `cliente_id` = el del cliente,
+   - `sede_id` = la sede si debe ver solo una; **`null` para que vea todas
+     las sedes de su cliente** (el tablero le ofrece el selector),
+   - `activo = true`.
+4. Compartir el enlace único (la ficha del cliente en la consola tiene
+   «Copiar enlace» en su pestaña Dashboard).
+
+Requisito de infraestructura: la migración `20260805120000_tablero_cliente`
+debe estar aplicada — es la que otorga `tablero.leer` a supervisor y
+admin_cliente. Sin ella, el login funciona y el tablero responde 403.
+
+Un `admin_lubryco` **no** entra al Dashboard (su sesión no tiene
+`cliente_id`): su vista de un cliente es la pestaña Dashboard de la ficha
+en la consola.

@@ -1,8 +1,13 @@
-// [Cliente → Dashboard] El Dashboard de Cliente (DEC-018): la
-// operación del cliente de la ficha — resumen del día, galones por
-// equipo, operadores, duración, historial y evidencia. Un único
-// Dashboard para todos los clientes; lo que cambia es la
-// configuración, jamás el código.
+// [Cliente → Dashboard] VISTA PREVIA administrativa (Etapa P.2).
+//
+// Esto NO es el Dashboard del cliente: es lo que Lubryco ve desde la
+// consola para verificar que un cliente recién configurado ya tiene
+// operación. El Dashboard del cliente es un producto aparte, con una
+// URL única para todas las empresas, y ahí entra el supervisor con su
+// propio usuario — nunca a través del Admin.
+//
+// Por eso esta pantalla ofrece dos acciones y ninguna más: abrir el
+// Dashboard oficial y copiar su enlace para compartirlo.
 
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
@@ -12,6 +17,13 @@ import { ChipEstado, Esqueleto, EstadoError, Eyebrow, Panel, Th, celda, gal, hor
 import { TEMA } from "../../tema";
 import type { ContextoFicha } from "./FichaCliente";
 
+/** URL del Dashboard de Cliente. Única para todas las empresas: el
+ *  login decide cuál se carga (DEC-018). Configurable por entorno para
+ *  que producción, preview y desarrollo apunten a su despliegue. */
+export const URL_DASHBOARD =
+  (import.meta.env.VITE_DASHBOARD_URL as string | undefined) ??
+  "https://cuadreappdashboard-production.up.railway.app";
+
 const duracion = (segundos: number | null): string => {
   if (segundos === null) return "—";
   const minutos = Math.floor(segundos / 60);
@@ -20,7 +32,77 @@ const duracion = (segundos: number | null): string => {
 
 export function DashboardCliente() {
   const { cliente } = useOutletContext<ContextoFicha>();
-  return <TableroDeCliente key={cliente.id} clienteId={cliente.id} />;
+  return (
+    <div className="flex flex-col gap-4">
+      <AvisoPreview />
+      <TableroDeCliente key={cliente.id} clienteId={cliente.id} />
+    </div>
+  );
+}
+
+/** El encabezado que evita la confusión más cara de esta pantalla:
+ *  creer que lo que ve el admin ES lo que ve el cliente. */
+export function AvisoPreview() {
+  const [copiado, setCopiado] = useState(false);
+
+  const copiar = () => {
+    void navigator.clipboard
+      ?.writeText(URL_DASHBOARD)
+      .then(() => setCopiado(true))
+      .catch(() => setCopiado(false));
+  };
+
+  return (
+    <Panel className="p-4">
+      <div className="flex flex-wrap items-center justify-between" style={{ gap: 12 }}>
+        <div style={{ maxWidth: 620 }}>
+          <Eyebrow color="var(--cliente-primario)">Vista previa administrativa</Eyebrow>
+          <p style={{ fontSize: 12.5, color: TEMA.suave, marginTop: 6, lineHeight: 1.6 }}>
+            Así se ve la operación de este cliente desde la consola. El Dashboard del cliente vive
+            aparte, en un enlace único para todas las empresas: el supervisor entra con su usuario y su
+            empresa se carga sola.
+          </p>
+        </div>
+        <div className="flex items-center" style={{ gap: 8 }}>
+          <a
+            href={URL_DASHBOARD}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-md font-semibold focus-visible:outline focus-visible:outline-2"
+            style={{
+              background: "var(--cliente-primario)",
+              color: "var(--cliente-primario-texto)",
+              padding: "9px 14px",
+              fontSize: 12.5,
+            }}
+          >
+            Abrir Dashboard
+          </a>
+          <button
+            type="button"
+            onClick={copiar}
+            className="rounded-md font-semibold focus-visible:outline focus-visible:outline-2"
+            style={{
+              background: TEMA.panelAlto,
+              border: `1px solid ${TEMA.linea}`,
+              color: TEMA.texto,
+              padding: "9px 14px",
+              fontSize: 12.5,
+            }}
+          >
+            {copiado ? "Enlace copiado" : "Copiar enlace"}
+          </button>
+        </div>
+      </div>
+      <div
+        className="mt-3 truncate font-mono"
+        style={{ fontSize: 11, color: TEMA.tenue }}
+        title={URL_DASHBOARD}
+      >
+        {URL_DASHBOARD}
+      </div>
+    </Panel>
+  );
 }
 
 function TableroDeCliente(props: { clienteId: string }) {
