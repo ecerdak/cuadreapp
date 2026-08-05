@@ -1,8 +1,25 @@
-# Training Kit de CuadreApp — v1.0
+# Training Experience de CuadreApp — v2.0
 
-Esto **no es un conjunto de manuales**. Es el sistema que los genera y los mantiene sincronizados con el producto.
+Esto **no es un conjunto de manuales**. Es el sistema que los genera, los mantiene sincronizados con el producto, y —desde la v2.0— los organiza por **cómo se trabaja**, no por cómo está construida la aplicación.
 
-La diferencia importa: siete manuales escritos a mano se desactualizan en la primera semana en que alguien mueve un botón. Aquí, cambiar una pantalla es cambiar **una entrada** en el catálogo, y todos los manuales que la usan quedan corregidos.
+---
+
+## Qué cambió en la v2.0, y por qué
+
+La v1.0 tenía un problema que no se veía hasta ponerla frente a un operador: estaba organizada por pantallas. Cada manual recorría el producto en el orden en que el producto existe.
+
+**Nadie trabaja en ese orden.** Un operador no piensa «estoy en la pantalla del PIN»; piensa «llegó un tractor». Un supervisor no piensa «voy a la pestaña de cargas»; piensa «¿hay algo que deba atender hoy?». Un manual organizado por pantallas obliga a la persona a traducir de su mundo al nuestro, y esa traducción es exactamente donde se pierde alguien que está aprendiendo.
+
+| v1.0                               | v2.0                                      |
+| ---------------------------------- | ----------------------------------------- |
+| Organizado por pantallas           | Organizado por **momentos reales**        |
+| «Pantalla de captura inicial»      | «Antes de abrir la manguera»              |
+| Explica la interfaz                | Enseña a trabajar                         |
+| Callouts que describen la pantalla | Callouts que dicen **qué hacer**          |
+| Capturas de pantalla               | Capturas **+ fotografías reales + zooms** |
+| Un manual por audiencia            | Manual **+ guía rápida laminable**        |
+
+**El catálogo de pantallas no desapareció, cambió de papel.** Dejó de ser el índice del curso y pasó a ser el índice técnico que garantiza la sincronía con el código. Nadie aprende leyéndolo; el verificador lo usa para detectar cuándo una pantalla cambió.
 
 ---
 
@@ -12,30 +29,46 @@ La diferencia importa: siete manuales escritos a mano se desactualizan en la pri
 docs/training/
 ├── README.md              ← este archivo
 ├── 00_Fuente/             ← LA FUENTE DE VERDAD (editar aquí primero)
-│   ├── catalogo-pantallas.md      una entrada por pantalla REAL, con su archivo de código
-│   ├── biblioteca-callouts.md     los callouts, escritos una sola vez
-│   ├── biblioteca-errores.md      errores frecuentes + troubleshooting compartido
-│   └── biblioteca-faq.md          preguntas frecuentes por audiencia
-├── 01_Operadores/         4 manuales (Android/iPhone × 2 perfiles operativos)
-├── 02_Supervisores/       2 manuales (Dashboard por perfil)
-├── 03_Admin/              1 manual (consola completa)
-├── 04_Assets/             inventario de todo lo gráfico que hay que producir
-├── 05_Layouts/            cómo se diagrama cada página (para Claude Design)
-├── 06_Checklists/         checklists operativos imprimibles
-├── 07_Troubleshooting/    matrices problema → causa → solución
-├── 08_Storyboards/        guiones para grabar los videos tutoriales
-└── 09_Exports/            índice general: páginas, capturas, assets, prioridad, esfuerzo
+│   ├── catalogo-momentos.md       ← EL EJE: 30 momentos del mundo real
+│   ├── catalogo-pantallas.md         índice técnico: pantalla → archivo de código
+│   ├── biblioteca-callouts.md        66 callouts, en lenguaje de operador
+│   ├── biblioteca-errores.md         problemas indexados por la frase con que se reportan
+│   ├── biblioteca-faq.md             preguntas como se preguntan de verdad
+│   ├── inventario-fotografico.md     75 imágenes: qué fotografiar y cómo
+│   └── inventario-zooms.md           51 zooms: qué ampliar y por qué
+├── 01_Operadores/         4 cursos (Android/iPhone × 2 perfiles), por momentos
+├── 02_Supervisores/       2 cursos, por decisiones
+├── 03_Admin/              1 curso, por procesos completos
+├── 04_Assets/             inventario de todo lo gráfico
+├── 05_Layouts/            cómo se diagrama cada página
+├── 06_Checklists/         checklists imprimibles
+├── 07_Troubleshooting/    indexado por lo que la persona dice
+├── 08_Storyboards/        guiones de video: planos, narración, textos en pantalla
+├── 09_Exports/            índice general de producción
+├── 10_QuickGuides/        ← NUEVO: una página, laminable
+└── 11_Academia/           ← NUEVO: propuesta documental de 5 cursos
 ```
-
-**`00_Fuente/` no estaba en el encargo original y es la pieza clave.** Sin ella, la misma pantalla («Inicio») aparecería copiada en cuatro manuales de operador, y actualizarla serían cuatro ediciones que hay que acordarse de hacer. Con ella, se edita una vez y los manuales solo la referencian por ID.
 
 ---
 
-## Las tres reglas del kit
+## La cadena de la fuente de verdad
 
-1. **Ningún texto se inventa.** Todo lo que un manual pone entre comillas como «lo que el usuario ve» está copiado literal del código, y el catálogo dice de qué archivo salió. Si no está en el código, no va entre comillas.
-2. **Una pantalla, una entrada.** Los manuales referencian pantallas por ID (`PWA-08`), nunca la describen de nuevo.
-3. **Una captura, un nombre.** El nombre de archivo lo decide el catálogo. Dos manuales que muestran la misma pantalla comparten la captura — por eso 7 manuales necesitan 47 capturas y no 86.
+```
+MOMENTO (mundo real)  ──usa──▶  PANTALLA  ──apunta a──▶  ARCHIVO DE CÓDIGO
+   lo que enseñamos             índice técnico          sincronía verificable
+```
+
+**El momento es lo que se enseña. La pantalla es lo que se verifica.** Los dos catálogos existen porque cumplen funciones distintas, y confundirlos fue el error de la v1.0.
+
+---
+
+## Las cinco reglas del kit
+
+1. **Ningún texto se inventa.** Todo lo que un manual pone entre comillas como «lo que el usuario ve» está copiado literal del código, y el catálogo dice de qué archivo salió.
+2. **Un momento nunca se nombra con una pantalla.** Si no se puede nombrar sin decir «pantalla», «campo» o «botón», es una pantalla disfrazada de momento.
+3. **Un callout dice qué hacer, no qué es.** Verbo en imperativo primero, cero nombres de interfaz, máximo 15 palabras.
+4. **Solo imágenes reales.** Sin mockups, sin ilustraciones de dispositivos, sin dibujos de medidores. Un operador reconoce su planta o no reconoce nada.
+5. **Una captura, un nombre.** Dos manuales que muestran la misma pantalla comparten la captura.
 
 ---
 
@@ -48,53 +81,25 @@ docs/training/
 3. Correr `node scripts/verificar-training-kit.mjs` — dice qué manuales usan esa pantalla.
 4. Revisar solo esos. **Tiempo típico: 5 minutos.**
 
-**Se agregó una pantalla:**
+**Cambió la forma de trabajar** (menos frecuente, más profundo):
 
-1. Nueva entrada en el catálogo (con su archivo de código y su nombre de captura).
-2. Callouts en `00_Fuente/biblioteca-callouts.md`.
-3. Insertarla en el storyboard de los manuales donde aparece, y en su layout.
-4. Sumarla a `09_Exports/indice-general.md`.
+1. Abrir `00_Fuente/catalogo-momentos.md` y corregir o agregar el momento.
+2. Revisar los cursos que lo cubren.
+3. Revisar la guía rápida de esa audiencia: es lo que la gente mira todos los días.
 
-**Se eliminó o renombró una pantalla:**
-
-El verificador falla y nombra el archivo que ya no existe. Eso es intencional: **es imposible que el kit quede en silencio desactualizado**.
-
----
-
-## El verificador
-
-```bash
-node scripts/verificar-training-kit.mjs
-```
-
-Comprueba tres cosas:
-
-- **Sincronía con el código:** cada pantalla del catálogo apunta a un archivo fuente que existe. Si alguien borra `AntesDeCargar.tsx`, esto falla.
-- **Integridad interna:** cada pantalla que un manual referencia existe en el catálogo (sin referencias huérfanas), y cada pantalla del catálogo la usa al menos un manual (sin entradas muertas).
-- **Cobertura:** cada manual tiene sus nueve secciones obligatorias, su layout, su checklist, su troubleshooting y su storyboard de video.
-
-No está enganchado a `pnpm verificar` a propósito: el kit es documentación y no debe romper el build del producto. Engancharlo es una línea, y es decisión del propietario.
-
----
-
-## Qué NO hay aquí (y es deliberado)
-
-- **PDFs, imágenes y capturas exportadas.** Esta etapa produce la fuente; la producción visual es de Claude Design.
-- **Diseño.** `05_Layouts/` dice _qué va en cada página y con qué jerarquía_, nunca colores, tipografías ni medidas: eso lo decide el sistema de diseño.
-- **Manuales por cliente.** Un cliente no tiene manual propio: tiene un **perfil operativo**, y el perfil decide el manual. Esa es la misma regla que gobierna el producto ([DEC-016](../PRODUCT_BIBLE.md#decisiones)); si algún día se rompiera aquí, tendríamos siete manuales por cliente.
+**Se agregó un perfil operativo:** un bloque de momentos nuevo, dos cursos de operador, uno de supervisor, una guía rápida. La estructura ya lo soporta — así se agregó Carga sobre Inventario.
 
 ---
 
 ## Estado
 
-| Manual                                          | ID          | Perfil           | Estado       |
-| ----------------------------------------------- | ----------- | ---------------- | ------------ |
-| Operadores Android · Medidor Doble              | `OP-AND-MD` | medidor_doble    | Fuente lista |
-| Operadores Android · Carga sobre Inventario     | `OP-AND-CI` | carga_inventario | Fuente lista |
-| Operadores iPhone · Medidor Doble               | `OP-IOS-MD` | medidor_doble    | Fuente lista |
-| Operadores iPhone · Carga sobre Inventario      | `OP-IOS-CI` | carga_inventario | Fuente lista |
-| Supervisores · Dashboard Medidor Doble          | `SUP-MD`    | medidor_doble    | Fuente lista |
-| Supervisores · Dashboard Carga sobre Inventario | `SUP-CI`    | carga_inventario | Fuente lista |
-| Administrador · Consola completa                | `ADM`       | ambos            | Fuente lista |
+|                   |                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| Contenido escrito | **Completo** — 7 cursos, 4 guías rápidas, 7 checklists, 7 troubleshooting, 7 storyboards   |
+| Fuente de verdad  | **Completa** — 30 momentos, 32 pantallas, 66 callouts, 41 preguntas, 20 fichas de problema |
+| Fotografías       | **6 de 75** — falta una visita a planta                                                    |
+| Diagramación      | **No empezada**                                                                            |
+| Videos            | **Guionizados, no grabados**                                                               |
+| Academia          | **Propuesta documental** — nada construido                                                 |
 
-Detalle de páginas, capturas y esfuerzo: [`09_Exports/indice-general.md`](09_Exports/indice-general.md).
+**El cuello de botella es la visita a planta.** Es lo único del kit que depende de un tercero y lo único que no se puede hacer desde un escritorio. Debe agendarse primero aunque se ejecute al final.

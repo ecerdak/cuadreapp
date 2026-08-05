@@ -178,3 +178,34 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - Migraciones aplicadas sobre `cuadreapp-prod`: `20260803090000` (módulo Admin — **nunca se había aplicado**), `20260804090000` (perfiles operativos) y `20260805090000` (identidad corporativa). Idempotencia verificada re-ejecutando el SQL y comparando esquema y datos: idénticos.
 - Cuatro servicios de Railway desplegados desde el commit `7de8fda`, todos en SUCCESS: API (`/salud` y `/listo` con base conectada), PWA, Dashboard y Admin.
 - Verificación de producción en verde: 150 + 600 = 750 en la columna generada, CHECK por perfil rechazando formas inválidas, CHECK de color rechazando CSS libre, E2E 4/4 en tres corridas consecutivas y cero regresiones en El Trébol.
+
+## [Etapa T1 — Training Kit v1.0] — Sistema de manuales sincronizado
+
+### Agregado
+
+- `docs/training/`: sistema que genera y mantiene los manuales, no una carpeta de manuales sueltos. Fuente de verdad en `00_Fuente/` (catálogo de pantallas con su archivo de código, biblioteca de callouts, de errores y de preguntas), siete manuales que solo referencian por ID, y material de apoyo (layouts, checklists, troubleshooting, storyboards, índice de exportación).
+- `scripts/verificar-training-kit.mjs`: hace comprobable la promesa de sincronía — cada pantalla del catálogo apunta a un archivo de código que existe, cada referencia de un manual existe en el catálogo, y cada manual trae sus secciones y sus archivos de apoyo. **No está enganchado a `pnpm verificar`**: el kit es documentación y no debe romper el build del producto.
+
+## [Etapa T2 — Training Experience v2.0] — De explicar pantallas a enseñar a trabajar
+
+### Cambiado
+
+- **El eje del kit dejó de ser la pantalla y pasó a ser el momento.** Nuevo `00_Fuente/catalogo-momentos.md` con 30 momentos del mundo real (`M-MD-*`, `M-CI-*`, `M-OP-E*`, `S-*`, `A-*`). El catálogo de pantallas no desapareció: cambió de papel, de índice del curso a índice técnico que garantiza la sincronía con el código. La razón es que nadie piensa «estoy en la pantalla del PIN»: piensa «llegó el carrotanque», y esa traducción forzada era donde se perdía quien estaba aprendiendo.
+- **Los siete manuales reorganizados por proceso.** Operadores en capítulos que siguen la jornada, cada uno con sus ocho elementos obligatorios (objetivo, qué está ocurriendo, qué debe hacer, qué nunca debe hacer, qué verá en la aplicación, qué verá físicamente, resultado esperado, errores frecuentes). Supervisores por decisión (si ve esto → qué significa → qué revisar → qué decidir → a quién llamar → qué no hacer). Administrador por procesos completos, de la llamada comercial a la primera carga registrada.
+- **Los 66 callouts reescritos en lenguaje de operador**: verbo en imperativo primero, cero nombres de interfaz, una idea por callout, máximo 15 palabras, y la consecuencia en vez de la regla.
+- **Errores y preguntas frecuentes indexados por la frase con que se reportan**, no por la causa técnica: «se me borró todo», no «fallo de persistencia del almacenamiento local». Las preguntas pasaron de `F-*` a `P-*` porque `F-` ya identificaba fotografías.
+- `scripts/verificar-training-kit.mjs` ahora verifica el eje nuevo: que cada momento del catálogo lo cubra al menos un curso (un momento huérfano es una parte del trabajo que no le estamos enseñando a nadie), que cada capítulo traiga los elementos obligatorios de su forma, y que callouts, fotografías, zooms, preguntas y fichas de problema existan en su biblioteca.
+
+### Agregado
+
+- `00_Fuente/inventario-fotografico.md`: 75 imágenes especificadas, 6 existentes y 69 por producir, con la regla de que **solo se usan imágenes reales** — sin mockups ni ilustraciones de dispositivos, porque un operador reconoce su planta o no reconoce nada. Las tres piezas más valiosas del kit son la comparativa de foto inservible frente a foto buena del medidor.
+- `00_Fuente/inventario-zooms.md`: 51 zooms, 46 de ellos recortes de capturas ya inventariadas y por tanto sin costo adicional. Un zoom existe solo si hay una acción o una lectura asociada.
+- `10_QuickGuides/`: cuatro guías de una página, laminables, que no resumen el manual sino que lo reemplazan una vez que la persona ya sabe. **No dependen de fotografía**, así que son el entregable más rápido y el de mayor impacto por hora invertida.
+- `11_Academia/README.md`: propuesta **solo documental** de cinco cursos construidos sobre el contenido que ya existe. Deja explícitas las tres decisiones que hay que tomar antes de escribir una línea de código (dentro o fuera del producto, obligatorios o no, certificados con vigencia o no).
+- Los siete storyboards ganaron objetivo, momentos que cubren, planos de rodaje y textos en pantalla. Los planos de campo se graban en la misma visita que las fotografías: una sola coordinación con el cliente, no dos.
+
+### Pendiente
+
+- **Visita a planta.** Es lo único del kit que depende de un tercero y lo único que no se puede hacer desde un escritorio: 17 fotografías de campo y todos los planos de rodaje. Debe agendarse primero aunque se ejecute al final.
+- Diagramación, 52 capturas de pantalla y grabación de los siete videos.
+- Validar el formato con un operador real antes de producir más allá de P0. Saltárselo es apostar 115 páginas a un formato que nadie probó.
