@@ -1,136 +1,92 @@
-# Iconografía
+# 08 · Sistema de iconografía
 
-**Congelada.** Ningún manual, guía rápida ni video puede introducir un ícono que no esté aquí.
+**Este documento no elige íconos.** Define qué categorías existen, qué representa cada una y cómo se mantiene la consistencia.
 
-**Por qué se congela:** un kit de 115 páginas diagramado sin catálogo termina con tres íconos distintos para «sincronizar» — uno por página donde alguien lo necesitó. El lector no los reconoce como lo mismo, y el kit deja de tener lenguaje propio.
-
-**Este documento no dibuja.** Define qué significa cada ícono y dónde aparece. El estilo lo resuelve el Design System.
+El catálogo concreto —37 íconos con su identificador, uso y prioridad— vive en [`../13_Produccion/catalogo-iconos.md`](../13_Produccion/catalogo-iconos.md). El estilo lo resuelve Claude Design.
 
 ---
 
-## Prioridades
+## Por qué se congela
 
-|        |                                                                 |
-| ------ | --------------------------------------------------------------- |
-| **P0** | Sin él no se puede diagramar la página. 14 íconos.              |
-| **P1** | Mejora la comprensión de una página que ya funciona. 12 íconos. |
-| **P2** | Decorativo o de una sola aparición. 8 íconos.                   |
+Un material de 115 páginas diagramado sin catálogo termina con tres íconos distintos para «sincronizar», uno por cada página donde alguien lo necesitó. El lector no los reconoce como la misma cosa, y el material deja de tener lenguaje propio.
 
 ---
 
-## Grupo A · Estado y conectividad
+## Las siete categorías
 
-| ID     | Ícono                      | Qué significa                      | Dónde aparece                             | Prioridad |
-| ------ | -------------------------- | ---------------------------------- | ----------------------------------------- | --------- |
-| `I-01` | Sincronizado               | Todo subió                         | Capítulo 1 y 6 de operador, guías rápidas | **P0**    |
-| `I-02` | En cola                    | Guardado en el teléfono, sube solo | Capítulo 1, 6 y 7 de operador             | **P0**    |
-| `I-03` | Sin conexión               | No hay red — **no es un error**    | Capítulo 7, troubleshooting               | **P0**    |
-| `I-04` | Problema de sincronización | Requiere avisar                    | Capítulo 7                                | P1        |
-| `I-05` | Internet                   | Conectividad en general            | Preguntas frecuentes                      | P1        |
+Un ícono pertenece a una y solo una. **Si un ícono candidato encaja en dos, es que representa dos cosas y hay que partirlo o descartarlo.**
 
-**`I-02` es el ícono más malinterpretado del producto** y por eso es P0: tiene que verse claramente como un estado normal, no como una alarma.
+### `IC-A` · Estado y conectividad
 
----
+- **Representa:** en qué situación está el dispositivo o el dato, no lo que la persona hace.
+- **Regla propia:** los estados «sincronizado», «en cola» y «sin conexión» **son todos normales**. Ninguno se dibuja como alarma. El estado de alarma es uno solo y es distinto de los tres.
+- **Riesgo si se rompe:** «en cola» se lee como error, el operador cree que perdió la carga y la registra otra vez.
 
-## Grupo B · Los tres sellos
+### `IC-B` · Veredicto
 
-| ID     | Ícono     | Qué significa    | Dónde              | Prioridad |
-| ------ | --------- | ---------------- | ------------------ | --------- |
-| `I-10` | Cuadra    | Todo bien, siga  | Todos los manuales | **P0**    |
-| `I-11` | Revisar   | Hay algo anotado | Todos los manuales | **P0**    |
-| `I-12` | No cuadra | Algo no cerró    | Todos los manuales | **P0**    |
+- **Representa:** los tres sellos — Cuadra, Revisar, No cuadra.
+- **Regla propia:** **se usan siempre los tres juntos, nunca uno solo.** El lector aprende el semáforo completo o no aprende ninguno.
+- **Riesgo si se rompe:** un operador que solo ha visto «Cuadra» no sabe qué hacer el día que sale otro.
 
-Los tres se usan **siempre juntos**, nunca sueltos: el lector aprende el semáforo completo o no aprende ninguno.
+### `IC-C` · Acción de la persona
 
----
+- **Representa:** algo que se hace con las manos: fotografiar, guardar, buscar, corregir.
+- **Regla propia:** una acción, un ícono. No hay variantes «para que combine» con la página.
+- **Riesgo si se rompe:** dos íconos para fotografiar y el lector busca la diferencia que no existe.
 
-## Grupo C · Acciones del operador
+### `IC-D` · Persona
 
-| ID     | Ícono      | Qué significa                | Dónde                           | Prioridad |
-| ------ | ---------- | ---------------------------- | ------------------------------- | --------- |
-| `I-20` | Fotografía | Tomar una foto con la cámara | Capítulos 3 y 5                 | **P0**    |
-| `I-21` | Cronómetro | El tiempo corre solo         | Capítulo 4                      | **P0**    |
-| `I-22` | Guardar    | Cerrar el registro           | Capítulo 5                      | **P0**    |
-| `I-23` | Ubicación  | Dónde se registró            | Evidencia, preguntas frecuentes | P1        |
-| `I-24` | Clave      | Los cuatro dígitos           | Capítulo 3                      | P1        |
-| `I-25` | Buscar     | Filtrar por código           | Capítulo 2                      | P1        |
-| `I-26` | Corregir   | Enmendar antes de guardar    | Capítulo 7                      | P1        |
+- **Representa:** los tres roles — operador, supervisor, administrador — y los terceros que aparecen (conductor del carrotanque).
+- **Regla propia:** los roles se distinguen por su **trabajo**, no por jerarquía. Un ícono que sugiera que el supervisor está «por encima» del operador introduce una relación que el material no quiere enseñar.
 
----
+### `IC-E` · Mundo físico
 
-## Grupo D · Personas
+- **Representa:** lo que existe en la planta: surtidor, medidor, carrotanque, equipo, tanque, manguera, teléfono.
+- **Regla propia:** **un ícono de esta categoría nunca reemplaza una fotografía.** Ilustra un índice o una tabla; en el momento de enseñar, va la foto real (`PR-05`).
+- **Riesgo si se rompe:** el operador aprende a reconocer un pictograma y no su propio medidor.
 
-| ID     | Ícono                     | Qué significa                | Dónde                          | Prioridad |
-| ------ | ------------------------- | ---------------------------- | ------------------------------ | --------- |
-| `I-30` | Operador                  | Quien carga combustible      | Portadas, matriz de audiencias | **P0**    |
-| `I-31` | Supervisor                | Quien controla la planta     | Portadas, matriz               | **P0**    |
-| `I-32` | Administrador             | Quien opera la plataforma    | Portadas, matriz               | **P0**    |
-| `I-33` | Conductor del carrotanque | Tercero que trae el vehículo | `OP-*-CI` capítulo 3           | P2        |
+### `IC-F` · Estructura de la plataforma
+
+- **Representa:** la jerarquía Cliente → Sede → Equipo → Operador → Dispositivo, más perfil operativo y código de enrolamiento.
+- **Regla propia:** **los cinco de la jerarquía deben leerse como una familia**, porque en la consola aparecen en cascada. Un ícono de sede que no se parezca al de cliente rompe la lectura del anidamiento.
+
+### `IC-G` · Navegación del documento
+
+- **Representa:** ayudas de lectura — hay video de esto, esta página se arranca, esto se descarga, esto tarda.
+- **Regla propia:** son los únicos íconos que pueden aparecer sin palabra al lado, y solo en márgenes. Dentro del cuerpo, la regla general manda.
 
 ---
 
-## Grupo E · Mundo físico
+## Las cinco reglas de consistencia
 
-| ID     | Ícono       | Qué significa                | Dónde                     | Prioridad |
-| ------ | ----------- | ---------------------------- | ------------------------- | --------- |
-| `I-40` | Surtidor    | El dispensador de la planta  | `OP-*-MD`, `SUP-MD`       | **P0**    |
-| `I-41` | Medidor     | La carátula del Fill-Rite    | `OP-*-MD` capítulo 3      | **P0**    |
-| `I-42` | Carrotanque | El vehículo de despacho      | `OP-*-CI`, `SUP-CI`       | **P0**    |
-| `I-43` | Equipo      | Tractor, alzadora, camioneta | Capítulo 2, catálogos     | P1        |
-| `I-44` | Tanque      | El tanque de la planta       | `SUP-MD` decisión 5       | P1        |
-| `I-45` | Manguera    | El despacho en curso         | Capítulo 4                | P2        |
-| `I-46` | Teléfono    | El dispositivo del operador  | Capítulo 1, guías rápidas | P1        |
+1. **Un concepto, un ícono.** Si dos páginas necesitan «sincronizar», usan el mismo. Sin variantes por contexto.
 
----
+2. **Un ícono nunca va solo.** Siempre acompaña a una palabra. El material se lee en una planta, a pleno sol, con guantes: **nadie descifra pictogramas** (`PR-10`). Única excepción: `IC-G` en márgenes.
 
-## Grupo F · Estructura de la plataforma
+3. **Los íconos de la aplicación no se rediseñan.** Si el producto ya dibuja algo, el material usa un recorte de la captura, no una versión propia. Un ícono «mejorado» enseña un símbolo que el operador no va a encontrar en su teléfono.
 
-Sigue la jerarquía congelada (DEC-018): **Cliente → Sedes → Equipos → Operadores → Dispositivos.** Los cinco íconos deben leerse como una familia, porque en la consola aparecen en cascada.
+4. **Ningún ícono nuevo sin entrada en el catálogo.** Si al diagramar hace falta uno, se agrega al catálogo primero.
 
-| ID     | Ícono                  | Qué significa                  | Dónde                | Prioridad |
-| ------ | ---------------------- | ------------------------------ | -------------------- | --------- |
-| `I-50` | Cliente                | La empresa                     | `ADM` procesos 1 y 5 | **P0**    |
-| `I-51` | Sede                   | Una planta o frente de obra    | `ADM` procesos 1 y 2 | P1        |
-| `I-52` | Dispositivo            | Un teléfono enrolado           | `ADM` proceso 4      | P1        |
-| `I-53` | Perfil operativo       | La forma de operar del cliente | `ADM` procesos 1 y 6 | **P0**    |
-| `I-54` | Código de enrolamiento | El código de un solo uso       | `ADM` procesos 1 y 3 | P2        |
+5. **Un ícono no sustituye una fotografía ni una captura.** Ilustra; no enseña. En el momento de enseñar va la imagen real.
 
 ---
 
-## Grupo G · Navegación del documento
+## Prioridad
 
-| ID     | Ícono     | Qué significa            | Dónde                     | Prioridad |
-| ------ | --------- | ------------------------ | ------------------------- | --------- |
-| `I-60` | Tablero   | El Dashboard del cliente | Portadas de supervisor    | P1        |
-| `I-61` | Consola   | La consola de Lubryco    | Portada de administrador  | P2        |
-| `I-62` | Descargar | Exportar a Excel         | `SUP-*` decisión 7        | P2        |
-| `I-63` | Imprimir  | Página arrancable        | Checklists, guías rápidas | P2        |
-| `I-64` | Video     | Hay un video de esto     | Aperturas de capítulo     | P2        |
-| `I-65` | Tiempo    | Cuánto tarda             | Bloques de momento        | P1        |
+|        |                                                                                                 |
+| ------ | ----------------------------------------------------------------------------------------------- |
+| **P0** | Sin él no se puede diagramar la página. Concentrados en `IC-A`, `IC-B`, `IC-C`, `IC-D`, `IC-E`. |
+| **P1** | Mejora una página que ya funciona.                                                              |
+| **P2** | Decorativo o de una sola aparición. Puede no producirse nunca.                                  |
 
----
-
-## Reglas de uso
-
-1. **Un concepto, un ícono.** Si dos páginas necesitan «sincronizar», usan `I-01`. No hay variantes «para que combine».
-2. **Un ícono nunca va solo.** Siempre acompaña a una palabra. El kit se lee en una planta, a pleno sol, con guantes: nadie descifra pictogramas.
-3. **Los tres sellos van siempre juntos.**
-4. **Ningún ícono nuevo sin entrada aquí.** Si al diagramar hace falta uno, se agrega a este catálogo primero.
-5. **Los íconos de la aplicación no se rediseñan.** Si el producto ya dibuja algo, el manual usa un recorte de la captura, no una versión propia — o el lector aprende un símbolo que no va a encontrar en su teléfono.
+**Regla de arranque:** con los P0 se diagrama el 100 % de las páginas de prioridad P0 del material. Los P1 y P2 no bloquean nada, y no deben producirse antes de la primera validación con usuarios reales — hasta ahí no se sabe cuáles sobran.
 
 ---
 
-## Resumen
+## Qué hace fallar este sistema
 
-| Grupo            | Íconos | P0     | P1     | P2    |
-| ---------------- | ------ | ------ | ------ | ----- |
-| A · Estado       | 5      | 3      | 2      | 0     |
-| B · Sellos       | 3      | 3      | 0      | 0     |
-| C · Acciones     | 7      | 3      | 4      | 0     |
-| D · Personas     | 4      | 3      | 0      | 1     |
-| E · Mundo físico | 7      | 3      | 3      | 1     |
-| F · Plataforma   | 5      | 2      | 2      | 1     |
-| G · Navegación   | 6      | 0      | 2      | 4     |
-| **Total**        | **37** | **17** | **13** | **7** |
+Los tres modos de falla, en orden de probabilidad:
 
-**Con los 17 de P0 se puede diagramar el 100 % de las páginas de prioridad P0 del kit.** Los otros 20 se pueden producir después sin bloquear nada.
+1. **Íconos que compiten con el texto.** Si el ícono es más visible que el paso, se mira el ícono y se salta la instrucción.
+2. **Demasiados íconos por página.** Más de cuatro y dejan de ser señales; pasan a ser textura.
+3. **Un ícono bonito para un concepto que no existía.** Es como se introducen conceptos que nadie pidió enseñar.
