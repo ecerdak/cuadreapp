@@ -246,16 +246,26 @@ for (const id of pantallas.keys()) {
 
 const inventarioReferencias = [
   ["callout", /`(C-\d+)`/g, /^\|\s*`(C-\d+)`/gm, "00_Fuente/biblioteca-callouts.md"],
-  ["fotografía", /`(F-\d+)`/g, /^\|\s*`(F-\d+)`/gm, "00_Fuente/inventario-fotografico.md"],
+  ["fotografía", /`(F-\d+)`/g, /^\|\s*(?:☐|☑)?\s*`(F-\d+)`/gm, "00_Fuente/inventario-fotografico.md"],
   ["zoom", /`(Z-\d+)`/g, /^\|\s*`(Z-\d+)`/gm, "00_Fuente/inventario-zooms.md"],
   ["pregunta", /`(P-\d+)`/g, /^\*\*`(P-\d+)`/gm, "00_Fuente/biblioteca-faq.md"],
   ["ficha de problema", /`(E-\d+)`/g, /^### `(E-\d+)`/gm, "00_Fuente/biblioteca-errores.md"],
+  ["comparativa", /`(K-\d+)`/g, /^## `(K-\d+)`/gm, "13_Produccion/comparativas.md"],
+  ["componente", /`(CMP-\d+)`/g, /^### `(CMP-\d+)`/gm, "13_Produccion/componentes.md"],
+  ["ícono", /`(I-\d+)`/g, /^\|\s*`(I-\d+)`/gm, "13_Produccion/iconografia.md"],
+  ["plantilla", /`(PL-\d+)`/g, /^## `(PL-\d+)`/gm, "13_Produccion/plantillas.md"],
 ];
 
 const fuentes = Object.fromEntries(
   Object.entries(MANUALES).map(([id, { carpeta }]) => [`${carpeta}/${id}.md`, contenidoManual[id]]),
 );
-for (const carpeta of ["06_Checklists", "07_Troubleshooting", "08_Storyboards", "10_QuickGuides"]) {
+for (const carpeta of [
+  "06_Checklists",
+  "07_Troubleshooting",
+  "08_Storyboards",
+  "10_QuickGuides",
+  "13_Produccion",
+]) {
   if (!existsSync(join(KIT, carpeta))) continue;
   for (const archivo of readdirSync(join(KIT, carpeta)).filter((f) => f.endsWith(".md"))) {
     fuentes[`${carpeta}/${archivo}`] = leer(`${carpeta}/${archivo}`);
@@ -282,7 +292,32 @@ for (const [nombre, uso, definicion, biblioteca] of inventarioReferencias) {
   }
 }
 
-/* ============ 5. Material de apoyo ============ */
+/* ============ 5. Capturas: existe el archivo que promete el catálogo ============ */
+
+// El catálogo se genera del manifiesto, así que no puede mentir sobre
+// QUÉ existe — pero sí podría prometer un archivo que alguien borró.
+const CAPTURAS_POR_CARPETA = { Operadores: /^(and|ios)-/, Supervisores: /^dsh-/, Admin: /^adm-/ };
+const producidas = new Set();
+for (const carpeta of Object.keys(CAPTURAS_POR_CARPETA)) {
+  const ruta = join(KIT, "12_Capturas", carpeta);
+  if (!existsSync(ruta)) continue;
+  for (const archivo of readdirSync(ruta).filter((f) => f.endsWith(".png"))) producidas.add(archivo);
+}
+
+if (existsSync(join(KIT, "12_Capturas/CATALOGO.md"))) {
+  const catalogoCapturas = leer("12_Capturas/CATALOGO.md");
+  const seccionProducidas = catalogoCapturas.split("## Pendientes")[0];
+  for (const m of seccionProducidas.matchAll(/^\|\s*`([a-z]+-[\w-]+\.png)`/gm)) {
+    if (!producidas.has(m[1])) {
+      errores.push(
+        `12_Capturas/CATALOGO.md: promete '${m[1]}' como producida, pero el archivo no está. ` +
+          `Vuelve a correr 'node scripts/capturar-pantallas.mjs'.`,
+      );
+    }
+  }
+}
+
+/* ============ 6. Material de apoyo ============ */
 
 for (const [id, { guia }] of Object.entries(MANUALES)) {
   for (const [carpeta, nombre] of APOYO) {
@@ -299,12 +334,14 @@ for (const [id, { guia }] of Object.entries(MANUALES)) {
 
 const CARPETAS = [
   "00_Fuente",
+  "13_Produccion",
   ...new Set(Object.values(MANUALES).map((m) => m.carpeta)),
   ...APOYO.map((a) => a[0]),
   "04_Assets",
   "09_Exports",
   "10_QuickGuides",
   "11_Academia",
+  "12_Capturas",
 ];
 
 const totalArchivos = CARPETAS.filter((c) => existsSync(join(KIT, c))).reduce(
@@ -331,5 +368,6 @@ if (errores.length > 0) {
 console.log(
   `Training Experience OK — ${momentos.length} momentos cubiertos, ` +
     `${pantallas.size} pantallas verificadas contra el código, ` +
-    `${Object.keys(contenidoManual).length} cursos completos, ${totalArchivos} archivos.`,
+    `${Object.keys(contenidoManual).length} cursos completos, ` +
+    `${producidas.size} capturas reales, ${totalArchivos} archivos.`,
 );
