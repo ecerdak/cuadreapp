@@ -1,27 +1,28 @@
-# Troubleshooting · SUP-CI — Supervisores · Dashboard Carga sobre Inventario
+# Qué hacer cuando algo sale distinto
 
-> Formato: **problema → posible causa → solución**. El problema está escrito como lo dice el usuario, no como lo describiría un técnico: así se encuentra buscando.
-> Detalle y «qué NO hacer» en [`../00_Fuente/biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · Manual: [`../02_Supervisores/SUP-CI.md`](../02_Supervisores/SUP-CI.md)
+## Supervisor · Carga sobre Inventario
+
+> Fichas completas en [`../00_Fuente/biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · Manual: [`../02_Supervisores/SUP-CI.md`](../02_Supervisores/SUP-CI.md)
+
+**Ordenado por lo que usted diría**, no por la causa técnica.
+
+| Lo que dice                           | Qué hacer ahora                                                              | Ficha  |
+| ------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| «La guía dice otro número»            | Compare contra «Despachado por Lubryco», **no contra el total al salir**.    | —      |
+| «No veo las cargas de hoy»            | Revise el filtro de fechas. Si está bien, los teléfonos no han sincronizado. | `E-20` |
+| «Esta carga quedó en cero galones»    | Puede ser real. Confírmelo con el operador hoy.                              | `E-11` |
+| «El operador escribió mal la llegada» | Se registra una corrección. **No edite para que cuadre.**                    | `E-08` |
+| «Falta una foto del carrotanque»      | Llame al operador hoy. Sin ella el registro deja de ser sustentable.         | `E-06` |
+| «¿Alguien puede inflar el total?»     | No. Lo calcula el sistema y no es editable.                                  | —      |
+| «Un operador dejó de aparecer»        | Revise su sede en la ficha de Operación.                                     | `E-21` |
+| «El tablero no tiene mis colores»     | Vuelva a entrar.                                                             | `E-22` |
 
 ---
 
-## Matriz
+## Antes de escalar cualquier cosa
 
-| Problema (lo que dice el usuario)                | Posible causa                                                    | Solución                                                                                                |
-| ------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| «Una carga dice No cuadra»                       | En este perfil casi siempre es despacho en cero o falta de fotos | Abrir la evidencia y revisar las dos fotos y las tres cifras.                                           |
-| «Falta una foto»                                 | El operador cerró sin capturar el carrotanque                    | Hablar con el operador **hoy**. `E-SUP-02`                                                              |
-| «¿Cómo sé que no inflaron los galones?»          | Duda legítima sobre el control del perfil                        | La cifra debe coincidir con la remisión de Lubryco y con las dos fotos; el total lo calcula el sistema. |
-| «Las columnas de tanda salen vacías en el Excel» | Este perfil no tiene tanda ni totalizador                        | Es correcto, no un error del archivo.                                                                   |
-| «Un carrotanque tiene desvío alto»               | Consumo fuera de patrón                                          | Revisar mantenimiento antes de sospechar. `E-SUP-03`                                                    |
-| «El operador no ve un carrotanque nuevo»         | Catálogo sin refrescar                                           | Que abra la app con señal unos segundos. `E-SUP-04`                                                     |
+☐ ¿Comparé contra «Despachado por Lubryco» y no contra el total?
+☐ ¿Abrí las dos fotografías de esa carga?
+☐ ¿Confirmé con el operador con cuánto llegó el vehículo?
 
----
-
-## Cuándo escalar
-
-| Situación                                        | A quién                  | Con qué                                       |
-| ------------------------------------------------ | ------------------------ | --------------------------------------------- |
-| Carga que no cuadra y el operador no la recuerda | Administrador de Lubryco | El código de soporte de la carga (request_id) |
-
-**Regla general:** si la solución que se te ocurre implica **borrar, reinstalar o empezar de cero**, no la hagas todavía. Es casi siempre el único camino que pierde datos de forma irreversible.
+**Si alguna quedó sin marcar, todavía no hay caso.**

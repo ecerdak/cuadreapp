@@ -1,44 +1,58 @@
-# Checklist · OP-IOS-CI — Operadores iPhone · Carga sobre Inventario
+# Mi checklist de trabajo
 
-> Página arrancable. Pensada para imprimirse y pegarse donde se usa: el almacén, la oficina del supervisor o el escritorio del administrador.
-> Manual: [`../01_Operadores/OP-IOS-CI.md`](../01_Operadores/OP-IOS-CI.md)
+## Operador · iPhone · control de inventario
+
+> Página arrancable. Para pegar en la caseta de despacho.
+> Curso: [`../01_Operadores/OP-IOS-CI.md`](../01_Operadores/OP-IOS-CI.md) · Guía rápida: [`../10_QuickGuides/QG-OP-CI.md`](../10_QuickGuides/QG-OP-CI.md)
 
 ---
 
-## Antes de la primera carga _(una sola vez)_
+## Una sola vez en la vida del teléfono
 
-- [ ] La app está **instalada** (se abre desde el ícono, no desde Safari)
-- [ ] Enrolé el teléfono con el código del supervisor
-- [ ] Acepté los permisos de **cámara** y **ubicación**
-- [ ] Sé mi código de operador y mi PIN de cuatro dígitos
+- [ ] La aplicación se abre **desde el ícono**, no desde Safari
+- [ ] Enrolé el teléfono con el código que me dio el supervisor
+- [ ] Acepté cámara y ubicación
+- [ ] Sé mi código y mi clave de cuatro dígitos
 
-## Antes de cada carga
+## Antes de salir a trabajar
 
-- [ ] Sé la **placa o el código** del carrotanque
-- [ ] Sé **con cuántos galones llegó** (o confirmo que llegó vacío)
-- [ ] El carrotanque está en posición para fotografiarlo completo
+- [ ] El teléfono tiene más del 30 % de batería
+- [ ] Abrí la aplicación y el aviso de arriba está **en verde**
 
-## Durante la carga
+## Llegó el carrotanque
 
-- [ ] Confirmé el carrotanque correcto
-- [ ] Me identifiqué con **mi** código y **mi** PIN
-- [ ] Tomé la foto de **llegada** con el vehículo completo y la placa visible
-- [ ] Escribí los galones con los que **llegó** (0,0 si venía vacío)
-- [ ] Toqué «Terminé de cargar» **solo al terminar de verdad**
-- [ ] Tomé la foto de **salida**
-- [ ] Escribí **solo** los galones que despachó Lubryco
+- [ ] Elegí el vehículo y **miré la placa** antes de confirmar
 
-## Después de guardar
+## Antes de despachar
 
-- [ ] Verifiqué que el **total al salir** tenga sentido
-- [ ] Vi el chip de resultado en la pantalla «Listo»
-- [ ] Si dice «En cola», abro la app unos segundos donde haya señal
+- [ ] Tomé la foto del carrotanque **completo, con la placa**
+- [ ] Escribí **con cuántos galones llegó** (si llegó vacío: **0,0**)
+- [ ] Ese número es lo que **ya traía**, no lo que voy a despachar
 
-## Las seis reglas de oro
+## Terminó el despacho
 
-1. Ábrela siempre desde el ícono, nunca desde Safari.
-2. **Dos fotos**: llegada y salida, con el carrotanque completo.
-3. Escribes **dos cifras**: con cuántos llegó y cuántos despachó Lubryco.
-4. El **total nunca se escribe**: lo calcula la app.
-5. Sin señal se registra igual: **nunca repitas** una carga.
-6. Nunca borres Safari ni los «datos de sitios web».
+- [ ] Tomé la segunda foto
+- [ ] Escribí **solo lo que echó Lubryco**
+- [ ] Miré las tres cifras: el total lo calculó la aplicación
+
+## Antes del siguiente vehículo
+
+- [ ] Miré el sello de resultado
+- [ ] Si dice «Revisar» o «No cuadra», se lo comento al supervisor **hoy**
+
+## Antes de irme
+
+- [ ] Todas mis cargas tienen sello
+- [ ] El aviso de arriba está en verde, o pasé por señal para que suban
+
+---
+
+## Las siete reglas de oro
+
+1. Ábrela siempre desde el ícono.
+2. **Yo escribo dos números. El total lo calcula la aplicación.**
+3. «Llegó con» es lo que el vehículo **ya traía**.
+4. Las **dos fotos**, siempre, con el vehículo completo y la placa visible.
+5. Si llegó vacío, se escribe **0,0**. Nunca se deja en blanco.
+6. Sin señal se registra igual: **nunca repitas** una carga.
+7. **Nunca borres los datos de Safari.** Es la única forma de perder cargas.

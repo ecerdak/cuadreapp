@@ -1,29 +1,28 @@
-# Troubleshooting · ADM — Administrador · Consola completa
+# Qué hacer cuando algo sale distinto
 
-> Formato: **problema → posible causa → solución**. El problema está escrito como lo dice el usuario, no como lo describiría un técnico: así se encuentra buscando.
-> Detalle y «qué NO hacer» en [`../00_Fuente/biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · Manual: [`../03_Admin/ADM.md`](../03_Admin/ADM.md)
+## Administrador Lubryco
+
+> Fichas completas en [`../00_Fuente/biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · Manual: [`../03_Admin/ADM.md`](../03_Admin/ADM.md)
+
+| Lo que dice                               | Qué hacer ahora                                                                         | Ficha  |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- | ------ |
+| «Se perdió un teléfono»                   | Revóquelo **de inmediato**. Deja de registrar al instante.                              | `E-15` |
+| «El totalizador de instalación quedó mal» | No se edita. Se corrige con un registro de corrección y se avisa al supervisor.         | `E-23` |
+| «El código de enrolamiento no funciona»   | Ya se usó o venció. Genere otro.                                                        | `E-02` |
+| «El cliente no ve sus colores»            | Pídale que vuelva a entrar.                                                             | `E-22` |
+| «El logo pesa más de 1 MB»                | Redúzcalo antes de subirlo.                                                             | —      |
+| «El cliente quiere más de dos colores»    | No se puede, y esa es la respuesta correcta. Explique la garantía de legibilidad.       | —      |
+| «Un operador dejó de aparecer»            | Revise su sede. **No lo cree otra vez.**                                                | `E-21` |
+| «Necesito cambiar el perfil operativo»    | Se puede, hacia adelante. Avise a la planta antes. No lo haga en día de operación alta. | —      |
+| «Un cliente lleva una semana sin cargas»  | Llame antes de que llamen ellos.                                                        | —      |
+| «¿Puedo eliminar un cliente?»             | No: eliminarlo borraría evidencia. Se desactiva.                                        | —      |
 
 ---
 
-## Matriz
+## Lo que no se deshace
 
-| Problema (lo que dice el usuario)                  | Posible causa                                                | Solución                                                                                                          |
-| -------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| «El cliente no ve su logo o sus colores»           | Configuración anterior en caché                              | PWA: abrir con señal para refrescar el catálogo. Dashboard: recargar. NO resubir el logo varias veces. `E-ADM-01` |
-| «Rechaza el color que puse»                        | Solo se acepta `#RRGGBB`                                     | Usar el selector de color, que siempre entrega el formato correcto. `E-ADM-02`                                    |
-| «Cambié el perfil y la historia se ve rara»        | No es un error: cada carga conserva su perfil de origen      | Ninguna acción. NO intentar migrar cargas viejas. `E-ADM-03`                                                      |
-| «El dispositivo del cliente dejó de funcionar»     | Se revocó, se re-enroló, o el usuario técnico quedó inactivo | Dispositivos → «Reenrolar»: revoca y da código nuevo en un paso. `E-ADM-04`                                       |
-| «Se perdió un teléfono»                            | Extravío o robo                                              | Dispositivos → «Revocar», de inmediato. La sesión deja de servir en el acto. `E-ADM-05`                           |
-| «El operador dice que su código no sirve»          | El código venció (7 días) o ya se usó                        | Generar otro desde la ficha del cliente → Operación → Dispositivos. `E-OP-02`                                     |
-| «No encuentro dónde subir el logo»                 | Se busca en el diálogo de crear cliente, donde no está       | El logo se sube en la **ficha** del cliente → Identidad, después de crearlo.                                      |
-| «¿Puedo dejar el totalizador de instalación en 0?» | Sede nueva sin conocer la lectura física                     | No conviene: es la base de todo el histórico. Verificarlo contra la carátula antes de guardar.                    |
+**1.** El totalizador de instalación de un dispensador.
+**2.** El PIN de un operador, una vez asignado (se reemplaza, no se consulta).
+**3.** El perfil con el que quedó registrada una carga.
 
----
-
-## Cuándo escalar
-
-| Situación                             | A quién                     | Con qué                                                |
-| ------------------------------------- | --------------------------- | ------------------------------------------------------ |
-| Algo que exige tocar la base de datos | Equipo técnico de CuadreApp | El request_id de la respuesta y qué se intentaba hacer |
-
-**Regla general:** si la solución que se te ocurre implica **borrar, reinstalar o empezar de cero**, no la hagas todavía. Es casi siempre el único camino que pierde datos de forma irreversible.
+**Verifique las tres antes de guardar, no después.**

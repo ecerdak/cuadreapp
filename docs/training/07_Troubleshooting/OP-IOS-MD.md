@@ -1,43 +1,44 @@
-# Troubleshooting · OP-IOS-MD — Operadores iPhone · Medidor Doble
+# Qué hacer cuando algo sale distinto
 
-> Formato: **problema → posible causa → solución**. El problema está escrito como lo dice el usuario, no como lo describiría un técnico: así se encuentra buscando.
-> Detalle y «qué NO hacer» en [`../00_Fuente/biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · Manual: [`../01_Operadores/OP-IOS-MD.md`](../01_Operadores/OP-IOS-MD.md)
+## Operador · iPhone · Medidor Doble
+
+> Fichas completas en [`../00_Fuente/biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · Manual: [`../01_Operadores/OP-IOS-MD.md`](../01_Operadores/OP-IOS-MD.md)
+
+**Esta tabla está ordenada por lo que usted diría**, no por la causa técnica. Busque su frase.
+
+| Lo que dice                         | Qué hacer ahora                                                            | Ficha  |
+| ----------------------------------- | -------------------------------------------------------------------------- | ------ |
+| «No encuentro la aplicación»        | Instálela desde el ícono correcto. En iPhone solo desde Safari.            | `E-01` |
+| «El código que me dieron no sirve»  | Pida otro. Sirve una sola vez.                                             | `E-02` |
+| «Me pide una clave y no sé cuál es» | Pídale una nueva al supervisor.                                            | `E-03` |
+| «No me aparece el equipo»           | Escriba menos letras. Si no aparece, avise. **No use otro.**               | `E-04` |
+| «La cámara no abre»                 | Ajustes → CuadreApp → Permisos → Cámara → Permitir.                        | `E-05` |
+| «Me equivoqué en un número»         | Tóquelo y corríjalo. Si ya guardó, avise hoy.                              | `E-07` |
+| «Salió un aviso amarillo»           | Léalo y siga. Nunca bloquea.                                               | `E-09` |
+| «Dice guardado en el celular»       | Normal: no hay señal. Sube sola. **No repita la carga.**                   | `E-10` |
+| «Dice que no cuadra»                | Avísele hoy al supervisor. No borre ni rehaga nada.                        | `E-11` |
+| «Lleva días diciendo En cola»       | Abra la app donde haya señal. Si no baja, avise.                           | `E-12` |
+| «La aplicación se cerró sola»       | Ábrala de nuevo. Se restaura donde iba.                                    | `E-13` |
+| «Se perdió el teléfono»             | Avise **de inmediato** para que lo revoquen.                               | `E-15` |
+| «Dice algo en rojo y no entiendo»   | Abra «Diagnóstico del dispositivo» y muéstrelo.                            | `E-16` |
+| «No se lee la foto por el reflejo»  | Cámbiese de posición. **Sin flash.** Si no se puede, siga y avise hoy.     | `E-06` |
+| «La perilla no llega a 0.0 exacto»  | Déjela lo más cerca posible, escriba lo que ve y siga.                     | `E-09` |
+| «Copié un número y no cuadra»       | Arriba es la tanda, abajo el totalizador. Mire la foto que acaba de tomar. | `E-07` |
+
+## Solo en iPhone
+
+| Lo que dice                                    | Qué hacer ahora                                                                   | Ficha  |
+| ---------------------------------------------- | --------------------------------------------------------------------------------- | ------ |
+| «Se me borró todo»                             | Reinstale desde Safari y pida un código nuevo. Las cargas sin subir se perdieron. | `E-14` |
+| «No me sale el botón de instalar»              | En iPhone no existe. Safari → Compartir → «Añadir a pantalla de inicio».          | `E-01` |
+| «Dice que el almacenamiento no está protegido» | Avísele al supervisor el mismo día. No deje cargas sin subir de un día para otro. | `E-14` |
 
 ---
 
-## Matriz
+## Las tres cosas que nunca se hacen
 
-| Problema (lo que dice el usuario)    | Posible causa                                                          | Solución                                                                                                                                |
-| ------------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| «No me aparece el botón de instalar» | En iPhone ese botón no existe; en Android, Chrome ya lo descartó antes | iPhone → Compartir → «Añadir a pantalla de inicio». Android → menú ⋮ → «Agregar a la pantalla principal». `E-OP-01`                     |
-| «El código no me sirve»              | Ya se usó, venció (7 días) o tiene un carácter de más                  | Pedir otro al supervisor: se genera en segundos. `E-OP-02`                                                                              |
-| «La cámara no abre»                  | El permiso quedó denegado en la primera pregunta                       | Ajustes del teléfono → la app → Permisos → Cámara → Permitir. Cerrar y reabrir. `E-OP-03`                                               |
-| «No encuentro el equipo»             | No está dado de alta, está inactivo o es de otra sede                  | Buscar por las primeras letras del sticker. Si no aparece, avisar al supervisor. `E-OP-04`                                              |
-| «Dice Código o PIN incorrecto»       | Código equivocado, PIN olvidado, u operador desactivado                | Verificar el código (es el del operador, no el del equipo). El supervisor restablece el PIN. `E-OP-05`                                  |
-| «Me equivoqué de equipo y ya avancé» | Confirmación apresurada                                                | «← Atrás» hasta la pantalla de equipo. La app avisa qué se borra y pide confirmar. `E-OP-09`                                            |
-| «Se cerró la app a mitad»            | El sistema operativo la cerró, o se apagó el teléfono                  | Volver a abrirla: la captura se restaura donde quedó. NO empezar de cero sin mirar. `E-OP-10`                                           |
-| «No hay Internet»                    | La planta no tiene señal — es lo normal                                | Registrar igual: se guarda y sube sola. NUNCA repetir la carga. `E-OP-11`                                                               |
-| «Dice En cola y no baja»             | La app necesita estar abierta unos segundos con señal                  | Abrir la app donde haya señal y esperar con la pantalla encendida. `E-OP-12`                                                            |
-| «Dice N con error»                   | El servidor rechazó el registro de forma definitiva                    | Abrir «Diagnóstico del dispositivo» y mostrárselo al supervisor. `E-OP-13`                                                              |
-| «Almacenamiento protegido dice NO»   | El navegador no garantizó la persistencia                              | Avisar al supervisor el mismo día y no dejar cargas sin subir de un día para otro. `E-OP-14`                                            |
-| «El medidor no queda en 0.0»         | La perilla no volvió a cero o está trabada                             | Seguir con el registro y escribir la nota que pide la app. NO inventar un 0,0. `E-OP-06`                                                |
-| «Los números no cuadran»             | Un dígito mal copiado, casi siempre                                    | Volver a mirar la carátula. Si están bien, guardar igual: queda marcado. `E-OP-07`                                                      |
-| «El vidrio refleja y no se lee»      | El medidor está montado alto y su vidrio refleja la cubierta           | Cambiar el ángulo o tapar el reflejo con el cuerpo. Si nunca se logra, avisar al supervisor: hay que bajar el medidor o ponerle visera. |
+**1.** Registrar dos veces la misma carga «porque no había señal».
+**2.** Elegir un equipo distinto porque el suyo no aparece.
+**3.** Desinstalar la aplicación o borrar datos del teléfono con cargas sin subir.
 
-## Propio de iPhone
-
-| Problema                                       | Posible causa                                                  | Solución                                                                                    |
-| ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| «Instalé pero no aparece el ícono»             | Se instaló desde Chrome o Firefox, no desde Safari             | En iPhone solo Safari puede instalar. Abrir el enlace en Safari y repetir.                  |
-| «Desapareció la app del teléfono»              | Se borraron los datos de Safari o de sitios web                | Volver a instalar y **re-enrolar**. Las cargas que no habían subido se perdieron.           |
-| «Almacenamiento protegido dice NO y no cambia» | WebKit decide por heurística y puede negarlo sin razón visible | Usar la app a diario y no dejar cargas sin subir de un día para otro. Avisar al supervisor. |
-
----
-
-## Cuándo escalar
-
-| Situación                                              | A quién                | Con qué                    |
-| ------------------------------------------------------ | ---------------------- | -------------------------- |
-| Registro con error, o «Almacenamiento protegido» en NO | Supervisor del cliente | La pantalla de Diagnóstico |
-
-**Regla general:** si la solución que se te ocurre implica **borrar, reinstalar o empezar de cero**, no la hagas todavía. Es casi siempre el único camino que pierde datos de forma irreversible.
+Las tres nacen de querer arreglar algo solo. **Ninguna se arregla sola: se avisa.**
