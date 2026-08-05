@@ -98,6 +98,39 @@ export interface ResultadoValidacion {
 export const CODIGOS_PERFIL = ["medidor_doble", "carga_inventario"] as const;
 export type CodigoPerfil = (typeof CODIGOS_PERFIL)[number];
 
+/* ------------------------------------------------------------
+   Vocabulario del tablero del cliente (DEC-016, cuarto punto de
+   despacho). El perfil DECLARA qué se muestra; el Dashboard solo
+   sabe dibujar cada pieza de este vocabulario. Un perfil nuevo se
+   compone con estas piezas sin tocar el Dashboard; una pieza nueva
+   es una entrada aquí más su componente — jamás un condicional.
+   ------------------------------------------------------------ */
+
+/** Secciones de primer nivel (pestañas) del tablero. */
+export const MODULOS_TABLERO = ["hoy", "cargas", "equipos", "suministro"] as const;
+export type ModuloTablero = (typeof MODULOS_TABLERO)[number];
+
+/** Paneles de la pestaña «Hoy», en el orden en que se pintan. */
+export const PANELES_HOY = ["totalizador", "inventario", "consumo", "cargas_del_dia"] as const;
+export type PanelHoy = (typeof PANELES_HOY)[number];
+
+/** Columnas de cifras de la tabla de cargas propias del perfil. */
+export const COLUMNAS_CARGA = ["galones", "llegada", "total_salida", "llenado"] as const;
+export type ColumnaCarga = (typeof COLUMNAS_CARGA)[number];
+
+/** Vista de evidencia de UNA carga. Se elige por el perfil con el que
+ *  nació la carga (snapshot), nunca por el perfil actual del cliente. */
+export const VISTAS_EVIDENCIA = ["medidor", "inventario"] as const;
+export type VistaEvidencia = (typeof VISTAS_EVIDENCIA)[number];
+
+/** Lo que el tablero necesita saber de un perfil para componerse. */
+export interface ComposicionTablero {
+  modulos: readonly ModuloTablero[];
+  panelesHoy: readonly PanelHoy[];
+  columnasCargas: readonly ColumnaCarga[];
+  vistaEvidencia: VistaEvidencia;
+}
+
 /** Lo que el operador capturó en el perfil «Carga sobre Inventario»:
  *  con cuántos galones llegó el carrotanque y cuántos despachó
  *  Lubryco. El inventario final NUNCA se captura — se calcula. */

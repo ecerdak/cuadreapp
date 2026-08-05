@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ContextoValidacion, RegistroCarga } from "./tipos";
-import { esCodigoPerfil, PERFILES, validarSegunPerfil } from "./perfiles";
+import { COLUMNAS_CARGA, MODULOS_TABLERO, PANELES_HOY, VISTAS_EVIDENCIA } from "./tipos";
+import { composicionTablero, esCodigoPerfil, PERFILES, validarSegunPerfil } from "./perfiles";
 import { validarCarga } from "./validacion";
 
 /* ============================================================
@@ -110,5 +111,62 @@ describe("catálogo de perfiles del dominio", () => {
     expect(esCodigoPerfil("carga_inventario")).toBe(true);
     expect(esCodigoPerfil("Sacyr")).toBe(false);
     expect(esCodigoPerfil("")).toBe(false);
+  });
+});
+
+/* ============================================================
+   El perfil también DECLARA qué muestra el tablero del cliente
+   (DEC-016, cuarto punto de despacho: «vistas del Dashboard»).
+   El Dashboard no decide: pregunta. Estas pruebas fijan que la
+   declaración existe, es coherente y nombra únicamente módulos,
+   paneles, columnas y vistas del vocabulario congelado.
+   ============================================================ */
+
+describe("el perfil declara la composición del tablero", () => {
+  it("Medidor Doble: cuatro módulos, panel de totalizador y evidencia de medidor", () => {
+    const perfil = PERFILES.medidor_doble;
+    expect(perfil.modulos).toEqual(["hoy", "cargas", "equipos", "suministro"]);
+    expect(perfil.panelesHoy).toEqual(["totalizador", "consumo", "cargas_del_dia"]);
+    expect(perfil.columnasCargas).toEqual(["galones"]);
+    expect(perfil.vistaEvidencia).toBe("medidor");
+  });
+
+  it("Carga sobre Inventario: sin Suministro (no hay tanque del cliente) y evidencia de inventario", () => {
+    const perfil = PERFILES.carga_inventario;
+    expect(perfil.modulos).toEqual(["hoy", "cargas", "equipos"]);
+    expect(perfil.panelesHoy).toEqual(["inventario", "consumo", "cargas_del_dia"]);
+    expect(perfil.columnasCargas).toEqual(["llegada", "galones", "total_salida", "llenado"]);
+    expect(perfil.vistaEvidencia).toBe("inventario");
+  });
+
+  it("todo perfil declara módulos, paneles y columnas del vocabulario congelado", () => {
+    for (const perfil of Object.values(PERFILES)) {
+      expect(perfil.modulos.length).toBeGreaterThan(0);
+      // «hoy» y «cargas» son el mínimo de cualquier tablero.
+      expect(perfil.modulos).toContain("hoy");
+      expect(perfil.modulos).toContain("cargas");
+      for (const modulo of perfil.modulos) expect(MODULOS_TABLERO).toContain(modulo);
+      for (const panel of perfil.panelesHoy) expect(PANELES_HOY).toContain(panel);
+      for (const columna of perfil.columnasCargas) expect(COLUMNAS_CARGA).toContain(columna);
+      expect(VISTAS_EVIDENCIA).toContain(perfil.vistaEvidencia);
+    }
+  });
+
+  it("un perfil que requiere medidor muestra el totalizador; uno que no, jamás", () => {
+    for (const perfil of Object.values(PERFILES)) {
+      expect(perfil.panelesHoy.includes("totalizador")).toBe(perfil.requiereMedidor);
+      // Suministro es el balance del tanque del cliente: solo con medidor.
+      expect(perfil.modulos.includes("suministro")).toBe(perfil.requiereMedidor);
+    }
+  });
+
+  it("composicionTablero devuelve la declaración del perfil y falla con un código desconocido", () => {
+    expect(composicionTablero("carga_inventario")).toEqual({
+      modulos: PERFILES.carga_inventario.modulos,
+      panelesHoy: PERFILES.carga_inventario.panelesHoy,
+      columnasCargas: PERFILES.carga_inventario.columnasCargas,
+      vistaEvidencia: PERFILES.carga_inventario.vistaEvidencia,
+    });
+    expect(() => composicionTablero("perfil_que_no_existe" as never)).toThrow(/perfil/i);
   });
 });
