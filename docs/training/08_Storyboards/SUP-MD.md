@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 2:35 · **Escenas:** 10 · **Formato:** horizontal 16:9 (se ve en el computador)
 
+## Objetivo del video
+
+Que un supervisor entienda que su rutina diaria son cinco minutos, y que «no cuadra» no es una acusación.
+
+**Momentos que cubre:** `S-01` a `S-07`, con énfasis en `S-06` — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -38,3 +48,31 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                 | Qué encuadra                                                                                    | Dónde se usa                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Plano medio           | El supervisor en su oficina, frente al computador. Persona real, no actor de banco de imágenes. | Escenas 1, 10                                      |
+| Grabación de pantalla | El tablero real con datos de demostración, en horizontal.                                       | Escenas 2 a 9                                      |
+| Plano detalle         | Las dos fotografías de evidencia ampliándose en pantalla.                                       | Escena 5 — sostener más de lo cómodo: es la prueba |
+| Plano de planta       | El tanque y el surtidor, para el bloque de suministro.                                          | Escena 8                                           |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                                                             |
+| ------- | ----------------------------------------------------------------- |
+| 0:10    | `CINCO MINUTOS AL DÍA`                                            |
+| 0:40    | `VERDE: NO HAY NADA QUE HACER`                                    |
+| 1:30    | `«NO CUADRA» CASI NUNCA ES ROBO`                                  |
+| 1:45    | `1. DÍGITO MAL COPIADO  2. CARGA SIN REGISTRAR  3. TODO LO DEMÁS` |
+| 2:20    | `EL MEDIDOR YA CONTÓ ESOS GALONES`                                |
+| 2:50    | `LA AUTONOMÍA ES ESTIMADA, ±2 %`                                  |

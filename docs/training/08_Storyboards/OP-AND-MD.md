@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 3:05 · **Escenas:** 13 · **Formato:** vertical 9:16 (se ve en el celular)
 
+## Objetivo del video
+
+Que un operador que nunca ha usado la aplicación registre su primera carga solo, sin ayuda, el mismo día que ve el video.
+
+**Momentos que cubre:** `M-MD-00` a `M-MD-05`, más `M-OP-E3` (sin señal) — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -42,3 +52,33 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                        | Qué encuadra                                                                             | Dónde se usa                                     |
+| ---------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Plano general                | El surtidor completo con un tractor llegando. Establece el lugar.                        | Escenas 1, 13                                    |
+| Plano medio                  | El operador de pie frente al surtidor, teléfono en mano. Se le ve la cara y el contexto. | Escenas 4, 9                                     |
+| Plano detalle de la mano     | La mano girando la perilla lateral hasta 0.0. Sin cortes.                                | Escena 7 — **el plano más importante del video** |
+| Plano detalle de la carátula | Los dos registros llenando el cuadro, nítidos.                                           | Escenas 7, 10                                    |
+| Grabación de pantalla        | El teléfono real, a velocidad normal, con el punto de toque resaltado.                   | Escenas 2, 3, 5, 6, 8, 11, 12                    |
+| Plano sobre el hombro        | Se ve la pantalla y el medidor en el mismo cuadro. Conecta lo físico con lo digital.     | Escena 7, transición                             |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                                  |
+| ------- | -------------------------------------- |
+| 0:14    | `INSTALAR: UNA SOLA VEZ`               |
+| 0:33    | `EL CÓDIGO LO DA TU SUPERVISOR`        |
+| 1:28    | `TANDA EN 0.0`                         |
+| 1:50    | `ARRIBA: TANDA  ·  ABAJO: TOTALIZADOR` |
+| 2:33    | `CUADRA / REVISAR / NO CUADRA`         |
+| 2:50    | `SIN SEÑAL TAMBIÉN QUEDA`              |

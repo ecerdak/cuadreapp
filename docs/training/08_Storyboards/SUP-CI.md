@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 2:12 · **Escenas:** 9 · **Formato:** horizontal 16:9 (se ve en el computador)
 
+## Objetivo del video
+
+Que un supervisor sepa sustentar cada galón facturado y deje de comparar la guía contra el total.
+
+**Momentos que cubre:** `S-01` a `S-07`, con énfasis en la comparación contra la guía — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -37,3 +47,31 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                 | Qué encuadra                                              | Dónde se usa                                     |
+| --------------------- | --------------------------------------------------------- | ------------------------------------------------ |
+| Plano medio           | El supervisor en su oficina.                              | Escenas 1, 10                                    |
+| Grabación de pantalla | El tablero real con datos de demostración, en horizontal. | Escenas 2 a 9                                    |
+| Plano detalle         | El recuadro de las tres cifras, ampliado.                 | Escena 5 — **el plano más importante del video** |
+| Plano de estación     | Un carrotanque cargando, para contextualizar el balance.  | Escena 8                                         |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                                             |
+| ------- | ------------------------------------------------- |
+| 0:10    | `CINCO MINUTOS AL DÍA`                            |
+| 1:20    | `EL TOTAL LO CALCULA EL SISTEMA`                  |
+| 1:35    | `NADIE PUEDE EDITARLO`                            |
+| 2:10    | `COMPARE LA GUÍA CONTRA «DESPACHADO POR LUBRYCO»` |
+| 2:25    | `NO CONTRA EL TOTAL AL SALIR`                     |
+| 2:45    | `ESTO ES DESPACHO, NO AFORO`                      |

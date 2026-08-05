@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 3:32 · **Escenas:** 11 · **Formato:** horizontal 16:9 (se ve en el computador)
 
+## Objetivo del video
+
+Que el administrador ejecute una incorporación completa siguiendo el video, sin volver a preguntar.
+
+**Momentos que cubre:** `A-01` completo, con referencias a `A-04` y `A-06` — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -39,3 +49,31 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                 | Qué encuadra                                                                           | Dónde se usa                     |
+| --------------------- | -------------------------------------------------------------------------------------- | -------------------------------- |
+| Grabación de pantalla | La consola real con datos de demostración, en horizontal. Es la mayor parte del video. | Casi todas las escenas           |
+| Plano detalle         | La vista previa de identidad cambiando al escribir los dos colores.                    | Escena de identidad              |
+| Plano detalle         | El campo del totalizador de instalación, con una fotografía del medidor al lado.       | Escena de dispensador — sostener |
+| Plano medio           | El administrador en su escritorio, para abrir y cerrar.                                | Primera y última escena          |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                                               |
+| ------- | --------------------------------------------------- |
+| 0:15    | `OCHO PASOS · DIEZ MINUTOS`                         |
+| 0:35    | `EL PERFIL DETERMINA LO QUE VE EL OPERADOR`         |
+| 1:20    | `DOS COLORES. NADA MÁS.`                            |
+| 2:00    | `EL TOTALIZADOR DE INSTALACIÓN NO SE PUEDE CAMBIAR` |
+| 2:20    | `VERIFÍQUELO CON UNA FOTOGRAFÍA`                    |
+| 2:45    | `EL PIN NO SE VUELVE A MOSTRAR`                     |

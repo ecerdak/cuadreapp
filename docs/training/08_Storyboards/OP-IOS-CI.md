@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 3:03 · **Escenas:** 13 · **Formato:** vertical 9:16 (se ve en el celular)
 
+## Objetivo del video
+
+Lo mismo que el video de Android, con la instalación desde Safari y la advertencia sobre los datos del navegador.
+
+**Momentos que cubre:** `M-CI-00` a `M-CI-05`, más `M-OP-E3` y `M-OP-E4` — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -42,3 +52,31 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                          | Qué encuadra                                                  | Dónde se usa                            |
+| ------------------------------ | ------------------------------------------------------------- | --------------------------------------- |
+| Plano general                  | El carrotanque completo entrando.                             | Escenas 1, 12                           |
+| Plano detalle de la placa      | Solo la placa, nítida.                                        | Escena 5                                |
+| Plano medio                    | El operador junto al carrotanque con el iPhone.               | Escenas 4, 9                            |
+| Grabación de pantalla          | iPhone real. La instalación desde Safari se graba sin cortes. | Escena 2                                |
+| Grabación de pantalla, detalle | El recuadro de las tres cifras llenándose solo.               | Escena 10 — **el plano más importante** |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                              |
+| ------- | ---------------------------------- |
+| 0:12    | `SOLO DESDE SAFARI`                |
+| 1:05    | `ESCRIBE CON CUÁNTO LLEGÓ`         |
+| 2:05    | `ESCRIBE SOLO LO QUE ECHÓ LUBRYCO` |
+| 2:18    | `EL TOTAL LO CALCULA LA APP`       |
+| 2:52    | `NUNCA BORRES LOS DATOS DE SAFARI` |

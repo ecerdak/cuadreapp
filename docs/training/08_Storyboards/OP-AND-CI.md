@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 3:03 · **Escenas:** 13 · **Formato:** vertical 9:16 (se ve en el celular)
 
+## Objetivo del video
+
+Que quede grabado a fuego que el operador escribe dos números y la aplicación calcula el tercero.
+
+**Momentos que cubre:** `M-CI-00` a `M-CI-05`, más `M-OP-E3` — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -42,3 +52,32 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                     | Qué encuadra                                                                     | Dónde se usa                                      |
+| ------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Plano general             | El carrotanque completo entrando a la estación.                                  | Escenas 1, 12                                     |
+| Plano detalle de la placa | Solo la placa, nítida. Conecta con el paso de elegir el vehículo.                | Escena 5                                          |
+| Plano medio               | El operador junto al carrotanque, teléfono en mano.                              | Escenas 4, 9                                      |
+| Plano del acople          | La manguera conectándose al carrotanque.                                         | Escena 9                                          |
+| Grabación de pantalla     | El teléfono real. El recuadro de las tres cifras llenándose se graba sin cortes. | Escena 10 — **el plano más importante del video** |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                              |
+| ------- | ---------------------------------- |
+| 0:14    | `INSTALAR: UNA SOLA VEZ`           |
+| 1:05    | `ESCRIBE CON CUÁNTO LLEGÓ`         |
+| 1:12    | `SI LLEGÓ VACÍO: 0,0`              |
+| 2:05    | `ESCRIBE SOLO LO QUE ECHÓ LUBRYCO` |
+| 2:18    | `EL TOTAL LO CALCULA LA APP`       |
+| 2:40    | `CUADRA / REVISAR / NO CUADRA`     |

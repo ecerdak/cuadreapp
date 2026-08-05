@@ -5,6 +5,16 @@
 
 **Duración objetivo:** 3:05 · **Escenas:** 13 · **Formato:** vertical 9:16 (se ve en el celular)
 
+## Objetivo del video
+
+Lo mismo que el video de Android, con el detalle de que en iPhone la instalación solo funciona desde Safari.
+
+**Momentos que cubre:** `M-MD-00` a `M-MD-05`, más `M-OP-E3` y `M-OP-E4` — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+
+**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+
+---
+
 ---
 
 ## Escenas
@@ -42,3 +52,33 @@
 - **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
 - **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
 - **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+
+---
+
+## Planos
+
+Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+
+| Plano                        | Qué encuadra                                                                          | Dónde se usa                           |
+| ---------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------- |
+| Plano general                | El surtidor completo. Establece el lugar.                                             | Escenas 1, 13                          |
+| Plano medio                  | El operador frente al surtidor con el iPhone.                                         | Escenas 4, 9                           |
+| Plano detalle de la mano     | La mano girando la perilla hasta 0.0.                                                 | Escena 7 — **el plano más importante** |
+| Plano detalle de la carátula | Los dos registros nítidos.                                                            | Escenas 7, 10                          |
+| Grabación de pantalla        | iPhone real. La escena de instalación muestra Safari y el botón Compartir sin cortes. | Escena 2 — **no se puede acelerar**    |
+| Plano sobre el hombro        | Pantalla y medidor en el mismo cuadro.                                                | Escena 7                               |
+
+**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+
+## Textos en pantalla
+
+Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
+
+| Momento | Texto                                     |
+| ------- | ----------------------------------------- |
+| 0:12    | `SOLO DESDE SAFARI`                       |
+| 0:20    | `COMPARTIR → AÑADIR A PANTALLA DE INICIO` |
+| 1:28    | `TANDA EN 0.0`                            |
+| 1:50    | `ARRIBA: TANDA  ·  ABAJO: TOTALIZADOR`    |
+| 2:33    | `CUADRA / REVISAR / NO CUADRA`            |
+| 2:52    | `NUNCA BORRES LOS DATOS DE SAFARI`        |
