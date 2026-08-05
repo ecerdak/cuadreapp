@@ -13,18 +13,22 @@ import { registrarRutaEnrolamiento } from "./rutas/dispositivos.js";
 import { registrarRutaCatalogo } from "./rutas/catalogo.js";
 import { registrarRutaFotos } from "./rutas/fotos.js";
 import { registrarRutasAdmin } from "./rutas/admin.js";
+import { registrarRutasTablero } from "./rutas/tablero.js";
 import { registrarObservabilidad, type EmisorEventos } from "./observabilidad.js";
 import { crearAutenticacion } from "./seguridad/autenticacion.js";
 import type { JWTVerifyGetKey } from "jose";
 import type { AlmacenFotos, ProveedorIdentidad } from "./seguridad/tipos.js";
 import type { RepositorioCargas, RepositorioSeguridad } from "./repositorio/tipos.js";
 import type { RepositorioAdmin } from "./repositorio/admin.js";
+import type { RepositorioTablero } from "./repositorio/tablero.js";
 
 export interface Dependencias {
   repositorio: RepositorioCargas;
   repositorioSeguridad: RepositorioSeguridad;
   /** Consola administrativa (piloto Sacyr). Opcional: sin él, /admin no existe. */
   repositorioAdmin?: RepositorioAdmin;
+  /** Dashboard de Cliente (Etapa P.2). Opcional: sin él, /tablero no existe. */
+  repositorioTablero?: RepositorioTablero;
   proveedorIdentidad: ProveedorIdentidad;
   almacenFotos: AlmacenFotos;
   /** Bucket privado de logos de clientes (DEC-017). Sin él, el logo
@@ -133,6 +137,14 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
     if (dependencias.repositorioAdmin) {
       registrarRutasAdmin(rutas, {
         repositorio: dependencias.repositorioAdmin,
+        almacenFotos: dependencias.almacenFotos,
+        almacenLogos: dependencias.almacenLogos ?? null,
+        autenticar,
+      });
+    }
+    if (dependencias.repositorioTablero) {
+      registrarRutasTablero(rutas, {
+        repositorio: dependencias.repositorioTablero,
         almacenFotos: dependencias.almacenFotos,
         almacenLogos: dependencias.almacenLogos ?? null,
         autenticar,

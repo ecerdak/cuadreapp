@@ -11,7 +11,7 @@ import {
   ID_DISPOSITIVO_USUARIO,
 } from "../pruebas/apoyo.js";
 import { ID_ADMIN, RepositorioAdminFalso, sesionAdmin } from "../pruebas/apoyo-admin.js";
-import { inicioHoyBogota } from "./admin.js";
+import { inicioHoyBogota } from "../tiempo.js";
 
 function armarAdmin() {
   const repositorioAdmin = new RepositorioAdminFalso();

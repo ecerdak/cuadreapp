@@ -9,6 +9,7 @@ import { registrar } from "./registro.js";
 import { construirAplicacion } from "./aplicacion.js";
 import { RepositorioCargasPostgres, RepositorioSeguridadPostgres } from "./repositorio/postgres.js";
 import { RepositorioAdminPostgres } from "./repositorio/admin-postgres.js";
+import { RepositorioTableroPostgres } from "./repositorio/tablero-postgres.js";
 import { AlmacenFotosSupabase, ProveedorIdentidadSupabase } from "./seguridad/supabase.js";
 
 let config;
@@ -30,6 +31,7 @@ const app = construirAplicacion({
   repositorio: new RepositorioCargasPostgres(pool),
   repositorioSeguridad: new RepositorioSeguridadPostgres(pool),
   repositorioAdmin: new RepositorioAdminPostgres(pool),
+  repositorioTablero: new RepositorioTableroPostgres(pool),
   proveedorIdentidad: new ProveedorIdentidadSupabase(configSupabase),
   almacenFotos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_FOTOS),
   almacenLogos: new AlmacenFotosSupabase(configSupabase, config.BUCKET_LOGOS),

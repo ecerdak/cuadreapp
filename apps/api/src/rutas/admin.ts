@@ -11,13 +11,7 @@ import { CODIGOS_PERFIL } from "@cuadreapp/dominio";
 import { ConflictoUnicidad, type ClienteAdmin, type RepositorioAdmin } from "../repositorio/admin.js";
 import { exigirPermiso, type PreManejador } from "../seguridad/autenticacion.js";
 import type { AlmacenFotos } from "../seguridad/tipos.js";
-
-/** Medianoche de HOY en America/Bogota (UTC-5 fija, sin DST). */
-export function inicioHoyBogota(ahora: Date): string {
-  const bogota = new Date(ahora.getTime() - 5 * 3_600_000);
-  const fecha = bogota.toISOString().slice(0, 10);
-  return `${fecha}T00:00:00-05:00`;
-}
+import { inicioHoyBogota } from "../tiempo.js";
 
 const generarCodigoEnrolamiento = (prefijo: string) =>
   `${prefijo}-${randomBytes(3).toString("hex").toUpperCase()}`;
