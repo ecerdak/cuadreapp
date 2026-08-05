@@ -1,83 +1,202 @@
-# Storyboard de video · OP-AND-CI — Operadores Android · Carga sobre Inventario
+# Storyboard · OP-AND-CI
 
-> Guion para grabar el video tutorial. **No sustituye al manual**: el video se ve una vez, el manual se consulta. El video enseña el flujo; el manual resuelve los casos raros.
-> Manual: [`../01_Operadores/OP-AND-CI.md`](../01_Operadores/OP-AND-CI.md) · Capturas: [`../04_Assets/inventario-assets.md`](../04_Assets/inventario-assets.md)
+## Registrar un carrotanque · Android
 
-**Duración objetivo:** 3:03 · **Escenas:** 13 · **Formato:** vertical 9:16 (se ve en el celular)
+> Guion de rodaje. **No sustituye al manual**: el video se ve una vez, el manual se consulta. El video enseña el camino normal; el manual resuelve los casos raros.
+> Manual: [`../01_Operadores/OP-AND-CI.md`](../01_Operadores/OP-AND-CI.md) · Capturas: [`../12_Capturas/CATALOGO.md`](../12_Capturas/CATALOGO.md) · Fotografías: [`../13_Produccion/orden-fotografica.md`](../13_Produccion/orden-fotografica.md)
+
+**Duración objetivo:** 2:50 · **Escenas:** 12 · **Formato:** Vertical 9:16 — se ve en el celular
+
+---
 
 ## Objetivo del video
 
 Que quede grabado a fuego que el operador escribe dos números y la aplicación calcula el tercero.
 
-**Momentos que cubre:** `M-CI-00` a `M-CI-05`, más `M-OP-E3` — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
+**Momentos que cubre:** `M-CI-00` a `M-CI-05`, más `M-OP-E3` (sin señal) — ver [`../00_Fuente/catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md)
 
-**Qué NO cubre este video.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
+**Qué NO cubre.** Los casos raros. El video enseña el camino normal de principio a fin; todo lo que se sale de ahí vive en el manual y en el troubleshooting. Un video que intenta cubrir las excepciones deja de servir para aprender el flujo.
 
 ---
+
+## Convenciones de rodaje
+
+Valen para las siete piezas. Una escena solo declara lo que se aparta de aquí.
+
+|                         |                                                                                                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pausas**              | 0,4 s de silencio entre escenas. Antes de una cifra o de una prohibición, 0,8 s. El silencio es lo que da tiempo a entender.                              |
+| **Transiciones**        | Corte seco entre escenas del mismo lugar. Fundido a negro de 0,3 s solo al cambiar de lugar (planta ↔ pantalla). Cero transiciones decorativas.           |
+| **Movimiento**          | Cámara fija salvo donde se indique. Ningún movimiento sin motivo: en un video de instrucción, la cámara que se mueve compite con lo que hay que aprender. |
+| **Ritmo**               | Ninguna escena baja de 8 s. Una escena de 4 s no se alcanza a leer con ruido de planta de fondo.                                                          |
+| **Audio**               | Sin música con letra. La voz tiene que ganarle al ruido de la planta.                                                                                     |
+| **Subtítulos**          | Quemados siempre: muchos lo verán sin audio.                                                                                                              |
+| **Fotograma congelado** | Cada escena debe funcionar como imagen fija. Si alguien pausa, la pantalla se explica sola.                                                               |
+| **Datos**               | Los de demostración, los mismos de las capturas. Nunca datos de un cliente real.                                                                          |
 
 ---
 
 ## Escenas
 
-| #   | Narración (lo que se dice)                                                                                                                  | Pantalla                                             | Duración  | Animaciones                                                                               |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
-| 1   | Registrar una carga toma unos cuarenta segundos, con o sin señal. Te muestro cómo, de principio a fin.                                      | and-01_splash.png                                    | 0:00–0:08 | Logotipo entra con fundido; texto aparece por líneas                                      |
-| 2   | Toca el botón amarillo «Instalar CuadreApp». Si no aparece, entra al menú de tres puntos y toca «Agregar a la pantalla principal».          | and-15_instalar.png (grabación de pantalla)          | 0:08–0:25 | Grabación real de pantalla, a velocidad normal; resaltar el punto de toque con un círculo |
-| 3   | La primera vez, el supervisor te da un código. Lo escribes aquí y aceptas cámara y ubicación. Esto se hace una sola vez.                    | and-02_enrolar.png                                   | 0:25–0:40 | Escritura simulada en el campo; los diálogos de permiso aparecen y se aceptan             |
-| 4   | Esta es tu pantalla de todos los días. Un solo botón para empezar. Abajo ves lo que llevas registrado hoy.                                  | and-03_inicio.png                                    | 0:40–0:52 | Zoom lento al botón principal; después al chip verde                                      |
-| 5   | Primero: qué equipo vas a cargar. Escribe las primeras letras del código del sticker y confirma.                                            | and-04_equipo-lista.png → and-05_equipo-confirma.png | 0:52–1:08 | Escritura en el buscador, lista filtrándose, transición a la tarjeta verde                |
-| 6   | Segundo: quién eres. Tu código y tu PIN de cuatro dígitos. Esto funciona aunque no haya señal.                                              | and-06_operador-codigo.png → and-07_operador-pin.png | 1:08–1:22 | Teclado numérico marcando; los cuatro puntos llenándose uno a uno                         |
-| 7   | Tercero: la llegada. Toma la foto del carrotanque completo y escribe con cuántos galones llegó. Si llegó vacío, escribe cero punto cero.    | and-11_llegada.png                                   | 1:22–1:42 | Video real del carrotanque; captura con el visor; escritura de «150,0»                    |
-| 8   | Cuarto: despacha el combustible. El cronómetro corre solo.                                                                                  | and-09_cargando.png                                  | 1:42–1:52 | Cronómetro corriendo acelerado                                                            |
-| 9   | Quinto: la foto final y cuántos galones despachó Lubryco. Solo eso: el total al salir lo calcula la aplicación sola.                        | and-12_despacho.png                                  | 1:52–2:15 | Escritura de «600,0»; la fila «Total al salir» calculándose a 750,0 con un destello       |
-| 10  | Fíjate: tú escribiste ciento cincuenta y seiscientos. Los setecientos cincuenta los puso la aplicación. Ese número nunca se escribe a mano. | and-12_despacho.png (recorte de la tarjeta)          | 2:15–2:28 | Las tres cifras resaltándose en secuencia                                                 |
-| 11  | Listo. Ya quedó registrada. Si dice «Cuadra», todo bien. Si dice «Revisar» o «No cuadra», coméntaselo al supervisor hoy.                    | and-13_listo.png                                     | 2:28–2:43 | Círculo verde con animación de entrada; los tres chips posibles apareciendo en secuencia  |
-| 12  | Y si no había señal, también quedó guardada. Sube sola cuando vuelva la red. Nunca registres la misma carga dos veces.                      | and-03b_inicio-offline.png                           | 2:43–2:56 | Chip cambiando de «Sin conexión» a «Todo sincronizado»                                    |
-| 13  | Eso es todo. Cuarenta segundos, con o sin señal.                                                                                            | and-01_splash.png                                    | 2:56–3:03 | Cierre con marca y el teléfono del supervisor en pantalla                                 |
+### Escena 1 · 0:00–0:09
+
+- **Objetivo:** Que se quede a ver el video
+- **Narración:** «Registrar un carrotanque toma menos de un minuto. Escribes dos números y la aplicación hace el resto.»
+- **Plano:** Plano general del carrotanque entrando a la estación
+- **Movimiento de cámara:** Fija
+- **Material:** `F-20`, `F-26`
+- **Animaciones:** Logotipo con fundido de entrada
+- **Texto en pantalla:** ninguno
+- **Cierre:** Fundido a negro 0,3 s
+
+### Escena 2 · 0:09–0:24
+
+- **Objetivo:** Que la app quede instalada
+- **Narración:** «Instálala desde el botón amarillo, o desde el menú de tres puntos. Una sola vez.»
+- **Plano:** Grabación de pantalla
+- **Movimiento de cámara:** Fija
+- **Material:** `and-15_instalar`
+- **Animaciones:** Velocidad normal, punto de toque resaltado
+- **Texto en pantalla:** `INSTALAR: UNA SOLA VEZ`
+- **Cierre:** Corte seco
+
+### Escena 3 · 0:24–0:38
+
+- **Objetivo:** Que sepa de dónde sale el código
+- **Narración:** «Tu supervisor te da un código. Lo escribes y aceptas cámara y ubicación.»
+- **Plano:** Grabación de pantalla
+- **Movimiento de cámara:** Fija
+- **Material:** `and-02_enrolar`
+- **Animaciones:** Escritura simulada; permisos aceptándose
+- **Texto en pantalla:** ninguno
+- **Cierre:** Corte seco
+
+### Escena 4 · 0:38–0:50
+
+- **Objetivo:** Que reconozca su pantalla diaria
+- **Narración:** «Esta es tu pantalla de todos los días. Un botón para empezar.»
+- **Plano:** Plano medio del operador junto al carrotanque
+- **Movimiento de cámara:** Fija
+- **Material:** `and-03_inicio`, `F-25`
+- **Animaciones:** Zoom lento al botón principal
+- **Texto en pantalla:** ninguno
+- **Cierre:** Corte seco
+
+### Escena 5 · 0:50–1:04
+
+- **Objetivo:** Que mire la placa antes de confirmar
+- **Narración:** «Primero: qué vehículo es. Búscalo por su placa y confirma mirando el vehículo.»
+- **Plano:** Plano detalle de la placa → grabación de pantalla
+- **Movimiento de cámara:** Corte entre los dos
+- **Material:** `F-21`, `and-04_equipo-lista`, `and-05_equipo-confirma`
+- **Animaciones:** Lista filtrándose, transición a la tarjeta verde
+- **Texto en pantalla:** `MIRA LA PLACA`
+- **Cierre:** Corte seco
+
+### Escena 6 · 1:04–1:26
+
+- **Objetivo:** **La escena que sostiene el video**: la cifra de llegada
+- **Narración:** «Segundo, y es lo más importante: con cuántos galones llegó. Ese número es lo que el vehículo ya traía, no lo que vas a despachar. Si llegó vacío, escribe cero.»
+- **Plano:** Plano general del carrotanque completo → grabación de pantalla
+- **Movimiento de cámara:** **Sin cortes mientras se escribe la cifra**
+- **Material:** `F-20`, `and-11_llegada`, zoom `Z-22`
+- **Animaciones:** La foto tomándose; el número apareciendo dígito a dígito
+- **Texto en pantalla:** `ESCRIBE CON CUÁNTO LLEGÓ · SI LLEGÓ VACÍO: 0,0`
+- **Cierre:** Pausa de 0,8 s antes de cortar
+
+### Escena 7 · 1:26–1:40
+
+- **Objetivo:** Que no toque «terminé» antes de desconectar
+- **Narración:** «Tercero: despacha. El cronómetro corre solo. Toca «Terminé» solo al terminar.»
+- **Plano:** Plano del acople de la manguera
+- **Movimiento de cámara:** Fija
+- **Material:** `F-22`, `and-09_cargando`
+- **Animaciones:** Cronómetro corriendo acelerado
+- **Texto en pantalla:** ninguno
+- **Cierre:** Corte seco
+
+### Escena 8 · 1:40–2:06
+
+- **Objetivo:** **La escena decisiva**: que se vea que el total se calcula solo
+- **Narración:** «Cuarto: la segunda foto y solo los galones que despachó Lubryco. Mira lo que pasa abajo: la aplicación suma sola.»
+- **Plano:** Grabación de pantalla, recorte del bloque de tres cifras
+- **Movimiento de cámara:** **Sin cortes mientras el total se calcula.** Es lo único que hay que ver
+- **Material:** `and-12_despacho`, zooms `Z-23`, `Z-24`
+- **Animaciones:** Las tres líneas llenándose en cascada: llegada, despacho, total
+- **Texto en pantalla:** `EL TOTAL LO CALCULA LA APP`
+- **Cierre:** Pausa de 0,8 s
+
+### Escena 9 · 2:06–2:16
+
+- **Objetivo:** Cerrar la duda de una vez
+- **Narración:** «Tú nunca escribes el total. No existe dónde escribirlo, y es a propósito.»
+- **Plano:** Grabación de pantalla, el bloque de tres cifras congelado
+- **Movimiento de cámara:** Fija
+- **Material:** zoom `Z-24`
+- **Animaciones:** Ninguna. Imagen fija — es el único fotograma sin movimiento del video
+- **Texto en pantalla:** `USTED ESCRIBE DOS NÚMEROS`
+- **Cierre:** Corte seco
+
+### Escena 10 · 2:16–2:32
+
+- **Objetivo:** Que sepa qué hacer con cada sello
+- **Narración:** «Listo. Si dice «Cuadra», sigue con el siguiente. Si dice «Revisar» o «No cuadra», coméntaselo al supervisor hoy.»
+- **Plano:** Grabación de pantalla
+- **Movimiento de cámara:** Fija
+- **Material:** `and-13b_listo-inventario`, zoom `Z-26`
+- **Animaciones:** Los tres sellos posibles en secuencia
+- **Texto en pantalla:** `CUADRA / REVISAR / NO CUADRA`
+- **Cierre:** Corte seco
+
+### Escena 11 · 2:32–2:44
+
+- **Objetivo:** Que nunca repita una carga
+- **Narración:** «Sin señal también queda guardada y sube sola. Nunca registres el mismo vehículo dos veces.»
+- **Plano:** Grabación de pantalla
+- **Movimiento de cámara:** Fija
+- **Material:** `and-03b_inicio-offline`
+- **Animaciones:** El aviso cambiando de «En cola» a «Todo sincronizado»
+- **Texto en pantalla:** `SIN SEÑAL TAMBIÉN QUEDA`
+- **Cierre:** Corte seco
+
+### Escena 12 · 2:44–2:50
+
+- **Objetivo:** Cerrar con la promesa cumplida
+- **Narración:** «Eso es todo. Dos números y una foto en cada punta.»
+- **Plano:** Plano general del carrotanque saliendo
+- **Movimiento de cámara:** Fija
+- **Material:** `F-27`, `F-90`
+- **Animaciones:** Cierre con marca
+- **Texto en pantalla:** ninguno
+- **Cierre:** Fundido a negro
 
 ---
 
 ## Notas de producción
 
 - **Grabación real de pantalla**, no animación de mockups: el operador tiene que reconocer exactamente lo que verá.
-- **Las escenas del medidor o del carrotanque se graban en planta**, con luz de día real. Es donde se pierde la credibilidad si se falsea.
-- Los datos deben ser los de demostración, con los mismos números de las capturas.
-- **Sin música con letra.** El video se ve con ruido de planta de fondo; la voz tiene que ganar.
-- Subtítulos quemados siempre: muchos lo verán sin audio.
-- Cada escena debe funcionar como imagen fija: si alguien pausa, la pantalla se explica sola.
+- **Las escenas de campo se graban en la misma visita que las fotografías** del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
+- **Los planos «mal hechos» se graban a propósito** y con cuidado: tienen que parecer el error real de alguien apurado, no una parodia.
+- **Sin personas identificables sin autorización escrita.**
 
 ## Reglas de narración
 
-- **Segunda persona y voz activa:** «toma la foto», no «se debe tomar la fotografía».
-- **Sin jerga:** nada de «sincronizar», «offline» ni «validación». Se dice «subir», «sin señal» y «revisar».
-- **Los números literales se dicen en voz alta** («cero punto cero», «ciento cincuenta»): quien mira el video suele estar de pie, sin poder leer detalles.
-- **Nunca se promete lo que el producto no hace.** Si la carga puede quedar marcada, el video lo dice.
+1. **Tutear al operador, usted al supervisor y al administrador.** Es como se les habla en la planta.
+2. **Nunca decir el nombre de una pantalla.** Se dice qué se hace, no dónde.
+3. **Una idea por escena.** Si la narración necesita un «y además», falta una escena.
+4. **Las cifras se dicen completas** («ciento cincuenta galones»), nunca leídas dígito a dígito.
+5. **Cerrar con el tiempo real.** «Cuarenta segundos» es la promesa que hace que alguien lo intente.
 
 ---
 
-## Planos
+## Qué hace falta para grabar
 
-Un video de capacitación no es una grabación de pantalla con voz encima. Estos son los planos que hay que llevar al rodaje:
+| Material                      | Estado                                                         |
+| ----------------------------- | -------------------------------------------------------------- |
+| Guion                         | **Cerrado** — este documento                                   |
+| Capturas de pantalla          | Ver [`../12_Capturas/CATALOGO.md`](../12_Capturas/CATALOGO.md) |
+| Fotografías y planos de campo | Pendientes de la visita a planta                               |
+| Locución                      | Pendiente                                                      |
+| Montaje                       | Pendiente                                                      |
 
-| Plano                     | Qué encuadra                                                                     | Dónde se usa                                      |
-| ------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Plano general             | El carrotanque completo entrando a la estación.                                  | Escenas 1, 12                                     |
-| Plano detalle de la placa | Solo la placa, nítida. Conecta con el paso de elegir el vehículo.                | Escena 5                                          |
-| Plano medio               | El operador junto al carrotanque, teléfono en mano.                              | Escenas 4, 9                                      |
-| Plano del acople          | La manguera conectándose al carrotanque.                                         | Escena 9                                          |
-| Grabación de pantalla     | El teléfono real. El recuadro de las tres cifras llenándose se graba sin cortes. | Escena 10 — **el plano más importante del video** |
-
-**Regla de rodaje:** los planos de campo se graban en la misma visita que las fotografías del [`inventario-fotografico.md`](../00_Fuente/inventario-fotografico.md). Es una sola coordinación con el cliente, no dos.
-
-## Textos en pantalla
-
-Se queman sobre la imagen, en mayúsculas, sin animación de entrada llamativa. **Nunca repiten literalmente la narración**: la refuerzan con la frase que debe quedar.
-
-| Momento | Texto                              |
-| ------- | ---------------------------------- |
-| 0:14    | `INSTALAR: UNA SOLA VEZ`           |
-| 1:05    | `ESCRIBE CON CUÁNTO LLEGÓ`         |
-| 1:12    | `SI LLEGÓ VACÍO: 0,0`              |
-| 2:05    | `ESCRIBE SOLO LO QUE ECHÓ LUBRYCO` |
-| 2:18    | `EL TOTAL LO CALCULA LA APP`       |
-| 2:40    | `CUADRA / REVISAR / NO CUADRA`     |
+**El guion no vuelve a tocarse.** Si al grabar aparece la necesidad de cambiar una escena, se cambia aquí primero — no en la mesa de montaje, donde el cambio no queda registrado en ninguna parte.
