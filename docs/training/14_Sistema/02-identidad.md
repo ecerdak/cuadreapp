@@ -1,221 +1,168 @@
-# Biblioteca de componentes gráficos
+# 02 · Identidad de capacitación
 
-Un catálogo de **piezas repetibles**, no de decisiones visuales.
+Los doce elementos con los que se construye cualquier documento de CuadreApp.
 
-**Este documento no decide colores, tipografías ni medidas.** Dice qué componentes existen, para qué sirve cada uno, cuándo se usa y —tan importante— cuándo NO. El Design System oficial resuelve cómo se ven.
+**Este documento define significado, no apariencia.** No fija colores, tipografías ni medidas: eso pertenece a Claude Design y al Design System del producto. Fija qué es cada elemento, cuándo aparece y —tan importante— cuándo NO.
 
-**Por qué esa separación:** si aquí se fijaran colores, el día que cambie el Design System habría que reescribir 115 páginas. Aquí se fija el _significado_; allá, la apariencia.
-
----
-
-## Cómo se lee cada ficha
-
-| Campo          | Qué dice                             |
-| -------------- | ------------------------------------ |
-| **Papel**      | Qué hace por el lector               |
-| **Cuándo**     | La condición que lo dispara          |
-| **Cuándo NO**  | El uso equivocado que hay que evitar |
-| **Contenido**  | Qué cabe adentro                     |
-| **Frecuencia** | Cuántas veces aparece en el kit      |
+**Por qué esa separación:** si aquí se fijaran colores, el día que cambie el Design System habría que rehacer 115 páginas. El significado es lo que no puede cambiar sin reescribir el material.
 
 ---
 
-## Familia 1 · Avisos
+## Prioridades
 
-### `CMP-01` · Nota
-
-- **Papel:** información útil que no cambia lo que la persona hace.
-- **Cuándo:** un dato que ayuda a entender, no a decidir.
-- **Cuándo NO:** para nada que tenga consecuencia. Si tiene consecuencia, es advertencia o prohibición.
-- **Contenido:** una o dos frases. Sin título.
-- **Frecuencia:** ~40 apariciones.
-
-### `CMP-02` · Consejo
-
-- **Papel:** un atajo que solo conoce quien ya lleva tiempo.
-- **Cuándo:** hay una forma más rápida y la persona no la va a descubrir sola.
-- **Cuándo NO:** cuando el «consejo» es en realidad el procedimiento. Eso va en el paso.
-- **Contenido:** una frase. Verbo en imperativo.
-- **Frecuencia:** ~25.
-
-### `CMP-03` · Advertencia
-
-- **Papel:** algo puede salir mal y todavía se está a tiempo.
-- **Cuándo:** una acción tiene una consecuencia recuperable.
-- **Cuándo NO:** para prohibiciones. Una advertencia que dice «nunca» está mal clasificada.
-- **Contenido:** título de una línea + una frase con la consecuencia.
-- **Frecuencia:** ~30.
-
-### `CMP-04` · Prohibición
-
-- **Papel:** la consecuencia no se puede deshacer.
-- **Cuándo:** perder datos, registrar dos veces, borrar el almacenamiento.
-- **Cuándo NO:** por costumbre. **Si todo es prohibición, nada lo es** — el kit se permite unas 20 en total, y esa escasez es lo que las hace funcionar.
-- **Contenido:** verbo en negativo, primera palabra «Nunca».
-- **Frecuencia:** ~20. **Presupuesto cerrado.**
-
-### `CMP-05` · Error
-
-- **Papel:** describir un estado en el que la persona ya está.
-- **Cuándo:** en las páginas de troubleshooting, encabezando cada caso.
-- **Cuándo NO:** para prevenir. Prevenir es `CMP-03`.
-- **Contenido:** la frase textual con que la persona reporta el problema, entre comillas.
-- **Frecuencia:** ~20.
+|        |                                                           |
+| ------ | --------------------------------------------------------- |
+| **P0** | Sin él no se puede diagramar ninguna página. 6 elementos. |
+| **P1** | Necesario para un manual completo. 4 elementos.           |
+| **P2** | Mejora una página que ya funciona. 2 elementos.           |
 
 ---
 
-## Familia 2 · Estructura de un procedimiento
+## `EL-01` · Paso
 
-### `CMP-10` · Paso numerado
-
-- **Papel:** una acción, una vez.
+- **Objetivo:** una acción, ejecutada una vez, en un orden.
+- **Cuándo:** siempre que la persona tenga que hacer algo con las manos.
+- **Cuándo NO:** para describir lo que la aplicación hace sola. Eso no es un paso, es un resultado.
 - **Contenido:** número + verbo en imperativo + máximo dos líneas.
-- **Frecuencia:** ~180. **Es el componente más usado del kit.**
+- **Prioridad:** **P0** — es el elemento más usado del sistema (~180 apariciones).
 
-### `CMP-11` · Bloque de momento
+## `EL-02` · Resultado esperado
 
-- **Papel:** abrir un capítulo situando a la persona en el mundo real.
-- **Cuándo:** al comienzo de cada capítulo de operador.
-- **Contenido:** identificador del momento, frecuencia y duración.
-- **Frecuencia:** 28 (cuatro manuales × siete capítulos).
+- **Objetivo:** decir cómo se ve el éxito, para que la persona sepa que puede seguir.
+- **Cuándo:** al cerrar todo capítulo de operador y todo proceso de administrador.
+- **Cuándo NO:** si no se puede describir en una frase observable. Eso significa que el capítulo enseña dos cosas y hay que partirlo.
+- **Contenido:** una frase, en presente, describiendo algo que se ve.
+- **Prioridad:** **P0**
 
-### `CMP-12` · Bloque de decisión
+## `EL-03` · Advertencia
 
-- **Papel:** el equivalente del anterior para supervisores: «si ve esto…».
-- **Frecuencia:** 14.
+- **Objetivo:** avisar que algo puede salir mal, cuando todavía se está a tiempo.
+- **Cuándo:** una acción tiene una consecuencia **recuperable**.
+- **Cuándo NO:** para prohibiciones. Una advertencia que dice «nunca» está mal clasificada y hay que convertirla en `EL-04`.
+- **Contenido:** título de una línea + una frase con la consecuencia concreta.
+- **Prioridad:** **P0**
 
-### `CMP-13` · Resultado esperado
+## `EL-04` · Prohibición
 
-- **Papel:** cerrar el capítulo diciendo cómo se ve el éxito.
-- **Cuándo NO:** si no se puede describir en una frase observable, el capítulo está mal escrito.
-- **Frecuencia:** 28.
+- **Objetivo:** marcar lo que no se puede deshacer.
+- **Cuándo:** perder datos, registrar dos veces, borrar el almacenamiento, elegir un equipo distinto al real.
+- **Cuándo NO:** por costumbre o por énfasis. **Presupuesto cerrado: unas 20 en todo el material.** Si todo es prohibición, nada lo es.
+- **Contenido:** primera palabra «Nunca», verbo en negativo, una línea.
+- **Prioridad:** **P0**
 
-### `CMP-14` · Timeline
+## `EL-05` · Error
 
-- **Papel:** mostrar un proceso largo como una secuencia con sus tiempos.
-- **Cuándo:** el proceso de incorporación de un cliente y el mapa de la jornada del operador.
-- **Cuándo NO:** para procesos de menos de cinco pasos. Ahí basta con pasos numerados.
-- **Frecuencia:** 9.
+- **Objetivo:** describir un estado en el que la persona **ya está**, con la frase que ella usaría.
+- **Cuándo:** encabezando cada caso de las páginas de problemas.
+- **Cuándo NO:** para prevenir algo que todavía no pasó. Eso es `EL-03`.
+- **Contenido:** la frase textual con que se reporta el problema, entre comillas.
+- **Prioridad:** **P0**
 
-### `CMP-15` · Checklist
+## `EL-06` · Comparativa
 
-- **Papel:** verificar, no enseñar.
-- **Cuándo:** al final de un capítulo y en las páginas arrancables.
-- **Contenido:** casillas vacías, una línea cada una, sin explicaciones.
-- **Frecuencia:** 7 páginas completas + bloques dentro de capítulos.
+- **Objetivo:** enseñar un error en dos segundos enfrentando incorrecto y correcto.
+- **Cuándo:** hay una forma de hacer algo que se ve casi igual a la correcta y no lo es.
+- **Cuándo NO:** con más de tres imágenes. Cuatro dejan de compararse y pasan a ojearse.
+- **Contenido:** 2 o 3 imágenes + un mensaje que dice qué hacer, no qué se ve. **Lo incorrecto va primero** (`PR-09`).
+- **Prioridad:** **P0**
 
----
+## `EL-07` · Zoom
 
-## Familia 3 · Imagen
+- **Objetivo:** ampliar exactamente la zona donde ocurre la acción.
+- **Cuándo:** hay algo que leer o que tocar y en la captura completa no se distingue.
+- **Cuándo NO:** para ampliar «porque se ve pequeño». **Sin acción o lectura asociada, un zoom es ruido** y se rechaza.
+- **Contenido:** recorte ampliado + un solo callout. Nunca dos.
+- **Prioridad:** **P1**
 
-### `CMP-20` · Captura con llamados
+## `EL-08` · Checklist
 
-- **Papel:** la unidad visual básica del kit.
-- **Contenido:** una captura + entre uno y cuatro llamados numerados.
-- **Cuándo NO:** con más de cuatro llamados. Si hacen falta más, la página está intentando enseñar dos cosas.
-- **Frecuencia:** ~60.
+- **Objetivo:** verificar, no enseñar.
+- **Cuándo:** al cerrar un capítulo y en las páginas arrancables.
+- **Cuándo NO:** como resumen del contenido. Quien usa un checklist ya sabe hacer el trabajo; explicarle otra vez lo insulta y lo hace inútil.
+- **Contenido:** casillas vacías, una línea cada una, **cero explicaciones**.
+- **Prioridad:** **P1**
 
-### `CMP-21` · Zoom
+## `EL-09` · Proceso
 
-- **Papel:** ampliar la zona donde ocurre la acción.
-- **Contenido:** recorte ampliado + un solo callout.
-- **Cuándo NO:** para ampliar «porque se ve pequeño». Sin acción asociada, es ruido.
-- **Frecuencia:** 51.
+- **Objetivo:** mostrar una secuencia larga con sus etapas y sus tiempos.
+- **Cuándo:** más de cinco pasos, o pasos que ocurren en días distintos.
+- **Cuándo NO:** para secuencias cortas. Ahí basta con pasos numerados, y un diagrama sobra.
+- **Contenido:** etapas en orden, con duración y con quién interviene.
+- **Prioridad:** **P1**
 
-### `CMP-22` · Comparativa
+## `EL-10` · Nota
 
-- **Papel:** enfrentar incorrecto y correcto.
-- **Contenido:** dos o tres imágenes + una frase.
-- **Regla de orden:** **lo incorrecto va primero.**
-- **Frecuencia:** 9.
+- **Objetivo:** dar contexto que ayuda a entender pero no cambia lo que se hace.
+- **Cuándo:** un dato que responde un «¿por qué?» previsible.
+- **Cuándo NO:** para nada que tenga consecuencia. **Si tiene consecuencia, es advertencia o prohibición**, y disfrazarla de nota es cómo se pierde un dato importante.
+- **Contenido:** una o dos frases, sin título.
+- **Prioridad:** **P1**
 
-### `CMP-23` · Fotografía a sangre
+## `EL-11` · Recomendación
 
-- **Papel:** abrir un manual o un capítulo con la planta real.
-- **Cuándo NO:** en medio de un procedimiento. Interrumpe.
-- **Frecuencia:** 11.
+- **Objetivo:** un atajo que solo conoce quien ya lleva tiempo.
+- **Cuándo:** existe una forma más rápida que la persona no va a descubrir sola.
+- **Cuándo NO:** cuando la «recomendación» es en realidad el procedimiento. Eso es un paso, y ponerlo como opcional hace que se omita.
+- **Contenido:** una frase, verbo en imperativo.
+- **Prioridad:** P2
 
-### `CMP-24` · Antes / Después
+## `EL-12` · Dato importante
 
-- **Papel:** mostrar el cambio de estado de una misma cosa.
-- **Cuándo:** la carátula antes y después de una carga.
-- **Frecuencia:** 6.
-
----
-
-## Familia 4 · Datos
-
-### `CMP-30` · Tabla de decisión
-
-- **Papel:** «si pasa esto → haga esto».
-- **Contenido:** dos o tres columnas. **Nunca más de tres.**
-- **Frecuencia:** ~35.
-
-### `CMP-31` · Bloque de tres cifras
-
-- **Papel:** mostrar llegada + despacho + total, marcando cuál calcula el sistema.
-- **Cuándo:** perfil Carga sobre Inventario, en todas sus audiencias.
-- **Frecuencia:** 8. **Es el componente conceptualmente más importante de ese perfil.**
-
-### `CMP-32` · Tarjeta de estado
-
-- **Papel:** los tres sellos — Cuadra, Revisar, No cuadra.
-- **Contenido:** el sello + qué significa + qué hacer.
-- **Frecuencia:** 11.
-
-### `CMP-33` · Tabla de tiempos
-
-- **Papel:** cerrar cada manual con cuánto tarda cada cosa la primera vez y en rutina.
-- **Frecuencia:** 7.
-
-### `CMP-34` · Pregunta frecuente
-
-- **Papel:** una duda real con su respuesta.
-- **Contenido:** la pregunta como se dice, en negrita, y la respuesta debajo.
-- **Frecuencia:** 41.
+- **Objetivo:** fijar una cifra, un límite o una regla que hay que recordar.
+- **Cuándo:** el dato se va a necesitar después, fuera del contexto donde aparece.
+- **Cuándo NO:** más de uno por página. Dos datos «importantes» juntos no se recuerda ninguno.
+- **Contenido:** el dato, y qué pasa si no se respeta.
+- **Prioridad:** P2
 
 ---
 
-## Familia 5 · Página
+## Elementos derivados
 
-### `CMP-40` · Portada
+No son elementos propios: son composiciones fijas de los anteriores. **No se inventa una composición nueva sin agregarla aquí.**
 
-### `CMP-41` · Encabezado y pie corridos
+| Composición               | Se arma con                   | Dónde                                         |
+| ------------------------- | ----------------------------- | --------------------------------------------- |
+| **Bloque de momento**     | Nota + dato de duración       | Apertura de capítulo de operador              |
+| **Bloque de decisión**    | Error + nota + pasos          | Apertura de decisión de supervisor            |
+| **Tarjeta de estado**     | Dato importante ×3            | Los tres sellos: Cuadra / Revisar / No cuadra |
+| **Bloque de tres cifras** | Dato importante + prohibición | Perfil Carga sobre Inventario                 |
+| **Tabla de decisión**     | Pasos en dos o tres columnas  | Todas las audiencias                          |
+| **Captura con llamados**  | Zoom ×1–4 sobre una imagen    | Todas las audiencias                          |
 
-### `CMP-42` · Apertura de capítulo
-
-### `CMP-43` · Página arrancable
-
-- **Papel:** checklists y guías rápidas, marcadas para arrancar y colgar.
-- **Cuándo NO:** en medio de un capítulo — una página arrancable rompe la numeración si alguien la arranca de verdad, así que va al final.
+**Los tres sellos van siempre juntos.** Nunca se documenta uno solo: el lector aprende el semáforo completo o no aprende ninguno.
 
 ---
 
 ## Presupuesto por página
 
-Un límite deliberado, no una sugerencia:
+Límites, no metas. Se cuentan elementos, no líneas:
 
-| Tipo de página           | Máximo de componentes |
-| ------------------------ | --------------------- |
-| Capítulo de operador     | 8                     |
-| Decisión de supervisor   | 7                     |
-| Proceso de administrador | 10                    |
-| Guía rápida              | 6                     |
-| Checklist                | 3                     |
+| Tipo de página           | Máximo de elementos |
+| ------------------------ | ------------------- |
+| Capítulo de operador     | 8                   |
+| Decisión de supervisor   | 7                   |
+| Proceso de administrador | 10                  |
+| Guía rápida              | 6                   |
+| Checklist                | 3                   |
 
-**Una página que necesita más componentes está intentando enseñar dos cosas.** La solución es partirla, no comprimirla.
+**Una página que necesita más está enseñando dos cosas** (`PR-02`). La solución es partirla.
+
+---
+
+## Regla de extensión
+
+**Si al diagramar hace falta un elemento que no está aquí, se agrega a este documento primero.**
+
+Inventarlo dentro de una página es como nacen los sistemas que nadie puede mantener: a los seis meses hay tres formas distintas de decir «cuidado» y el lector no reconoce ninguna como la misma cosa.
 
 ---
 
 ## Resumen
 
-| Familia    | Componentes        | Apariciones |
-| ---------- | ------------------ | ----------- |
-| Avisos     | 5                  | ~135        |
-| Estructura | 6                  | ~270        |
-| Imagen     | 5                  | ~130        |
-| Datos      | 5                  | ~100        |
-| Página     | 4                  | ~130        |
-| **Total**  | **25 componentes** | **~765**    |
+| Prioridad | Elementos                                                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **P0**    | `EL-01` Paso · `EL-02` Resultado esperado · `EL-03` Advertencia · `EL-04` Prohibición · `EL-05` Error · `EL-06` Comparativa |
+| **P1**    | `EL-07` Zoom · `EL-08` Checklist · `EL-09` Proceso · `EL-10` Nota                                                           |
+| **P2**    | `EL-11` Recomendación · `EL-12` Dato importante                                                                             |
 
-25 componentes cubren 115 páginas. **Si al diagramar aparece la necesidad de un componente nuevo, hay que agregarlo aquí primero** — no inventarlo en una página, que es como nacen los kits que nadie puede mantener.
+**Con los seis de P0 se puede diagramar una guía rápida completa y un capítulo de operador.** Los otros seis no bloquean nada.
