@@ -63,7 +63,7 @@ El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisi�
 
 ## 3. Puesta en marcha de un entorno (orden)
 
-1. **Supabase:** crear proyecto → `supabase link` → `supabase db push` (aplica las 5 migraciones, incluido el bucket) → aplicar `seed.sql` si es entorno de prueba.
+1. **Supabase:** crear proyecto → `supabase link` → `supabase db push` (aplica las migraciones de `supabase/migrations/`, incluidos el bucket de logos y el permiso `tablero.leer`) → aplicar `seed.sql` si es entorno de prueba.
 2. **Códigos de enrolamiento** (hasta que el dashboard los genere):
    ```sql
    insert into codigos_enrolamiento (sede_id, codigo, expira_en)
@@ -76,7 +76,7 @@ El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisi�
 
 ## 4. Verificación
 
-- **Local/CI (sin infraestructura):** `pnpm verificar` — lint, formato, fronteras DEC-007, typecheck y 154 pruebas.
+- **Local/CI (sin infraestructura):** `pnpm verificar` — lint, formato, fronteras DEC-007, guard `sin-clientes`, typecheck y 495 pruebas.
 - **E2E (infraestructura real):**
   ```bash
   E2E_DATABASE_URL=postgres://... \

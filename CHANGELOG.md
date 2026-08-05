@@ -162,6 +162,33 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - Sobre infraestructura real: aplicar la migración `20260805090000` y configurar la identidad de los clientes reales desde la consola.
 - Unificación de `tema-cliente.ts` (hoy duplicado en consola y Dashboard) en el paquete de UI compartida previsto por DEC-015, cuando el Dashboard se conecte a la API (Fase C).
 
+## [Etapa P.2 — Dashboard de Cliente multiempresa] (5-ago-2026)
+
+### Decidido
+
+- DEC-020: **la empresa la decide la sesión, no la URL** — un único Dashboard para todos los clientes, sin subdominio, ruta, parámetro ni despliegue por cliente; aislamiento estructural (toda consulta se parametriza con el `cliente_id` de la sesión; la petición no tiene dónde nombrar otro cliente); el Perfil Operativo declara la composición del tablero y la evidencia de una carga la decide el snapshot de SU perfil; permiso `tablero.leer` solo para `supervisor` y `admin_cliente` — `admin_lubryco` queda fuera a propósito y su vista es la previa de la consola; cifras sin línea base se declaran desconocidas en vez de inventarse.
+
+### Agregado
+
+- Dominio: el registro de perfiles declara la **composición del tablero** — módulos, paneles de Hoy, columnas de cifras y vista de evidencia — con vocabulario congelado en `tipos.ts` y `composicionTablero()`. 5 pruebas nuevas (127).
+- BD (migración idempotente `20260805120000`, **sin aplicar**): permiso `tablero.leer` otorgado a `supervisor` y `admin_cliente`; índices de lectura por `(cliente_id, sede_id, finalizada_en)`, entregas por cliente/fecha y cargas con contador. Cero tablas y cero columnas nuevas: el esquema ya era multiempresa desde la Etapa 0. `supabase/verificacion_tablero.sql` prueba el aislamiento creando un segundo cliente con datos propios.
+- API: `/api/v1/tablero/*` — contexto, hoy, cargas, detalle, equipos y suministro. El alcance sale siempre de la sesión; una sede ajena responde 403 y una carga ajena responde el mismo 404 que una inexistente. La composición del tablero se transporta desde el dominio, no se decide en la API. Agregados de reporte (consumo por día en zona horaria de Bogotá, mediana histórica de rendimiento por equipo con `lag`/`percentile_cont`, balance) en un repositorio de lectura propio. 26 pruebas nuevas (130 en la API).
+- Dashboard: login propio con TokenStore y renovación (DEC-014); `FuenteApi` contra la API real; contexto de empresa resuelto una vez y consumido por todo el tablero; **registro de vistas por perfil** (`src/perfiles/`) como cuarto punto de despacho de DEC-016; selector de sede cuando la sesión no fija una; panel de inventario del día con capacidad y % de llenado; tabla de equipos que muestra desvío o llenado según lo que el equipo mida; cuatro pantallas de acceso denegado con su propia explicación. 41 pruebas nuevas (82).
+- Consola: la pestaña Dashboard de la ficha pasa a **vista previa administrativa** con «Abrir Dashboard» y «Copiar enlace» hacia el Dashboard oficial (`VITE_DASHBOARD_URL`). 4 pruebas nuevas (26), una de ellas afirma que el enlace no lleva identificador de cliente.
+- `docs/OPERACIONES.md` §8: alta de un supervisor en el Dashboard (incluida la elección deliberada de `sede_id` null para ver todas las sedes) y variables de entorno de los tres frontends.
+
+### Cambiado
+
+- El Dashboard deja de depender de datos simulados: el escenario determinista y su fuente se mueven a `src/pruebas/` como fixtures que cumplen el mismo contrato (si el contrato cambia, dejan de compilar). Desaparecen `datos/contexto-cliente.ts` y el chip «Demo» del marco.
+- El guard `pnpm sin-clientes` pierde sus tres excepciones de producción: ya no hay ningún archivo de producción que necesite nombrar a un cliente.
+- `docs/DASHBOARD_ARQUITECTURA.md` v2.0: la fase de datos simulados cumplió su promesa —conectar la API real fue una línea en `main.tsx`— y el documento pasa a describir el Dashboard multiempresa.
+
+### Pendiente
+
+- Sobre infraestructura real: aplicar `20260805120000_tablero_cliente` (sin ella el login funciona y el tablero responde 403), correr `supabase/verificacion_tablero.sql`, dar de alta un supervisor real y hacer el humo post-despliegue.
+- `VITE_API_URL` en el servicio del Dashboard y `VITE_DASHBOARD_URL` en el de la consola: hasta ahora el Dashboard no necesitaba variables (fase simulada).
+- La pestaña Suministro queda con su estado vacío hasta la Etapa 3: no existe todavía quién registre entregas, y sin ellas la existencia estimada y la autonomía se muestran «—».
+
 ## [Post-despliegue P.1] — Dirección registrada y corrección del E2E
 
 ### Decidido
