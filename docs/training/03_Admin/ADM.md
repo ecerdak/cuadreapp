@@ -119,9 +119,11 @@ Nombre, código y PIN de cuatro dígitos. El PIN **no se vuelve a mostrar**: an�
 Genere un código de enrolamiento por teléfono. Es de un solo uso y caduca. Dícteselo al operador mientras él tiene la aplicación abierta.
 
 **8 · Dar acceso al supervisor**
-· Captura `adm-08_usuarios.png`
 
-Correo y rol. El supervisor ve el tablero de su cliente y nada más.
+El acceso del supervisor **todavía no se crea desde la consola**: se solicita al equipo técnico de Lubryco, que lo da de alta siguiendo `docs/OPERACIONES.md`. El supervisor ve el tablero de su cliente y nada más.
+
+Mientras tanto, verifique el resultado desde la ficha del cliente, pestaña **Dashboard**: es exactamente lo que él va a ver.
+· Captura `adm-08_ficha-dashboard.png`
 
 ### Cómo sabe que salió bien
 
