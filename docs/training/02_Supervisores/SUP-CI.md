@@ -1,196 +1,317 @@
-# SUP-CI · Supervisores — Dashboard, perfil Carga sobre Inventario
+# Controlar lo que Lubryco entrega
 
-> Fuente: [`catalogo-pantallas.md`](../00_Fuente/catalogo-pantallas.md) · [`biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) · [`biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md)
-> Layout: [`../05_Layouts/SUP-CI.md`](../05_Layouts/SUP-CI.md) · Checklist: [`../06_Checklists/SUP-CI.md`](../06_Checklists/SUP-CI.md) · Troubleshooting: [`../07_Troubleshooting/SUP-CI.md`](../07_Troubleshooting/SUP-CI.md) · Video: [`../08_Storyboards/SUP-CI.md`](../08_Storyboards/SUP-CI.md)
+## Curso para supervisores · operación de carga sobre inventario
 
-**Relación con SUP-MD:** comparte las pestañas «Hoy», «Equipos» y «Suministro». Cambia **la lectura de la evidencia**, que en este perfil no tiene tanda, totalizador ni candados: tiene tres cifras y dos fotos del carrotanque.
-
----
-
-## 1. Resumen
-
-|                       |                                                                                                                               |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Audiencia**         | Responsable de la operación en el cliente. Computador de escritorio, una vez al día.                                          |
-| **Objetivo**          | Verificar que lo que salió del carrotanque corresponde con lo que Lubryco despachó, y detectar lo que no cuadra el mismo día. |
-| **Tiempo de lectura** | 10 minutos                                                                                                                    |
-| **Prerrequisitos**    | Usuario y contraseña del tablero                                                                                              |
-| **Perfil operativo**  | Carga sobre Inventario — sin medidor de tanda                                                                                 |
-| **Páginas estimadas** | 13                                                                                                                            |
-
-**Diferencia de fondo con Medidor Doble:** allí la confianza la da la aritmética de un medidor que no se puede resetear. **Aquí la da la evidencia fotográfica más el hecho de que el operador no puede escribir el total.** El manual debe ser explícito en esto, porque un supervisor que espera los tres candados y no los encuentra concluye que el sistema es más débil — y no lo es: es distinto.
+> `SUP-CI` · Momentos: [`catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md) · Callouts: [`biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) · Zooms: [`inventario-zooms.md`](../00_Fuente/inventario-zooms.md)
+> Layout: [`../05_Layouts/SUP-CI.md`](../05_Layouts/SUP-CI.md) · Quick Guide: [`../10_QuickGuides/QG-SUP.md`](../10_QuickGuides/QG-SUP.md) · Video: [`../08_Storyboards/SUP-CI.md`](../08_Storyboards/SUP-CI.md)
 
 ---
 
-## 2. Storyboard — página por página
+## Para quién es esto
 
-### Página 1 · Portada
+Para quien responde por lo que Lubryco entregó y por lo que se llevó cada carrotanque.
 
-- **Título:** El tablero de tu operación · **Subtítulo:** Guía del supervisor · Carga sobre Inventario
-- **Pantalla:** `dsh-01_hoy.png` (a sangre, difuminada)
+**Al terminar este curso usted podrá:** cerrar el día en cinco minutos, sustentar cada galón facturado con una fotografía, y saber cuándo una diferencia es un error de digitación y cuándo merece una llamada.
 
-### Página 2 · Qué responde este tablero
-
-- **Título:** Las tres preguntas · **Pantalla:** diagrama `AS-DIA-03`
-- **Contenido:** ¿cuadraron los despachos de hoy? · ¿algún carrotanque se sale del patrón? · ¿cuándo pedir el próximo despacho?
-
-### Página 3 · Empieza por «Hoy»
-
-- **Título:** La pantalla de la mañana · **Pantalla:** `dsh-01_hoy.png`
-- **Callouts:** `C-SUP-01` (Alta), `C-SUP-03` (Media)
-
-### Página 4 · Las cargas del día
-
-- **Título:** Lo que se registró hoy
-- **Pantalla:** `dsh-01_hoy.png` recortada al panel inferior
-- **Callouts:** `C-SUP-03` (Media)
-
-### Página 5 · La pestaña Cargas
-
-- **Título:** El historial de 14 días · **Pantalla:** `dsh-02_cargas.png`
-- **Callouts:** `C-SUP-04` (Alta), `C-SUP-05` (Media)
-
-### Página 6 · Leer una evidencia ★
-
-- **Título:** Qué mirar en una carga
-- **Objetivo:** la página más importante del manual.
-- **Pantalla:** `dsh-04_evidencia-inventario.png` (grande, página completa)
-- **Callouts:** `C-SUP-06` (Alta), `C-SUP-09` (Alta)
-- **Texto:** arriba las tres cifras, abajo las dos fotos del carrotanque (llegada y salida), y la duración de la operación.
-
-### Página 7 · Las tres cifras ★
-
-- **Título:** Llegó con, despachado, total al salir
-- **Objetivo:** que entienda de dónde sale cada número y cuál es verificable.
-- **Pantalla:** `dsh-04_evidencia-inventario.png` recortada al recuadro de cifras
-- **Callouts:** `C-SUP-09` (Alta), `C-SUP-10` (Alta)
-- **Contenido:** tabla con el ejemplo canónico:
-
-  | Cifra                            | Quién la pone  | Cómo se verifica                     |
-  | -------------------------------- | -------------- | ------------------------------------ |
-  | Llegó con · 150 gal              | El operador    | Foto de llegada del carrotanque      |
-  | Despachado por Lubryco · 600 gal | El operador    | Foto de salida + remisión de Lubryco |
-  | **Total al salir · 750 gal**     | **El sistema** | Es una suma: no se puede alterar     |
-
-- **Texto:** «El operador escribe dos números y el sistema calcula el tercero. Por eso no puede cuadrar el total a conveniencia: tendría que mentir en las dos cifras a la vez y que las fotos lo respaldaran.»
-
-### Página 8 · Por qué no hay candados aquí ★
-
-- **Título:** Qué verifica este perfil
-- **Objetivo:** desactivar la sensación de que este tablero verifica menos.
-- **Pantalla:** ninguna (comparativa `AS-DIA-04`)
-- **Contenido:** comparación honesta de los dos modelos:
-
-  |                         | Medidor Doble                              | Carga sobre Inventario                         |
-  | ----------------------- | ------------------------------------------ | ---------------------------------------------- |
-  | Base de la verificación | Aritmética de un medidor que no se resetea | Evidencia fotográfica + total calculado        |
-  | Lo verifica             | Tres candados automáticos                  | Fotos de llegada y salida + suma del sistema   |
-  | Punto débil conocido    | Depende de que el operador copie bien      | Depende de la calidad de las fotos             |
-  | Qué revisar tú          | Los candados en rojo                       | Que las fotos muestren el carrotanque completo |
-
-### Página 9 · Todas las banderas
-
-- **Título:** Qué te está diciendo cada aviso · **Pantalla:** ninguna (tabla)
-- **Contenido:** las banderas aplicables a este perfil (`SIN_DESPACHO`, `EXCEDE_CAPACIDAD`, `FOTO_FALTANTE`, `FUERA_DE_SEDE`, `SIN_GPS`, `POSIBLE_DUPLICADO`, `TIEMPO_ATIPICO`) con su mensaje literal y qué hacer. **No incluir** las de tanda y totalizador: en este perfil no se emiten y ponerlas confundiría.
-
-### Página 10 · Descargar para contabilidad
-
-- **Título:** El archivo de Excel · **Pantalla:** `dsh-02_cargas.png` recortada a la zona de descarga
-- **Callouts:** `C-SUP-05` (Media)
-- **Nota:** en este perfil, las columnas de tanda y totalizador salen vacías. Es correcto, no un error del archivo.
-
-### Página 11 · La pestaña Equipos
-
-- **Título:** Consumo por carrotanque · **Pantalla:** `dsh-05_equipos.png`
-- **Callouts:** `C-SUP-11` (Media)
-
-### Página 12 · La pestaña Suministro
-
-- **Título:** Cuándo pedir el próximo despacho · **Pantalla:** `dsh-06_suministro.png`
-- **Callouts:** `C-SUP-12` (Alta)
-- **Nota:** la existencia es estimada por balance, con margen ±2 %.
-
-### Página 13 · Tu rutina de cinco minutos
-
-- **Título:** Cada mañana · **Pantalla:** ninguna
-- **Contenido:** el checklist de §6, formato arrancable.
+**Tiempo:** 22 minutos.
 
 ---
 
-## 3. Capturas requeridas
+## Lo que esta operación sí demuestra y lo que no
 
-**5 capturas.** Cuatro compartidas con SUP-MD; **una exclusiva**.
+Antes de mirar una sola pantalla, hay que tener claro qué prueba esta información:
 
-| #   | Archivo                               | Pantalla | Compartida | Estado a capturar                                                |
-| --- | ------------------------------------- | -------- | ---------- | ---------------------------------------------------------------- |
-| 1   | `dsh-01_hoy.png`                      | DSH-01   | sí         | Con una carga marcada                                            |
-| 2   | `dsh-02_cargas.png`                   | DSH-02   | sí         | Filtro «Todas», fila seleccionada                                |
-| 3   | **`dsh-04_evidencia-inventario.png`** | DSH-04   | **no**     | Con 150 / 600 / 750, las dos fotos del carrotanque y la duración |
-| 4   | `dsh-05_equipos.png`                  | DSH-05   | sí         | Con un desvío alto                                               |
-| 5   | `dsh-06_suministro.png`               | DSH-06   | sí         | Autonomía en ámbar                                               |
+| Sí demuestra                                                             | No demuestra                                                 |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| Que un carrotanque específico estuvo en la estación ese día y a esa hora | Cuánto combustible hay hoy en el tanque de la estación       |
+| Cuántos galones dijo el operador que entregó Lubryco                     | El nivel medido de ningún tanque                             |
+| Cómo quedó el carrotanque al salir, según lo registrado                  | Que el carrotanque haya llegado realmente con lo que declaró |
+| Quién registró la carga y desde qué teléfono                             | Que no haya habido trasiegos fuera del proceso               |
 
-**Requisito de datos:** la captura 3 exige que el escenario de demostración del Dashboard tenga al menos una carga del perfil inventario. Hoy el escenario simulado es solo Medidor Doble — **es un prerrequisito de producción de esta captura**, anotado en `09_Exports/indice-general.md` como bloqueante.
-
-**Recortes:** panel de cargas de hoy, recuadro de tres cifras, zona de descarga. **3 recortes.**
+**Este es el punto que más se malinterpreta.** El registro es de despacho, no de aforo. Un curso que prometa lo segundo lo va a poner a usted en un problema.
 
 ---
 
-## 4. Callouts
+## Cómo está organizado
 
-**8 callouts:** `C-SUP-01`, `C-SUP-03`, `C-SUP-04`, `C-SUP-05`, `C-SUP-06`, `C-SUP-09`, `C-SUP-10`, `C-SUP-11`, `C-SUP-12`.
-
-**No aplican:** `C-SUP-02` (totalizador), `C-SUP-07` (candados), `C-SUP-08` (salto de totalizador) — son de Medidor Doble.
-
----
-
-## 5. Errores frecuentes
-
-`E-SUP-02` (falta la foto final) · `E-SUP-03` (desvío alto) · `E-SUP-04` (el operador no ve un equipo nuevo) · `E-SUP-05` (los números no cuadran con mi conteo).
-
-**No aplica:** `E-SUP-01` en su forma de salto de totalizador. En este perfil, «No cuadra» se debe casi siempre a despacho en cero o a falta de fotos.
+```
+¿HAY ALGO QUE ATENDER HOY?           →  Decisión 1
+UNA CARGA QUEDÓ MARCADA              →  Decisión 2
+FALTA UNA FOTOGRAFÍA                 →  Decisión 3
+LOS GALONES NO COINCIDEN CON LA GUÍA →  Decisión 4
+¿CUÁNTO LLEVAMOS ENTREGADO?          →  Decisión 5
+ME PIDEN SUSTENTAR UNA ENTREGA       →  Decisión 6
+CONTABILIDAD PIDE LOS DATOS          →  Decisión 7
+```
 
 ---
 
-## 6. Checklist operativo
+# Decisión 1 · ¿Hay algo que deba atender hoy?
 
-**Antes (una vez)**
+> Momento `S-01` · Cada mañana · 1 minuto
 
-1. Entré al tablero y cambié la contraseña provisional.
-2. Confirmé que el cliente y la sede que veo son los míos.
-3. Entiendo que el total al salir lo calcula el sistema, no el operador.
+### Si ve esto
 
-**Cada mañana (5 minutos)** 4. Abro «Hoy» y leo la frase de arriba. 5. Abro las cargas marcadas y reviso sus dos fotos. 6. Verifico que las tres cifras tengan sentido entre sí. 7. Si falta una foto, hablo con el operador **hoy**.
+Una frase arriba de todo, en verde, ámbar o rojo.
+· Captura `dsh-01_hoy.png` · Zoom `Z-60`
 
-**Cada semana** 8. Reviso «Equipos» y anoto desvíos ≥15 %. 9. Reviso «Suministro» y aviso a Lubryco si la autonomía baja de 7 días. 10. Descargo el Excel de 14 días.
+### Qué significa
+
+| Color     | Significa                                                |
+| --------- | -------------------------------------------------------- |
+| **Verde** | Todas las cargas de hoy quedaron completas y coherentes. |
+| **Ámbar** | Hay algo anotado que conviene mirar.                     |
+| **Rojo**  | Al menos una carga quedó incompleta o incoherente.       |
+
+### Qué debe revisar
+
+Si está en verde: nada más. Si no: la lista de cargas de hoy.
+
+### Qué decisión tomar
+
+Verde → siga con su día. Ámbar o rojo → Decisión 2.
+
+### A quién llamar
+
+A nadie todavía.
+
+### Qué NO hacer
+
+- **No** abra las cargas una por una cuando el veredicto está en verde.
+- **No** deje un rojo para mañana: el operador ya no va a recordar ese carrotanque.
 
 ---
 
-## 7. Troubleshooting
+# Decisión 2 · Una carga quedó marcada
 
-Matriz en [`../07_Troubleshooting/SUP-CI.md`](../07_Troubleshooting/SUP-CI.md).
+> Momento `S-02` · Cuando aparece · 3 minutos por carga
+
+### Si ve esto
+
+Una carga con sello **«No cuadra»** o **«Revisar»**.
+· Capturas `dsh-02_cargas.png`, `dsh-04_evidencia-inventario.png` · Zooms `Z-63`, `Z-67`
+
+### Qué significa
+
+En esta operación la marca casi siempre viene de una de tres cosas:
+
+1. **Despacho en cero** — se registró una carga de 0,0 galones. A veces es real (el carrotanque se fue sin cargar), y siempre hay que confirmarlo.
+2. **Falta una fotografía** — la de llegada o la final.
+3. **Un número fuera de rango** — una cifra que no se parece a nada de lo que ese vehículo suele llevar.
+
+### Qué debe revisar
+
+El recuadro de las tres cifras, que es donde se ve todo de un vistazo:
+
+|                        |                                           |
+| ---------------------- | ----------------------------------------- |
+| Llegó con              | lo que el operador anotó al empezar       |
+| Despachado por Lubryco | lo que el operador anotó al terminar      |
+| **Total al salir**     | **calculado por el sistema, no editable** |
+
+**Nadie escribió la tercera cifra.** No hay forma de que el total esté «inflado» a mano: si algo está mal, está en una de las dos primeras, y las dos tienen su fotografía.
+
+### Qué decisión tomar
+
+| Lo que encuentra                           | Decisión                                                          |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| Despacho en 0,0 y el operador lo confirma  | Correcto. La carga queda como constancia de que el vehículo pasó. |
+| Despacho en 0,0 sin explicación            | Llame al operador hoy.                                            |
+| Falta una foto                             | Decisión 3.                                                       |
+| La cifra de llegada parece la del despacho | Error clásico de digitación. Registre la corrección.              |
+
+### A quién llamar
+
+Al operador que registró la carga, el mismo día.
+
+### Qué NO hacer
+
+- **No** intente editar la carga. Una corrección es un registro nuevo con su motivo; el original queda visible.
+- **No** cambie la cifra de llegada «para que cuadre». Esa cifra tiene una foto asociada.
 
 ---
 
-## 8. Preguntas frecuentes
+# Decisión 3 · Falta una fotografía
 
-`F-SUP-01`, `F-SUP-03` a `F-SUP-07`, más una propia del perfil:
+> Momento `S-03` · Cuando aparece · **el mismo día**
 
-**¿Cómo sé que el operador no infló los galones despachados?**
-Porque la cifra tiene que coincidir con la remisión de Lubryco (pestaña Suministro) y con las dos fotos del carrotanque. Y porque el total al salir lo calcula el sistema: para cuadrar una mentira tendría que mentir en las dos cifras a la vez y que las fotos lo respaldaran.
+### Si ve esto
 
-**Adaptación de `F-SUP-02`:** en este perfil, «No cuadra» significa casi siempre despacho en cero o falta de fotografías, no un salto de medidor.
+Un recuadro ámbar en lugar de la foto de llegada o de la final.
+· Captura `dsh-04_evidencia-inventario.png` · Zoom `Z-67`
+
+### Qué significa
+
+En esta operación la fotografía es la evidencia principal: es lo que demuestra que ese vehículo, con esa placa, estuvo ahí. Sin ella, el registro sigue siendo válido, pero deja de ser sustentable frente a un tercero.
+
+### Qué debe revisar
+
+Si le pasa al mismo operador varias veces, el problema no es de disciplina: puede que esté despachando de noche, con poca luz, o con el vehículo mal ubicado.
+
+### Qué decisión tomar
+
+Hable con el operador hoy. Si se repite, revise las condiciones físicas del punto de despacho — iluminación y espacio para tomar el vehículo completo.
+
+### A quién llamar
+
+Al operador. Si se repite, al administrador de Lubryco.
+
+### Qué NO hacer
+
+- **No** lo deje para el cierre de mes.
+- **No** acepte una foto de galería como reemplazo: la aplicación solo admite cámara en vivo, y es a propósito.
 
 ---
 
-## 9. Tiempo esperado por pantalla
+# Decisión 4 · Los galones no coinciden con la guía
 
-| Pantalla                     | Primera vez | En rutina diaria |
-| ---------------------------- | ----------- | ---------------- |
-| DSH-01 Hoy                   | 3 min       | 1 min            |
-| DSH-02 Cargas (lista)        | 2 min       | 1 min            |
-| DSH-04 Evidencia (por carga) | 2 min       | 30 s             |
-| DSH-05 Equipos               | 3 min       | 1 min (semanal)  |
-| DSH-06 Suministro            | 3 min       | 1 min (semanal)  |
-| **Rutina diaria completa**   | —           | **≈ 4 min**      |
+> Momento `S-04` · Cuando ocurre · **el capítulo más importante de este curso**
 
-Más rápido que Medidor Doble: la evidencia son tres cifras y dos fotos, sin candados que interpretar.
+### Si ve esto
+
+La guía de remisión dice un número y el registro dice otro.
+
+### Qué significa
+
+Antes de asumir cualquier cosa, hay tres explicaciones más probables que un faltante:
+
+1. **La guía incluye lo que el vehículo ya traía** y el registro solo cuenta lo despachado por Lubryco. Es la causa número uno.
+2. **Se comparó el total al salir con la guía**, cuando lo comparable es la cifra de despacho.
+3. **Un dígito mal copiado** en cualquiera de los dos documentos.
+
+### Qué debe revisar
+
+1. Abra la evidencia y mire **las tres cifras separadas**, no el total.
+2. Compare la guía contra la línea **«Despachado por Lubryco»**, no contra **«Total al salir»**.
+3. Mire las dos fotografías: hora, placa y estado del vehículo.
+
+### Qué decisión tomar
+
+Si la diferencia desaparece al comparar contra la cifra correcta, no había diferencia. Si persiste, y las fotos son consistentes, entonces sí es una conversación con Lubryco — con la evidencia adjunta, no con una sospecha.
+
+### A quién llamar
+
+Primero al operador. Después a su contacto en Lubryco.
+
+### Qué NO hacer
+
+- **No** compare la guía contra el total al salir. Es el error que genera casi todas las falsas alarmas.
+- **No** escale sin haber abierto las dos fotografías.
+
+### Antes de escalar, tres preguntas
+
+☐ ¿Comparé contra «Despachado por Lubryco» y no contra el total?
+☐ ¿Miré las dos fotografías de esa carga?
+☐ ¿Confirmé con el operador con cuánto llegó el vehículo?
+
+**Si alguna quedó sin marcar, todavía no hay caso.**
+
+---
+
+# Decisión 5 · ¿Cuánto llevamos entregado?
+
+> Momento `S-05` · Semanal o mensual · 2 minutos
+
+### Si ve esto
+
+El acumulado de galones despachados del período.
+· Captura `dsh-06_suministro.png` · Zoom `Z-70`
+
+### Qué significa
+
+La suma de lo que Lubryco entregó, por vehículo y por día. Es la cifra que debe conversar con la facturación.
+
+### Qué debe revisar
+
+Que el período coincida con el de la factura, y que no haya días sin registros en jornadas en que sí hubo operación.
+
+### Qué decisión tomar
+
+Si hay un día de operación sin ninguna carga registrada, eso es lo que hay que averiguar — mucho más que una diferencia de galones.
+
+### Qué NO hacer
+
+- **No** use este acumulado como nivel de tanque de nadie. Es despacho, no existencia.
+
+---
+
+# Decisión 6 · Me piden sustentar una entrega
+
+> Momento `S-06` · Cuando ocurre · 3 minutos
+
+### Si ve esto
+
+Una carga puntual que alguien está cuestionando.
+· Captura `dsh-04_evidencia-inventario.png`
+
+### Qué significa
+
+Cada carga tiene: dos fotografías con hora y lugar, la placa del vehículo, el nombre del operador, el teléfono desde el que se registró, y las tres cifras. Eso es lo que usted entrega.
+
+### Qué debe revisar
+
+Que la placa de la fotografía sea la del vehículo en discusión. Es lo primero que va a mirar quien recibe el sustento.
+
+### Qué decisión tomar
+
+Envíe la evidencia completa, no un número suelto. Un número suelto invita a discutir; una fotografía con hora cierra la conversación.
+
+### Qué NO hacer
+
+- **No** recorte ni edite las imágenes.
+- **No** transcriba las cifras a un correo sin adjuntar la evidencia.
+
+---
+
+# Decisión 7 · Contabilidad me pide los datos
+
+> Momento `S-07` · Mensual · 2 minutos
+
+### Si ve esto
+
+El botón de descarga en la pantalla de cargas.
+· Captura `dsh-02_cargas.png`
+
+### Qué significa
+
+Un archivo de Excel con las cargas del período, con las tres cifras separadas en columnas propias.
+
+### Qué decisión tomar
+
+Descargue y envíe tal cual.
+
+### Qué NO hacer
+
+- **No** sume a mano el total al salir: ya viene calculado y verificado.
+
+---
+
+# Su rutina
+
+Versión imprimible en [`../06_Checklists/SUP-CI.md`](../06_Checklists/SUP-CI.md).
+
+**Cada mañana · 5 minutos**
+☐ Leí la frase de arriba ☐ Abrí las cargas marcadas ☐ Revisé las tres cifras separadas ☐ Si falta una foto, hablé con el operador hoy
+
+**Cada semana**
+☐ Revisé el acumulado del período ☐ Verifiqué que no haya días de operación sin registros
+
+---
+
+# Preguntas frecuentes
+
+De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40`, `P-42` a `P-47` y `P-50` a `P-53`.
+`P-50` («la guía dice otra cosa que el registro») va **primera**: es la consulta más frecuente de esta operación.
+
+---
+
+# Cuánto tarda cada cosa
+
+| Decisión                    | La primera vez | En rutina       |
+| --------------------------- | -------------- | --------------- |
+| ¿Hay algo que atender?      | 3 min          | 1 min           |
+| Una carga quedó marcada     | 5 min          | 3 min           |
+| Falta una fotografía        | 2 min          | 1 min           |
+| No coincide con la guía     | 6 min          | 3 min           |
+| ¿Cuánto llevamos entregado? | 3 min          | 1 min (semanal) |
+| **Rutina diaria**           | —              | **≈ 5 min**     |

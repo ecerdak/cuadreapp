@@ -1,266 +1,306 @@
-# ADM · Administrador — Consola completa
+# Poner un cliente a operar
 
-> Fuente: [`catalogo-pantallas.md`](../00_Fuente/catalogo-pantallas.md) · [`biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) · [`biblioteca-errores.md`](../00_Fuente/biblioteca-errores.md) · [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md)
-> Layout: [`../05_Layouts/ADM.md`](../05_Layouts/ADM.md) · Checklist: [`../06_Checklists/ADM.md`](../06_Checklists/ADM.md) · Troubleshooting: [`../07_Troubleshooting/ADM.md`](../07_Troubleshooting/ADM.md) · Video: [`../08_Storyboards/ADM.md`](../08_Storyboards/ADM.md)
+## Curso para el administrador de la plataforma · Lubryco
 
----
-
-## 1. Resumen
-
-|                        |                                                                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Audiencia**          | Equipo de Lubryco que administra la plataforma. Perfil técnico-comercial, no desarrollador.                                                                                     |
-| **Objetivo**           | Dar de alta un cliente completo —identidad, configuración y operación— y dejarlo operando, **sin escribir una línea de código ni tocar la base de datos**.                      |
-| **Tiempo de lectura**  | 18 minutos                                                                                                                                                                      |
-| **Tiempo de práctica** | 1 cliente completo de prueba (unos 15 minutos)                                                                                                                                  |
-| **Prerrequisitos**     | Usuario administrador de Lubryco · el logo del cliente en PNG/JPEG/WebP de menos de 1 MB · sus colores corporativos en formato `#RRGGBB` · los datos legales y las sedes reales |
-| **Alcance**            | Ambos perfiles operativos                                                                                                                                                       |
-| **Páginas estimadas**  | 22                                                                                                                                                                              |
-
-**La promesa que este manual tiene que cumplir:** al terminarlo, quien lo lea debe poder crear un cliente nuevo de principio a fin. Si algún paso exige llamar a un desarrollador, es un defecto del producto y hay que reportarlo — no una limitación que el manual deba justificar.
+> `ADM` · Momentos: [`catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md) · Callouts: [`biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) · Zooms: [`inventario-zooms.md`](../00_Fuente/inventario-zooms.md)
+> Layout: [`../05_Layouts/ADM.md`](../05_Layouts/ADM.md) · Quick Guide: [`../10_QuickGuides/QG-ADM.md`](../10_QuickGuides/QG-ADM.md) · Video: [`../08_Storyboards/ADM.md`](../08_Storyboards/ADM.md)
 
 ---
 
-## 2. Storyboard — página por página
+## Para quién es esto
 
-### Página 1 · Portada
+Para la persona de Lubryco que deja lista la plataforma para que otros trabajen.
 
-- **Título:** La consola de CuadreApp · **Subtítulo:** Guía del administrador · Lubryco
-- **Pantalla:** `adm-02_resumen.png` (a sangre, difuminada)
+**Al terminar este curso usted podrá:** llevar un cliente nuevo desde la firma hasta su primera carga registrada, y resolver en minutos lo que pase después.
 
-### Página 2 · Qué se administra desde aquí
-
-- **Título:** Todo, sin tocar código
-- **Pantalla:** ninguna (diagrama `AS-DIA-05`, la jerarquía)
-- **Contenido:** Cliente → Sedes → Equipos → Operadores → Dispositivos. Y transversal a todo: la identidad y la configuración del cliente.
-
-### Página 3 · Entrar
-
-- **Título:** Tu acceso · **Pantalla:** `adm-01_entrar.png`
-- **Texto:** correo y contraseña. Si falla, los dos mensajes posibles y qué significa cada uno.
-
-### Página 4 · El Resumen
-
-- **Título:** El pulso de la operación · **Pantalla:** `adm-02_resumen.png`
-- **Callouts:** `C-ADM-01` (Media), `C-ADM-02` (Alta)
-- **Texto:** seis indicadores del día y el panel de alertas — que es tu lista de pendientes.
-
-### Página 5 · Las alertas
-
-- **Título:** Qué hacer con cada alerta
-- **Pantalla:** `adm-02_resumen.png` recortada al panel de alertas
-- **Contenido:** los dos tipos y su acción: carga que no cuadra → avisar al supervisor del cliente; dispositivo sin señal más de 24 h → confirmar que el teléfono sigue en la planta y encendido.
-
-### Página 6 · Cargas de todos los clientes
-
-- **Título:** El registro completo · **Pantalla:** `adm-03_cargas.png`
-- **Texto:** filtro por cliente; la evidencia fotográfica se ve en el Dashboard de cada cliente, no aquí.
-
-### Página 7 · Los clientes
-
-- **Título:** La lista maestra · **Pantalla:** `adm-04_clientes.png`
-- **Callouts:** `C-ADM-03` (Media), `C-ADM-04` (Alta)
-- **Texto:** toda la fila abre la ficha; el buscador y el filtro de activos.
-
-### Página 8 · Crear un cliente ★
-
-- **Título:** Paso 1 · Crear el cliente
-- **Pantalla:** `adm-04_clientes.png` recortada al diálogo «Nuevo cliente»
-- **Callouts:** `C-ADM-04` (Alta)
-- **Texto:** razón social, nombre comercial, NIT y perfil operativo. El logo y los colores vienen después, en la ficha.
-- **Recuadro:** la diferencia entre razón social («Industrias Alimenticias El Trébol S.A.S.») y nombre comercial («El Trébol S.A.S.»): el primero va en documentos, el segundo es el que ven operadores y supervisores.
-
-### Página 9 · La ficha del cliente ★
-
-- **Título:** Las cuatro secciones · **Pantalla:** `adm-05_ficha-identidad.png` (con la navegación visible)
-- **Contenido:** Identidad (quién es) · Configuración (cómo opera) · Operación (qué tiene) · Dashboard (cómo va). Este es el mapa del resto del manual.
-
-### Página 10 · Identidad — datos y colores ★
-
-- **Título:** Paso 2 · La identidad del cliente
-- **Pantalla:** `adm-05_ficha-identidad.png` (grande)
-- **Callouts:** `C-ADM-05` (Alta), `C-ADM-06` (Media)
-- **Texto:** datos legales, los dos colores y el logo.
-
-### Página 11 · Por qué solo dos colores ★
-
-- **Título:** La identidad cambia, la experiencia no
-- **Objetivo:** que no pidan «poder personalizar más».
-- **Pantalla:** `adm-05_ficha-identidad.png` recortada a la vista previa
-- **Callouts:** `C-ADM-05` (Alta)
-- **Texto:** se guardan dos colores; el resto —bordes, estados, sombras, contraste del texto— lo deriva CuadreApp sola. Así ningún cliente termina con una interfaz distinta ni con texto ilegible sobre su color de marca.
-- **Nota:** si un color contrasta poco, la consola avisa pero no bloquea.
-
-### Página 12 · El logo
-
-- **Título:** Subir, reemplazar, eliminar
-- **Pantalla:** `adm-05_ficha-identidad.png` recortada al bloque del logo
-- **Callouts:** `C-ADM-06` (Media)
-- **Texto:** PNG, JPEG o WebP, máximo 1 MB. Sin logo se muestran las iniciales — nunca una imagen rota. SVG no se admite.
-
-### Página 13 · Configuración — el perfil operativo ★
-
-- **Título:** Paso 3 · Cómo opera este cliente
-- **Pantalla:** `adm-06_ficha-configuracion.png` (grande)
-- **Callouts:** `C-ADM-07` (Alta), `C-ADM-08` (Alta)
-- **Texto:** el perfil decide qué ve el operador al capturar y qué ve el supervisor como evidencia.
-
-### Página 14 · Elegir el perfil correcto ★
-
-- **Título:** ¿Medidor Doble o Carga sobre Inventario?
-- **Objetivo:** la decisión con más consecuencias de toda la consola.
-- **Pantalla:** ninguna (tabla comparativa `AS-DIA-06`)
-- **Contenido:**
-
-  |                      | Medidor Doble                                                            | Carga sobre Inventario                           |
-  | -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------ |
-  | Cuándo               | La planta despacha con un dispensador con medidor de tanda y totalizador | Se carga a carrotanques y se controla inventario |
-  | El operador registra | Tanda y totalizador, antes y después                                     | Con cuántos llegó y cuántos despachó Lubryco     |
-  | El sistema calcula   | Nada: verifica con tres candados                                         | El total al salir                                |
-  | La sede necesita     | Dispensador con totalizador inicial                                      | Solo la sede                                     |
-
-- **Regla:** ante la duda, preguntar si hay un medidor con dos números en la misma carátula. Si lo hay, es Medidor Doble.
-
-### Página 15 · Cambiar el perfil de un cliente que ya opera
-
-- **Título:** Qué pasa con la historia
-- **Pantalla:** `adm-06_ficha-configuracion.png` recortada al aviso ámbar
-- **Callouts:** `C-ADM-08` (Alta)
-- **Texto:** las cargas ya registradas conservan el suyo; los dispositivos toman el nuevo al sincronizar. La historia nunca se reinterpreta.
-
-### Página 16 · Operación — las sedes ★
-
-- **Título:** Paso 4 · Crear la sede
-- **Pantalla:** `adm-07_ficha-operacion.png` (grande, con el bloque de sedes)
-- **Callouts:** `C-ADM-09` (Alta)
-- **Texto:** nombre visible, ciudad, dirección y referencia. Si el perfil requiere medidor, aquí se define el dispensador y su totalizador de instalación.
-- **Advertencia:** el totalizador de instalación se escribe una vez y es la base de todo el histórico. Verificarlo contra la carátula física antes de guardar.
-
-### Página 17 · Equipos y operadores
-
-- **Título:** Paso 5 · Qué y quién
-- **Pantalla:** `adm-07_ficha-operacion.png` recortada a los bloques de equipos y operadores
-- **Callouts:** `C-ADM-10` (Media)
-- **Texto:** cada uno puede ser de una sede o de todas. El PIN del operador se define aquí y no vuelve a mostrarse nunca.
-
-### Página 18 · Dispositivos y enrolamiento ★
-
-- **Título:** Paso 6 · Enrolar el teléfono
-- **Pantalla:** `adm-07_ficha-operacion.png` recortada al bloque de dispositivos
-- **Callouts:** `C-ADM-11` (Alta)
-- **Texto:** «Generar código» → se lo dictas al operador → él lo escribe en su teléfono una sola vez. Vence en 7 días.
-
-### Página 19 · Revocar y reenrolar
-
-- **Título:** Cuando se pierde un teléfono · **Pantalla:** `adm-11_dispositivos.png`
-- **Callouts:** `C-ADM-12` (Alta)
-- **Texto:** «Revocar» corta el acceso en el acto. «Reenrolar» revoca y entrega un código nuevo en un solo paso.
-
-### Página 20 · El Dashboard del cliente
-
-- **Título:** Cómo va su operación · **Pantalla:** `adm-08_ficha-dashboard.png`
-- **Texto:** la operación del día del cliente, sin salir de la consola. Las columnas cambian según el perfil de las cargas.
-
-### Página 21 · Las vistas globales
-
-- **Título:** Cuando administras muchos clientes
-- **Pantallas:** `adm-09_equipos.png`, `adm-10_operadores.png`, `adm-11_dispositivos.png` (tres miniaturas)
-- **Texto:** las mismas entidades vistas de forma transversal, útiles para buscar algo sin saber de qué cliente es.
-
-### Página 22 · Alta de cliente en 10 minutos
-
-- **Título:** La secuencia completa · **Pantalla:** ninguna
-- **Contenido:** el checklist de §6 en una sola página, en orden, con casillas.
+**Tiempo:** 35 minutos.
 
 ---
 
-## 3. Capturas requeridas
+## Esto no se estudia por pantallas
 
-Capturas de escritorio, navegador maximizado. **11 capturas.**
+Usted no va a «crear un cliente» y luego «crear un equipo». Va a ejecutar **procesos completos**, que empiezan con una llamada y terminan con un operador cargando combustible. Este curso está organizado así.
 
-| #   | Archivo                          | Pantalla | Estado a capturar                                                           |
-| --- | -------------------------------- | -------- | --------------------------------------------------------------------------- |
-| 1   | `adm-01_entrar.png`              | ADM-01   | Formulario vacío                                                            |
-| 2   | `adm-02_resumen.png`             | ADM-02   | Con al menos dos alertas visibles                                           |
-| 3   | `adm-03_cargas.png`              | ADM-03   | Con el filtro de cliente desplegado                                         |
-| 4   | `adm-04_clientes.png`            | ADM-04   | Con 3+ clientes, uno con logo y otro con iniciales                          |
-| 5   | `adm-05_ficha-identidad.png`     | ADM-05   | Con logo cargado, dos colores puestos y la vista previa activa              |
-| 6   | `adm-06_ficha-configuracion.png` | ADM-06   | Con el aviso ámbar de cambio de perfil visible                              |
-| 7   | `adm-07_ficha-operacion.png`     | ADM-07   | Con las cuatro secciones pobladas (sede, equipos, operadores, dispositivos) |
-| 8   | `adm-08_ficha-dashboard.png`     | ADM-08   | Con cargas del día e historial                                              |
-| 9   | `adm-09_equipos.png`             | ADM-09   | Vista global con varios clientes                                            |
-| 10  | `adm-10_operadores.png`          | ADM-10   | Vista global                                                                |
-| 11  | `adm-11_dispositivos.png`        | ADM-11   | Con un dispositivo activo y uno revocado, y un código vigente               |
-
-**Recortes:** panel de alertas, diálogo «Nuevo cliente», vista previa de identidad, bloque del logo, aviso ámbar de perfil, bloque de sedes, bloques de equipos y operadores, bloque de dispositivos. **8 recortes.**
-
-**Datos para las capturas:** usar un cliente de demostración creado para esto (no el piloto real). Debe tener logo, dos colores, dos sedes y al menos un equipo compartido y uno exclusivo de sede, para que las capturas muestren las dos posibilidades.
+```
+INCORPORAR UN CLIENTE NUEVO       →  Proceso 1   (el central)
+SUMAR UNA SEDE                    →  Proceso 2
+ENTRA UN OPERADOR NUEVO           →  Proceso 3
+SE PERDIÓ UN TELÉFONO             →  Proceso 4   (urgente)
+CAMBIÓ LA IMAGEN DEL CLIENTE      →  Proceso 5
+CAMBIÓ LA FORMA DE OPERAR         →  Proceso 6   (delicado)
+REVISIÓN SEMANAL                  →  Proceso 7
+```
 
 ---
 
-## 4. Callouts
+## Las tres decisiones que no se deshacen
 
-**12 callouts:** `C-ADM-01` a `C-ADM-12`. Ocho de prioridad alta.
+Antes de cualquier proceso, tenga presente qué se puede corregir después y qué no:
 
-Los cuatro decisivos, que deben tener el mayor peso visual: `C-ADM-05` (dos colores), `C-ADM-07` (el perfil decide el flujo), `C-ADM-08` (la historia no se toca), `C-ADM-11` (el código vence).
+| Decisión                                         | ¿Se puede cambiar?           | Consecuencia si se equivoca                                                                              |
+| ------------------------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Perfil operativo del cliente**                 | Sí, pero solo hacia adelante | Las cargas ya registradas conservan el perfil con el que se hicieron. La historia nunca se reinterpreta. |
+| **Totalizador de instalación de un dispensador** | No                           | Todas las validaciones de continuidad parten de ahí. Un error obliga a corregir con registros nuevos.    |
+| **PIN de un operador**                           | Se reemplaza, no se consulta | No se puede volver a ver. Si se pierde, se asigna uno nuevo.                                             |
 
----
-
-## 5. Errores frecuentes
-
-`E-ADM-01` a `E-ADM-05`, y de la biblioteca de operadores, `E-OP-02` (el código de enrolamiento no funciona) — porque quien lo resuelve es el administrador.
-
----
-
-## 6. Checklist operativo
-
-**Alta de un cliente nuevo, en orden**
-
-1. Crear el cliente: razón social, nombre comercial, NIT y **perfil operativo**.
-2. Ficha → Identidad: subir el logo y poner los dos colores. Guardar.
-3. Ficha → Configuración: confirmar el perfil (o cambiarlo antes de que haya cargas).
-4. Ficha → Operación → Sedes: crear cada sede con su ciudad. Si el perfil requiere medidor, verificar el totalizador de instalación contra la carátula física.
-5. Ficha → Operación → Equipos: dar de alta cada equipo y decidir si es de una sede o de todas.
-6. Ficha → Operación → Operadores: nombre, código y PIN de cuatro dígitos. Anotar el PIN para dictárselo al operador — no se vuelve a ver.
-7. Ficha → Operación → Dispositivos: generar el código y dictárselo a quien instala.
-8. Confirmar con el operador que enroló y que ve sus equipos.
-9. Confirmar con el supervisor que entra al Dashboard y ve su identidad.
-
-**Mantenimiento semanal** 10. Revisar alertas en Resumen. 11. Revisar dispositivos sin señal por más de 24 h. 12. Revocar los dispositivos de teléfonos que ya no están en uso.
-
-**Nunca**
-
-- Nunca editar datos directamente en la base: todo tiene su pantalla.
-- Nunca reutilizar un código de enrolamiento entre teléfonos.
-- Nunca borrar un cliente para «empezar limpio»: arrastra su historia.
+Verifique estas tres con el cliente **antes** de guardar, no después.
 
 ---
 
-## 7. Troubleshooting
+# Proceso 1 · Incorporar un cliente nuevo
 
-Matriz en [`../07_Troubleshooting/ADM.md`](../07_Troubleshooting/ADM.md).
+> Momento `A-01` · 10 minutos en consola, más coordinación con la planta
+
+Este es el proceso central. Los demás son variaciones suyas.
+
+### Empieza cuando
+
+Lubryco cierra con un cliente y usted recibe: razón social, NIT, nombre comercial, sedes, equipos, operadores y **cómo opera esa planta**.
+
+### Termina cuando
+
+Un operador registró su primera carga y su supervisor la vio en el tablero.
+
+### Antes de tocar la consola, consiga esto
+
+☐ Razón social y NIT exactos, como aparecen en la cámara de comercio
+☐ Nombre comercial (el que verá el supervisor todos los días)
+☐ Logo en PNG, JPG o WEBP, **máximo 1 MB**
+☐ Dos colores corporativos en formato `#RRGGBB`
+☐ **Cómo opera:** ¿tiene medidor en el surtidor, o se despacha a carrotanques?
+☐ Lista de sedes, equipos con su código, y operadores
+
+**El punto de la forma de operar es el que más se demora en aclarar** y el que más consecuencias tiene. Pregúntelo primero.
+
+### Los pasos
+
+**1 · Crear el cliente**
+· Captura `adm-04_clientes.png` · Zoom `Z-81`
+
+Razón social, NIT, nombre comercial y **perfil operativo**. El perfil es la decisión de la que cuelga todo lo demás:
+
+| Si en la planta…                                      | El perfil es               | El operador va a registrar                |
+| ----------------------------------------------------- | -------------------------- | ----------------------------------------- |
+| Hay un medidor en el surtidor con tanda y totalizador | **Medidor Doble**          | Dos lecturas del medidor, antes y después |
+| Se despacha a carrotanques y no hay medidor           | **Carga sobre Inventario** | Con cuánto llegó y cuánto se despachó     |
+
+**2 · Cargar la identidad**
+· Captura `adm-05_ficha-identidad.png` · Zooms `Z-82`, `Z-83`, `Z-84`
+
+Logo y **exactamente dos colores**. Todo lo demás —bordes, sombras, estados, contraste del texto— lo deriva el sistema.
+
+Esta restricción es deliberada: **no hay CSS libre**. Con dos colores es imposible que un cliente termine con un tablero ilegible o con texto que no se lee sobre su propio color. Si el cliente pide más, la respuesta es que la plataforma garantiza legibilidad y accesibilidad, y eso solo se puede garantizar controlando la derivación.
+
+Mire la vista previa antes de guardar.
+
+**3 · Registrar las sedes**
+· Captura `adm-07_ficha-operacion.png`
+
+Al menos una. Aunque el cliente tenga una sola planta, la sede existe: es lo que permite crecer sin migrar nada.
+
+**4 · Registrar los equipos**
+· Captura `adm-07_ficha-operacion.png` · Zoom `Z-88`
+
+Código, descripción, y sede. **«Todas las sedes»** es una opción válida y frecuente: úsela para equipos que rotan. Un equipo asignado a una sede solo aparece en el catálogo de esa sede.
+
+**5 · Registrar el dispensador** _(solo Medidor Doble)_
+· Captura `adm-07_ficha-operacion.png` · Zoom `Z-86`
+
+El **totalizador de instalación** es el número que marca el medidor hoy. **Verifíquelo contra una fotografía del medidor**, no contra lo que le dictaron por teléfono. No se puede cambiar después.
+
+**6 · Registrar los operadores**
+· Captura `adm-07_ficha-operacion.png` · Zoom `Z-87`
+
+Nombre, código y PIN de cuatro dígitos. El PIN **no se vuelve a mostrar**: anótelo para dictárselo al operador en ese momento, y no lo guarde en ningún archivo.
+
+**7 · Enrolar los teléfonos**
+· Capturas `adm-07_ficha-operacion.png`, `adm-11_dispositivos.png` · Zooms `Z-89`, `Z-90`
+
+Genere un código de enrolamiento por teléfono. Es de un solo uso y caduca. Dícteselo al operador mientras él tiene la aplicación abierta.
+
+**8 · Dar acceso al supervisor**
+· Captura `adm-08_usuarios.png`
+
+Correo y rol. El supervisor ve el tablero de su cliente y nada más.
+
+### Cómo sabe que salió bien
+
+☐ El supervisor entró y ve el tablero con los colores de su empresa
+☐ El operador entró y ve su lista de equipos
+☐ Se registró una carga de prueba y aparece en el tablero
+☐ La carga de prueba quedó identificada como tal
+
+### Qué NO hacer
+
+- **No** deje el perfil operativo «para confirmar después». Determina lo que el operador verá mañana.
+- **No** invente el totalizador de instalación.
+- **No** envíe PIN ni códigos de enrolamiento por WhatsApp ni por correo.
+- **No** cree el cliente sin sede. Después toca reasignar todo a mano.
 
 ---
 
-## 8. Preguntas frecuentes
+# Proceso 2 · Sumar una sede a un cliente que ya opera
 
-`F-ADM-01` a `F-ADM-08`. **8 preguntas.**
+> Momento `A-02` · 5 minutos
 
-`F-ADM-02` («¿tengo que pedir código para un cliente nuevo?») debe ir primera: es la que confirma la promesa central del producto.
+### Empieza cuando
+
+El cliente abre una planta nueva.
+
+### Los pasos
+
+1. Cree la sede en la ficha de Operación del cliente.
+2. Registre sus equipos, o marque como **«Todas las sedes»** los que van a rotar.
+3. Si es Medidor Doble, registre el dispensador con su totalizador de instalación.
+4. Registre los operadores de esa sede y enrole sus teléfonos.
+
+### Qué NO hacer
+
+- **No** mueva equipos existentes a la sede nueva sin avisar: desaparecen del catálogo de la sede anterior de un día para otro.
+- **No** cree un cliente nuevo para una sede nueva. La sede vive dentro del cliente, y esa jerarquía es fija.
 
 ---
 
-## 9. Tiempo esperado por pantalla
+# Proceso 3 · Entra un operador nuevo
 
-| Pantalla                                           | Primera vez  | En rutina      |
-| -------------------------------------------------- | ------------ | -------------- |
-| ADM-01 Entrar                                      | 30 s         | 10 s           |
-| ADM-02 Resumen                                     | 2 min        | 1 min (diario) |
-| ADM-04 Clientes + crear                            | 3 min        | 1 min          |
-| ADM-05 Identidad (logo y colores)                  | 4 min        | 2 min          |
-| ADM-06 Configuración                               | 1 min        | 20 s           |
-| ADM-07 Operación (sede + 3 equipos + 2 operadores) | 8 min        | 4 min          |
-| ADM-07 Dispositivos (generar código)               | 30 s         | 15 s           |
-| **Alta completa de un cliente**                    | **≈ 18 min** | **≈ 10 min**   |
+> Momento `A-03` · 3 minutos
 
-La cifra de rutina (10 minutos) es la que el manual debe prometer, y es la que valida la promesa del producto: un cliente nuevo operando sin escribir código.
+### Empieza cuando
+
+El cliente avisa que hay una persona nueva en la planta.
+
+### Los pasos
+
+1. Regístrelo con nombre, código y PIN.
+2. Asígnelo a su sede, o a «Todas las sedes» si rota.
+3. Genere el código de enrolamiento de su teléfono.
+4. Acompáñelo en la primera carga.
+
+### Cómo sabe que salió bien
+
+El operador registró una carga completa sin ayuda.
+
+### Qué NO hacer
+
+- **No** reutilice el código de un operador que salió. Cada persona tiene el suyo, y es lo que permite saber quién registró qué.
+- **No** entregue un teléfono ya enrolado a otra persona sin reenrolarlo.
+
+---
+
+# Proceso 4 · Se perdió o se dañó un teléfono
+
+> Momento `A-04` · **inmediato** · 2 minutos
+
+### Empieza cuando
+
+Alguien avisa que un teléfono se perdió, se robó o se dañó.
+
+### Los pasos
+
+1. Abra Dispositivos y **revoque** ese teléfono. Deja de poder registrar de inmediato.
+   · Captura `adm-11_dispositivos.png` · Zoom `Z-90`
+2. Si el operador ya tiene otro teléfono, genere un código de enrolamiento nuevo.
+3. Si el teléfono tenía cargas sin subir, quedaron en ese aparato. Avísele al supervisor para que las reconstruya con el operador.
+
+### Qué NO hacer
+
+- **No** espere «a ver si aparece». La revocación es reversible; una carga registrada por un tercero, no.
+- **No** revoque el dispositivo equivocado: verifique el operador y la fecha del último uso antes de confirmar.
+
+---
+
+# Proceso 5 · El cliente cambió de imagen corporativa
+
+> Momento `A-05` · 3 minutos
+
+### Los pasos
+
+1. Abra la ficha de Identidad.
+2. Reemplace el logo, los colores, o el nombre comercial.
+3. Mire la vista previa.
+4. Guarde. El cambio se ve en el siguiente ingreso al tablero.
+
+### Qué NO hacer
+
+- **No** cambie la razón social ni el NIT por un cambio de marca: son datos legales y viven en otro campo.
+- **No** acepte colores fuera de `#RRGGBB`. La consola los rechaza, y está bien que lo haga.
+
+---
+
+# Proceso 6 · El cliente cambia su forma de operar
+
+> Momento `A-06` · **el proceso más delicado** · 5 minutos, más coordinación
+
+### Empieza cuando
+
+Una planta instala un medidor, o deja de usarlo y pasa a despachar a carrotanques.
+
+### Qué está en juego
+
+El perfil cambia **lo que el operador verá mañana**. No cambia nada de lo ya registrado: cada carga guardó el perfil con el que se hizo, y se sigue mostrando con esas reglas para siempre.
+· Captura `adm-06_ficha-configuracion.png` · Zoom `Z-85`
+
+### Los pasos
+
+1. Confirme con el cliente que el cambio ya es efectivo en la planta.
+2. Cambie el perfil en la ficha de Configuración.
+3. **Avísele al supervisor y a los operadores antes de que abran la aplicación.**
+4. Si el perfil nuevo es Medidor Doble, registre el dispensador con su totalizador de instalación.
+5. Acompañe la primera carga con el perfil nuevo.
+
+### Qué NO hacer
+
+- **No** cambie el perfil un día de operación alta.
+- **No** lo cambie sin avisar: el operador va a ver una pantalla que no reconoce.
+- **No** intente «convertir» las cargas anteriores. No se puede y no debe poderse.
+
+---
+
+# Proceso 7 · Revisión semanal de la plataforma
+
+> Momento `A-07` · 10 minutos
+
+### Los pasos
+
+1. Abra el resumen y revise las alertas.
+   · Captura `adm-02_resumen.png` · Zoom `Z-80`
+2. Mire los dispositivos sin actividad reciente: un teléfono que dejó de sincronizar es un problema que todavía no le han reportado.
+   · Captura `adm-11_dispositivos.png`
+3. Revise los clientes sin cargas en la semana. Puede ser vacaciones de la planta, o puede ser que dejaron de usar la aplicación.
+
+### Qué NO hacer
+
+- **No** espere a que el cliente reporte. La mayoría de los problemas de adopción se ven aquí una semana antes de que alguien llame.
+
+---
+
+# Sus rutinas
+
+Versión imprimible en [`../06_Checklists/ADM.md`](../06_Checklists/ADM.md).
+
+**Al incorporar un cliente**
+☐ Confirmé la forma de operar ☐ Logo bajo 1 MB ☐ Dos colores válidos ☐ Al menos una sede ☐ Totalizador verificado con foto ☐ PIN dictados en persona ☐ Carga de prueba registrada y visible
+
+**Cada semana**
+☐ Revisé alertas ☐ Revisé dispositivos sin actividad ☐ Revisé clientes sin cargas
+
+---
+
+# Preguntas frecuentes
+
+De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-60` a `P-72`.
+`P-60` («¿qué pasa con la historia si cambio el perfil?») va **primera**: es la duda que frena más incorporaciones.
+
+---
+
+# Cuánto tarda cada cosa
+
+| Proceso                   | La primera vez | Cuando ya sabe |
+| ------------------------- | -------------- | -------------- |
+| Incorporar un cliente     | 35 min         | 10 min         |
+| Sumar una sede            | 12 min         | 5 min          |
+| Operador nuevo            | 8 min          | 3 min          |
+| Teléfono perdido          | 5 min          | 2 min          |
+| Cambio de imagen          | 6 min          | 3 min          |
+| Cambio de forma de operar | 15 min         | 5 min          |
+| Revisión semanal          | 20 min         | 10 min         |
