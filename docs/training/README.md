@@ -1,4 +1,4 @@
-# Training Experience de CuadreApp — v3.0
+# Training Experience de CuadreApp — v4.0
 
 Esto **no es un conjunto de manuales**. Es el sistema que los genera, los mantiene sincronizados con el producto, y —desde la v2.0— los organiza por **cómo se trabaja**, no por cómo está construida la aplicación.
 
@@ -48,9 +48,11 @@ docs/training/
 ├── 10_QuickGuides/        una página, laminable
 ├── 11_Academia/           propuesta documental de 5 cursos
 ├── 12_Capturas/           ← NUEVO: las capturas REALES, generadas por el arnés
-├── 13_Produccion/         ← NUEVO: fotografía, comparativas, componentes,
-│                            iconografía, plantillas y matriz de reutilización
-└── CLAUDE_DESIGN_HANDOFF.md  ← NUEVO: el paquete para diagramar sin preguntar
+├── 13_Produccion/         los inventarios: fotografía, comparativas,
+│                          catálogo de íconos, matriz de reutilización
+├── 14_Sistema/            ← NUEVO: los 12 documentos del sistema
+├── TRAINING_DESIGN_SYSTEM.md ← NUEVO: LA NORMA
+└── CLAUDE_DESIGN_HANDOFF.md  el inventario de producción
 ```
 
 ---
@@ -92,6 +94,26 @@ node scripts/capturar-pantallas.mjs --catalogo # regenera el catálogo
 **No modifica el producto.** Levanta la app real y responde la API con datos de demostración interceptando la red desde el navegador. Playwright no es dependencia del repositorio: se resuelve del caché de npx, así que el lockfile y el CI del producto no se enteran.
 
 **Lo que no captura, no lo falsea.** Las pantallas de cámara quedan fuera: una cámara simulada mostraría un patrón de prueba en el manual que enseña a fotografiar un medidor. El catálogo dice exactamente qué falta y por qué.
+
+---
+
+## Qué agregó la v4.0
+
+Las tres versiones anteriores construyeron el contenido y los activos. La v4.0 construye **el sistema**: la norma que gobierna todo material futuro y que Claude Design no puede redefinir.
+
+|                                                 |                                                                   |
+| ----------------------------------------------- | ----------------------------------------------------------------- |
+| **Filosofía**                                   | 12 principios congelados, con orden de precedencia ante conflicto |
+| **Identidad**                                   | 12 elementos con objetivo, cuándo, cuándo NO y prioridad          |
+| **Jerarquía**                                   | El orden de la información por audiencia                          |
+| **Páginas**                                     | 13 tipos, con máximo de conceptos                                 |
+| **Callouts**                                    | 6 categorías y un árbol de decisión entre ellas                   |
+| **Fotografía · Capturas · Iconografía · Video** | Cuatro normativas de imagen y movimiento                          |
+| **Evaluación**                                  | Cómo se mide que enseña, no que se ve bien                        |
+| **Calidad**                                     | 10 criterios de terminado                                         |
+| **Roadmap**                                     | El orden definitivo, con las tres correcciones justificadas       |
+
+**La norma vive en [`TRAINING_DESIGN_SYSTEM.md`](TRAINING_DESIGN_SYSTEM.md); los inventarios, en `13_Produccion/`.** Uno dice cómo debe ser cada cosa; el otro, qué existe y en qué estado. No se solapan a propósito.
 
 ---
 

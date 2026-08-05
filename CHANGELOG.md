@@ -236,3 +236,29 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - **Visita a planta**: 17 fotografías de campo y todos los planos de rodaje. Único punto del kit que depende de un tercero.
 - 22 capturas bloqueadas por cámara física o por entorno sembrado, cada una con su motivo en el catálogo.
 - Diagramación y grabación. **Validar el formato con un operador real antes de producir más allá de P0.**
+
+## [Etapa T4 — Training Design System] — La norma, no el material
+
+### Agregado
+
+- **`docs/training/TRAINING_DESIGN_SYSTEM.md`**: el sistema visual oficial de capacitación, congelado. Equivalente al Design System del producto pero aplicado a documentación y formación, y diseñado para extenderse a otros productos sin cambiar una regla. **Claude Design diseña dentro de él; nunca lo redefine.**
+- **`docs/training/14_Sistema/`** con los doce documentos de la norma: filosofía (12 principios con orden de precedencia ante conflicto), identidad (12 elementos con objetivo, cuándo, cuándo NO y prioridad), jerarquía de información por audiencia, catálogo de 13 tipos de página con máximo de conceptos, 6 categorías de callout con árbol de decisión, y las normativas de fotografía, capturas, iconografía, video, evaluación, calidad y roadmap.
+- **Sistema de evaluación del aprendizaje**: se mide que el material enseñe, no que se vea bien. La métrica principal son los puntos de detención, y el principio es que **cada punto donde alguien se detiene es un defecto del material, no de la persona**. Incluye los tres umbrales de falla y las tres señales de evaluación continua después de publicar.
+- **Diez criterios de terminado** (`Q-01` a `Q-10`) y tres estados posibles de un manual. **No existe «casi terminado»**: un manual en validación que se distribuye porque hacía falta es un manual que nunca se va a validar.
+- **`13_Produccion/catalogo-iconos.md`**: los 37 íconos concretos, separados de la norma que los gobierna.
+
+### Cambiado
+
+- **`componentes.md`, `plantillas.md` e `iconografia.md` eran normativos, no inventarios.** Se movieron a `14_Sistema/` como `02-identidad.md`, `04-paginas.md` y `08-iconografia.md`, y se reescribieron. `13_Produccion/` queda solo con inventarios: qué existe y en qué estado.
+- **`CLAUDE_DESIGN_HANDOFF.md` deja de ser autosuficiente y pasa a ser el inventario de producción.** El solapamiento entre dos documentos que decían ser la autoridad era un defecto: ahora uno dice cómo debe ser cada cosa y el otro qué existe, y no se solapan.
+- El orden de producción propuesto se corrigió en tres puntos, justificados en `14_Sistema/12-roadmap.md`: las guías rápidas de Android y iPhone **son el mismo artefacto** (la guía no tiene contenido de plataforma; lo único que difiere es la instalación, que no pertenece a una tarjeta colgada junto al surtidor); **faltaba la validación con usuarios reales** entre el primer artefacto y el resto; y faltaban la guía del supervisor, la visita a planta y los cuatro artefactos del perfil de inventario.
+- `scripts/verificar-training-kit.mjs` verifica ahora que ningún documento cite un principio, un elemento, un tipo de página, una categoría de callout, una categoría de ícono o un criterio de calidad que el sistema no defina.
+
+### Corregido
+
+- **Dos colisiones de espacio de nombres** detectadas por el verificador al escribirse: los principios usaban `P-`, ya ocupado por las preguntas frecuentes, y los elementos de identidad usaban `E-`, ya ocupado por las fichas de problema. Renombrados a `PR-` y `EL-`. Sin el verificador, una referencia a `P-09` habría resuelto a la pregunta equivocada en silencio.
+
+### Pendiente
+
+- **Ninguna decisión de sistema.** Si al diagramar aparece una que el sistema no resuelve, es un defecto del sistema y se corrige ahí, no dentro de una página.
+- Sigue pendiente todo lo de T3: visita a planta, 22 capturas bloqueadas, diagramación y grabación.

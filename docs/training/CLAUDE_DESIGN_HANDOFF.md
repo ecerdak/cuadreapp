@@ -1,8 +1,15 @@
-# Handoff a diseño — Production Kit de CuadreApp
+# Handoff a diseño — inventario de producción
 
-**Este documento es autosuficiente.** Contiene todo lo necesario para diagramar el kit completo sin hacer una sola pregunta. Si algo aquí obliga a interpretar, es un defecto de este documento y hay que corregirlo aquí, no resolverlo en una página.
+**Este documento dice QUÉ producir y en qué estado está cada pieza.**
 
-**Qué NO hay que decidir:** qué fotografía usar, qué ícono poner, qué layout aplicar, qué texto escribir, en qué orden producir. Todo está decidido y está enlazado.
+Las **reglas** —cómo debe ser cada cosa— viven en [`TRAINING_DESIGN_SYSTEM.md`](TRAINING_DESIGN_SYSTEM.md), que es la norma del sistema. Los dos documentos no se solapan a propósito: uno es el inventario, el otro es la ley.
+
+| Si la pregunta es…                             | Está en                     |
+| ---------------------------------------------- | --------------------------- |
+| ¿Cómo debe ser esta página?                    | `TRAINING_DESIGN_SYSTEM.md` |
+| ¿Qué páginas hay que hacer y con qué material? | este documento              |
+
+**Qué NO hay que decidir:** qué fotografía usar, qué ícono poner, qué tipo de página aplicar, qué texto escribir, en qué orden producir. Todo está decidido y está enlazado.
 
 ---
 
@@ -49,7 +56,7 @@ Los **perfiles operativos** son dos formas de operar, no dos clientes:
 
 ```
 docs/training/
-├── CLAUDE_DESIGN_HANDOFF.md   ← este documento
+├── CLAUDE_DESIGN_HANDOFF.md   ← este documento (el inventario)
 ├── 00_Fuente/                 fuente de verdad — el texto sale de aquí
 │   ├── catalogo-momentos.md       30 momentos: el eje de todo
 │   ├── catalogo-pantallas.md      índice técnico pantalla → código
@@ -79,28 +86,21 @@ docs/training/
 
 ## 5 · Orden de producción
 
+**Lo fija el roadmap del sistema:** [`14_Sistema/12-roadmap.md`](14_Sistema/12-roadmap.md).
+
 ```
-1. GUÍAS RÁPIDAS P0          QG-OP-MD, QG-SUP
-   No dependen de nada. Máximo impacto por hora.
-
-2. ZOOMS DISPONIBLES         28 de 51
-   Recortes de capturas ya producidas. Sin costo de captura.
-
-3. MANUALES P0               OP-AND-MD, SUP-MD
-   Son los únicos con usuarios reales esperándolos.
-
-4. ► VALIDAR CON UN OPERADOR REAL ◄
-   El paso que decide todo. Ver §12.
-
-5. VISITA A PLANTA           17 fotografías + planos de rodaje
-   Agendar en el paso 1 aunque se ejecute aquí.
-
-6. MANUALES P1               OP-IOS-MD, ADM
-7. MANUALES P2               OP-AND-CI, OP-IOS-CI, SUP-CI
-8. VIDEOS                    guiones ya cerrados
+0. AGENDAR LA VISITA A PLANTA        ← primer día, aunque se ejecute en el paso 5
+1. QG-OP-MD + QG-SUP                 ← una guía por perfil, no por plataforma
+2. OP-AND-MD + SUP-MD
+3. ►►► VALIDACIÓN CON USUARIOS REALES ◄◄◄
+4. OP-IOS-MD + ADM + QG-ADM
+5. VISITA A PLANTA
+6. OP-AND-CI + OP-IOS-CI + SUP-CI + QG-OP-CI
+7. VIDEOS
+8. ACADEMIA
 ```
 
-**El paso 4 no se salta.** Producir 115 páginas con un formato que nadie probó es apostar el kit completo a una corazonada.
+**El paso 3 no se salta.** Producir 115 páginas con un formato que nadie probó es apostar el material completo a una corazonada. El método está en [`14_Sistema/10-evaluacion.md`](14_Sistema/10-evaluacion.md).
 
 ---
 
@@ -132,19 +132,28 @@ docs/training/
 
 ---
 
-## 8 · Componentes, íconos y plantillas
+## 8 · Las normas y los inventarios
 
-| Documento                                          | Qué congela                            | Cantidad             |
-| -------------------------------------------------- | -------------------------------------- | -------------------- |
-| [`componentes.md`](13_Produccion/componentes.md)   | Qué significa cada pieza repetible     | 25 componentes       |
-| [`iconografia.md`](13_Produccion/iconografia.md)   | Qué significa cada ícono y dónde va    | 37 íconos (17 en P0) |
-| [`plantillas.md`](13_Produccion/plantillas.md)     | Qué tipo de página es y qué cabe       | 12 plantillas        |
-| [`comparativas.md`](13_Produccion/comparativas.md) | Las 9 comparativas correcto/incorrecto | 9                    |
+**Las normas** dicen cómo debe ser cada cosa. Viven en el sistema:
 
-**Estos documentos no deciden colores, tipografías ni medidas: eso lo resuelve el Design System.** Deciden el _significado_, que es lo que no puede cambiar sin reescribir el kit.
+| Norma                            | Documento                                                      | Cantidad     |
+| -------------------------------- | -------------------------------------------------------------- | ------------ |
+| Qué significa cada elemento      | [`14_Sistema/02-identidad.md`](14_Sistema/02-identidad.md)     | 12 elementos |
+| Qué tipo de página es y qué cabe | [`14_Sistema/04-paginas.md`](14_Sistema/04-paginas.md)         | 13 tipos     |
+| Cuándo existe cada callout       | [`14_Sistema/05-callouts.md`](14_Sistema/05-callouts.md)       | 6 categorías |
+| Cómo se usan los íconos          | [`14_Sistema/08-iconografia.md`](14_Sistema/08-iconografia.md) | 7 categorías |
 
-**Si al diagramar hace falta un componente o un ícono que no está, se agrega al catálogo primero.** Inventarlo en una página es como nacen los kits que nadie puede mantener.
+**Los inventarios** dicen qué existe. Viven en producción:
 
+| Inventario               | Documento                                                                        | Cantidad      |
+| ------------------------ | -------------------------------------------------------------------------------- | ------------- |
+| Los íconos concretos     | [`13_Produccion/catalogo-iconos.md`](13_Produccion/catalogo-iconos.md)           | 37 (17 en P0) |
+| Las comparativas         | [`13_Produccion/comparativas.md`](13_Produccion/comparativas.md)                 | 9             |
+| Qué NO volver a producir | [`13_Produccion/matriz-reutilizacion.md`](13_Produccion/matriz-reutilizacion.md) | —             |
+
+**Las normas no deciden colores, tipografías ni medidas: eso lo resuelve Claude Design.** Deciden el _significado_, que es lo que no puede cambiar sin reescribir el material.
+
+**Si al diagramar hace falta un elemento o un ícono que no está, se agrega a su catálogo primero.** Inventarlo en una página es como nacen los sistemas que nadie puede mantener.
 ---
 
 ## 9 · Presupuestos por página
@@ -166,6 +175,8 @@ Y por componentes: capítulo de operador máximo 8 · decisión de supervisor 7 
 ---
 
 ## 10 · Restricciones
+
+Lista completa y normativa en [`TRAINING_DESIGN_SYSTEM.md`](TRAINING_DESIGN_SYSTEM.md), sección «Las prohibiciones del sistema». Las que más se rompen:
 
 **Nunca:**
 
@@ -201,6 +212,8 @@ Y por componentes: capítulo de operador máximo 8 · decisión de supervisor 7 
 ---
 
 ## 12 · Cómo se valida
+
+Método completo en [`14_Sistema/10-evaluacion.md`](14_Sistema/10-evaluacion.md). En resumen:
 
 Después de P0, antes de producir nada más:
 
