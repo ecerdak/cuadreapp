@@ -76,7 +76,7 @@ El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisi�
 
 ## 4. Verificación
 
-- **Local/CI (sin infraestructura):** `pnpm verificar` — lint, formato, fronteras DEC-007, guard `sin-clientes`, typecheck y 495 pruebas.
+- **Local/CI (sin infraestructura):** `pnpm verificar` — lint, formato, fronteras DEC-007, guard `sin-clientes`, typecheck y 502 pruebas.
 - **E2E (infraestructura real):**
   ```bash
   E2E_DATABASE_URL=postgres://... \

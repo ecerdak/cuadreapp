@@ -183,6 +183,10 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - El guard `pnpm sin-clientes` pierde sus tres excepciones de producción: ya no hay ningún archivo de producción que necesite nombrar a un cliente.
 - `docs/DASHBOARD_ARQUITECTURA.md` v2.0: la fase de datos simulados cumplió su promesa —conectar la API real fue una línea en `main.tsx`— y el documento pasa a describir el Dashboard multiempresa.
 
+### Corregido
+
+- **CSP bloqueaba las imágenes firmadas de Storage.** El Dashboard y la consola muestran el logo del cliente y la evidencia fotográfica como URLs firmadas de Supabase (DEC-017), pero la política declaraba `img-src 'self' data: blob:`: en producción el navegador las bloqueaba en silencio. Defecto **preexistente en la consola** desde la Etapa P, que la Etapa P.2 hereda al Dashboard. Ahora `img-src` admite `https://*.supabase.co` y hay pruebas que leen la política de los archivos reales (`servidor.mjs` y `vercel.json`) y verifican además que ambas configuraciones sean idénticas — en desarrollo no hay CSP, así que ninguna prueba de UI lo habría notado.
+
 ### Pendiente
 
 - Sobre infraestructura real: aplicar `20260805120000_tablero_cliente` (sin ella el login funciona y el tablero responde 403), correr `supabase/verificacion_tablero.sql`, dar de alta un supervisor real y hacer el humo post-despliegue.
