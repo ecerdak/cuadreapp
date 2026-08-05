@@ -1,4 +1,4 @@
-# Training Experience de CuadreApp — v2.0
+# Training Experience de CuadreApp — v3.0
 
 Esto **no es un conjunto de manuales**. Es el sistema que los genera, los mantiene sincronizados con el producto, y —desde la v2.0— los organiza por **cómo se trabaja**, no por cómo está construida la aplicación.
 
@@ -45,8 +45,12 @@ docs/training/
 ├── 07_Troubleshooting/    indexado por lo que la persona dice
 ├── 08_Storyboards/        guiones de video: planos, narración, textos en pantalla
 ├── 09_Exports/            índice general de producción
-├── 10_QuickGuides/        ← NUEVO: una página, laminable
-└── 11_Academia/           ← NUEVO: propuesta documental de 5 cursos
+├── 10_QuickGuides/        una página, laminable
+├── 11_Academia/           propuesta documental de 5 cursos
+├── 12_Capturas/           ← NUEVO: las capturas REALES, generadas por el arnés
+├── 13_Produccion/         ← NUEVO: fotografía, comparativas, componentes,
+│                            iconografía, plantillas y matriz de reutilización
+└── CLAUDE_DESIGN_HANDOFF.md  ← NUEVO: el paquete para diagramar sin preguntar
 ```
 
 ---
@@ -59,6 +63,35 @@ MOMENTO (mundo real)  ──usa──▶  PANTALLA  ──apunta a──▶  ARC
 ```
 
 **El momento es lo que se enseña. La pantalla es lo que se verifica.** Los dos catálogos existen porque cumplen funciones distintas, y confundirlos fue el error de la v1.0.
+
+---
+
+## Qué agregó la v3.0
+
+La v2.0 dejó el contenido cerrado, pero un diseñador todavía tenía que decidir qué fotografía usar, qué ícono poner y qué layout aplicar. La v3.0 cierra esas decisiones y produce los activos:
+
+|                             |                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------- |
+| **Capturas reales**         | 30 de 52, producidas por un arnés determinista. No mockups: el producto real. |
+| **Producción fotográfica**  | 80 piezas con casillas para la visita a planta                                |
+| **Comparativas**            | 9, con objetivo, imágenes y mensaje                                           |
+| **Componentes**             | 25, con qué significan y cuándo NO usarlos                                    |
+| **Iconografía**             | 37 íconos congelados                                                          |
+| **Plantillas**              | 12, con presupuesto de imágenes y de texto                                    |
+| **Matriz de reutilización** | Qué NO volver a producir                                                      |
+| **Handoff**                 | Un documento autosuficiente para diagramar                                    |
+
+### El arnés de captura
+
+```
+node scripts/capturar-pantallas.mjs            # todo lo automatizable
+node scripts/capturar-pantallas.mjs dashboard  # solo una app
+node scripts/capturar-pantallas.mjs --catalogo # regenera el catálogo
+```
+
+**No modifica el producto.** Levanta la app real y responde la API con datos de demostración interceptando la red desde el navegador. Playwright no es dependencia del repositorio: se resuelve del caché de npx, así que el lockfile y el CI del producto no se enteran.
+
+**Lo que no captura, no lo falsea.** Las pantallas de cámara quedan fuera: una cámara simulada mostraría un patrón de prueba en el manual que enseña a fotografiar un medidor. El catálogo dice exactamente qué falta y por qué.
 
 ---
 

@@ -209,3 +209,30 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 - **Visita a planta.** Es lo único del kit que depende de un tercero y lo único que no se puede hacer desde un escritorio: 17 fotografías de campo y todos los planos de rodaje. Debe agendarse primero aunque se ejecute al final.
 - Diagramación, 52 capturas de pantalla y grabación de los siete videos.
 - Validar el formato con un operador real antes de producir más allá de P0. Saltárselo es apostar 115 páginas a un formato que nadie probó.
+
+## [Etapa T3 — Production Kit] — Los activos, no solo el contenido
+
+### Agregado
+
+- **`scripts/capturar-pantallas.mjs`: arnés de captura determinista.** Produce las capturas **reales** del producto —no mockups— levantando la app y respondiendo la API con datos de demostración interceptados desde el navegador. **Cero cambios en el producto**: la consola que sale en la imagen es la real, y lo único simulado es la respuesta HTTP, igual que el Dashboard usa su fuente simulada. La PWA se recorre como máquina de estados, tocando los mismos botones que toca un operador. **30 de 52 capturas producidas** (14 de operador, 5 de supervisor, 11 de administrador). Playwright no entra al `package.json`: es tooling de documentación y se resuelve del caché de npx, así que ni el lockfile ni el CI del producto se enteran.
+- **`docs/training/12_Capturas/`** con las imágenes y un `CATALOGO.md` generado del manifiesto —nombre, pantalla, resolución, aspecto, dispositivo, momento y manuales— para que la documentación no pueda desviarse de lo que realmente se capturó.
+- **`docs/training/13_Produccion/`**: orden fotográfica con casillas (80 piezas clasificadas en existente / pendiente / opcional), 9 comparativas correcto-incorrecto con objetivo e imágenes, 25 componentes gráficos, 37 íconos congelados y 12 plantillas de página con presupuesto de imágenes y de texto, más la matriz de reutilización.
+- **`docs/training/CLAUDE_DESIGN_HANDOFF.md`**: el paquete autosuficiente para diagramar sin hacer preguntas — filosofía, audiencias, estructura, orden de producción, restricciones, prioridades y dónde está cada texto.
+- **`scripts/capturas/storyboards.mjs`**: los siete storyboards se generan de una sola fuente, con objetivo, narración, plano, movimiento de cámara, duración, animaciones, textos en pantalla, pausas y transiciones por escena. Se generan porque los cuatro videos de operador son el mismo guion con dos variables: escritos a mano, el día que cambie una escena se corrigen tres y se olvida el cuarto.
+- La Academia pasa de cinco cursos enunciados a **33 lecciones con duración, objetivo, material complementario y evaluaciones sugeridas**, en tres niveles con requisitos previos entre ellos. Sigue siendo **solo documental**.
+
+### Cambiado
+
+- El inventario de zooms se rehízo como definitivo: origen, zona, objetivo, mensaje y manuales donde aparece, sin duplicados. **28 de los 51 ya se pueden recortar** porque su captura de origen está producida.
+- `scripts/verificar-training-kit.mjs` verifica ahora también comparativas, componentes, iconografía y plantillas, y que ninguna captura prometida como producida falte en disco.
+
+### Corregido
+
+- **`03_Admin/ADM.md` referenciaba `adm-08_usuarios.png`, una captura de una pantalla que no existe.** El alta del supervisor no se hace desde la consola. Lo detectó el manifiesto de capturas al enfrentarse con el catálogo de pantallas.
+- Cinco fotografías (`F-26`, `F-27`, `F-43`, `F-44`, `F-45`) se referenciaban en storyboards y en la orden fotográfica sin estar en el inventario. Lo detectó el verificador extendido.
+
+### Pendiente
+
+- **Visita a planta**: 17 fotografías de campo y todos los planos de rodaje. Único punto del kit que depende de un tercero.
+- 22 capturas bloqueadas por cámara física o por entorno sembrado, cada una con su motivo en el catálogo.
+- Diagramación y grabación. **Validar el formato con un operador real antes de producir más allá de P0.**
