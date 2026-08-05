@@ -34,14 +34,16 @@ Se toman en la planta del cliente que opera con Fill-Rite Serie 900.
 
 ## B · Fotografía de campo — Carga sobre Inventario
 
-| ID     | Fotografía                                   | Qué debe verse                              | Estado       | Usada en               |
-| ------ | -------------------------------------------- | ------------------------------------------- | ------------ | ---------------------- |
-| `F-20` | Carrotanque completo, de perfil              | El vehículo entero con su placa legible     | **Producir** | Portada, `M-CI-01`     |
-| `F-21` | La placa del carrotanque, en primer plano    | Solo la placa, nítida                       | **Producir** | `M-CI-01`, zoom `Z-20` |
-| `F-22` | La operación de despacho en curso            | La manguera conectada al carrotanque        | **Producir** | `M-CI-03`              |
-| `F-23` | Foto BIEN tomada del carrotanque             | Vehículo completo, placa legible, buena luz | **Producir** | `M-CI-02`, comparativa |
-| `F-24` | Foto MAL tomada: plano demasiado cerrado     | Solo una parte del tanque, sin placa        | **Producir** | `M-CI-02`, comparativa |
-| `F-25` | El operador registrando junto al carrotanque | La escena real                              | **Producir** | Portada, Quick Guide   |
+| ID     | Fotografía                                   | Qué debe verse                              | Estado       | Usada en                                     |
+| ------ | -------------------------------------------- | ------------------------------------------- | ------------ | -------------------------------------------- |
+| `F-20` | Carrotanque completo, de perfil              | El vehículo entero con su placa legible     | **Producir** | Portada, `M-CI-01`                           |
+| `F-21` | La placa del carrotanque, en primer plano    | Solo la placa, nítida                       | **Producir** | `M-CI-01`, zoom `Z-20`                       |
+| `F-22` | La operación de despacho en curso            | La manguera conectada al carrotanque        | **Producir** | `M-CI-03`                                    |
+| `F-23` | Foto BIEN tomada del carrotanque             | Vehículo completo, placa legible, buena luz | **Producir** | `M-CI-02`, comparativa                       |
+| `F-24` | Foto MAL tomada: plano demasiado cerrado     | Solo una parte del tanque, sin placa        | **Producir** | `M-CI-02`, comparativa                       |
+| `F-25` | El operador registrando junto al carrotanque | La escena real                              | **Producir** | Portada, Quick Guide                         |
+| `F-26` | El carrotanque llegando                      | El vehículo entrando a la estación          | **Opcional** | Apertura de `M-CI-01`, escena 1 del video    |
+| `F-27` | El carrotanque saliendo                      | El vehículo ya cargado, saliendo            | **Opcional** | Cierre de `M-CI-05`, última escena del video |
 
 ---
 
@@ -52,6 +54,9 @@ Se toman en la planta del cliente que opera con Fill-Rite Serie 900.
 | `F-40` | El teléfono con el ícono instalado | La pantalla de inicio del teléfono con el ícono de CuadreApp | **Producir** | `M-*-00`, Quick Guide                        |
 | `F-41` | El supervisor frente al tablero    | Persona real usando el Dashboard en su oficina               | **Producir** | Portada supervisores                         |
 | `F-42` | El tanque de la planta             | El tanque cilíndrico elevado                                 | **Producir** | Manual de supervisor, capítulo de suministro |
+| `F-43` | El administrador en su escritorio  | Persona real usando la consola                               | **Producir** | Portada de `ADM`, escenas 1 y 11 de su video |
+| `F-44` | El tablero en un portátil          | El Dashboard en un equipo portátil                           | **Opcional** | Variante de portada de supervisor            |
+| `F-45` | El tablero en una tableta          | El Dashboard en tableta                                      | **Opcional** | Variante de portada de supervisor            |
 
 ---
 
@@ -81,14 +86,14 @@ Las mismas 47 de T1 (siguen siendo válidas: el producto no cambió), más las v
 
 ## Resumen
 
-| Familia                            | Cantidad | Existe                      | Producir |
-| ---------------------------------- | -------- | --------------------------- | -------- |
-| Fotografía de campo, Medidor Doble | 10       | 2 parciales                 | 8        |
-| Fotografía de campo, Inventario    | 6        | 0                           | 6        |
-| Fotografía de contexto             | 3        | 0                           | 3        |
-| Capturas de pantalla               | 52       | 0                           | 52       |
-| Marca                              | 4        | 4 (2 requieren exportación) | —        |
-| **Total**                          | **75**   | **6**                       | **69**   |
+| Familia                            | Cantidad | Existe                      | Producir                       |
+| ---------------------------------- | -------- | --------------------------- | ------------------------------ |
+| Fotografía de campo, Medidor Doble | 10       | 2 parciales                 | 8                              |
+| Fotografía de campo, Inventario    | 6        | 0                           | 6                              |
+| Fotografía de contexto             | 3        | 0                           | 3                              |
+| Capturas de pantalla               | 52       | 0                           | 52                             |
+| Marca                              | 4        | 4 (2 requieren exportación) | —                              |
+| **Total**                          | **80**   | **6**                       | **74** (5 de ellas opcionales) |
 
 ---
 
