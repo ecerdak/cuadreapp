@@ -251,9 +251,16 @@ const inventarioReferencias = [
   ["pregunta", /`(P-\d+)`/g, /^\*\*`(P-\d+)`/gm, "00_Fuente/biblioteca-faq.md"],
   ["ficha de problema", /`(E-\d+)`/g, /^### `(E-\d+)`/gm, "00_Fuente/biblioteca-errores.md"],
   ["comparativa", /`(K-\d+)`/g, /^## `(K-\d+)`/gm, "13_Produccion/comparativas.md"],
-  ["componente", /`(CMP-\d+)`/g, /^### `(CMP-\d+)`/gm, "13_Produccion/componentes.md"],
-  ["ícono", /`(I-\d+)`/g, /^\|\s*`(I-\d+)`/gm, "13_Produccion/iconografia.md"],
-  ["plantilla", /`(PL-\d+)`/g, /^## `(PL-\d+)`/gm, "13_Produccion/plantillas.md"],
+  ["ícono", /`(I-\d+)`/g, /^\|\s*`(I-\d+)`/gm, "13_Produccion/catalogo-iconos.md"],
+  // Normas del Training Design System (T4): el material no puede citar un
+  // principio, un elemento, un tipo de página, un callout o una categoría
+  // de ícono que el sistema no defina.
+  ["principio", /`(PR-\d+)`/g, /^### `(PR-\d+)`/gm, "14_Sistema/01-filosofia.md"],
+  ["elemento", /`(EL-\d+)`/g, /^## `(EL-\d+)`/gm, "14_Sistema/02-identidad.md"],
+  ["tipo de página", /`(T-\d+)`/g, /^## `(T-\d+)`/gm, "14_Sistema/04-paginas.md"],
+  ["categoría de callout", /`(CO-\d+)`/g, /^## `(CO-\d+)`/gm, "14_Sistema/05-callouts.md"],
+  ["categoría de ícono", /`(IC-[A-G])`/g, /^### `(IC-[A-G])`/gm, "14_Sistema/08-iconografia.md"],
+  ["criterio de calidad", /`(Q-\d+)`/g, /^### `(Q-\d+)`/gm, "14_Sistema/11-calidad.md"],
 ];
 
 const fuentes = Object.fromEntries(
@@ -265,6 +272,7 @@ for (const carpeta of [
   "08_Storyboards",
   "10_QuickGuides",
   "13_Produccion",
+  "14_Sistema",
 ]) {
   if (!existsSync(join(KIT, carpeta))) continue;
   for (const archivo of readdirSync(join(KIT, carpeta)).filter((f) => f.endsWith(".md"))) {
@@ -335,6 +343,7 @@ for (const [id, { guia }] of Object.entries(MANUALES)) {
 const CARPETAS = [
   "00_Fuente",
   "13_Produccion",
+  "14_Sistema",
   ...new Set(Object.values(MANUALES).map((m) => m.carpeta)),
   ...APOYO.map((a) => a[0]),
   "04_Assets",
