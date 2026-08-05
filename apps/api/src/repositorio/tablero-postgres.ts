@@ -35,7 +35,7 @@ const redondear = (valor: number): number => Math.round(valor * 10) / 10;
 /** Columnas de una carga tal como la ve el tablero. */
 const SELECT_CARGA = `
   select c.id, c.finalizada_en, c.galones, c.estado, c.banderas, c.perfil_codigo,
-         c.llegada_gal, c.inventario_final_gal,
+         c.llegada_gal, c.inventario_final_gal, c.gal_no_registrados,
          e.codigo_interno, e.descripcion as equipo_descripcion, e.capacidad_tanque_gal,
          co.nombre as conductor_nombre
   from cargas c
@@ -58,6 +58,7 @@ function filaACarga(fila: Record<string, unknown>): CargaTablero {
     llegadaGal: numeroONulo(fila.llegada_gal as string | null),
     inventarioFinalGal: numeroONulo(fila.inventario_final_gal as string | null),
     capacidadEquipoGal: numeroONulo(fila.capacidad_tanque_gal as string | null),
+    galNoRegistrados: numeroONulo(fila.gal_no_registrados as string | null),
   };
 }
 

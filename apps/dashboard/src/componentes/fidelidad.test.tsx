@@ -10,6 +10,23 @@ import { TEMA } from "../tema";
 import { BotonExcel, Candado, Chip, ZonaA } from "./basicos";
 import { GraficoConsumo, Rodillo } from "./medidor";
 import { DisposicionTablero } from "../disposicion/DisposicionTablero";
+import { ProveedorContextoFijo } from "../datos/contexto";
+import { estadoDemo } from "../pruebas/contexto-demo";
+
+/** El marco con una empresa ya resuelta, como lo ve el supervisor. */
+function marcoRenderizado(estado = estadoDemo()): string {
+  return renderToStaticMarkup(
+    <ProveedorContextoFijo valor={estado}>
+      <MemoryRouter initialEntries={["/hoy"]}>
+        <Routes>
+          <Route element={<DisposicionTablero />}>
+            <Route path="/hoy" element={<div>contenido</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </ProveedorContextoFijo>,
+  );
+}
 
 describe("tokens del tablero", () => {
   it("la paleta es exactamente la aprobada", () => {
@@ -104,43 +121,33 @@ describe("piezas del contrato", () => {
 });
 
 describe("marco del tablero", () => {
-  // La identidad llega SIEMPRE de los datos (DEC-018): el marco no
-  // nombra clientes. Aquí se inyecta la del cliente de demostración
-  // para verificar que su tarjeta se pinta igual que en el diseño.
-  const IDENTIDAD_DEMO = {
-    clienteNombre: "Industrias Alimenticias El Trébol S.A.S.",
-    clienteCorto: "El Trébol S.A.S.",
-    sedeVisible: "Planta Buga, Valle del Cauca",
-    logoUrl: null,
-    colorPrimario: "#1E9B4B",
-    colorSecundario: "#0E5C2C",
-    perfil: { codigo: "medidor_doble", nombre: "Medidor Doble" },
-    medidor: { modelo: "Fill-Rite Serie 900", instalado: "6 jul 2026" },
-  };
-  const html = renderToStaticMarkup(
-    <MemoryRouter initialEntries={["/hoy"]}>
-      <Routes>
-        <Route element={<DisposicionTablero identidadInicial={IDENTIDAD_DEMO} />}>
-          <Route path="/hoy" element={<div>contenido</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>,
-  );
-  it("co-marca completa: Lubryco 44 px, logotipo, placa, DEMO y el cliente", () => {
+  // La identidad llega SIEMPRE del contexto de la sesión (DEC-018): el
+  // marco no nombra clientes ni conoce sus pestañas. Aquí se monta con
+  // la fuente de escenario para verificar que la tarjeta del cliente y
+  // las pestañas se pintan igual que en el diseño aprobado.
+  const html = marcoRenderizado();
+
+  it("co-marca completa: Lubryco 44 px, logotipo, placa y el cliente", () => {
     expect(html).toContain('alt="Lubryco"');
     expect(html).toContain("height:44px");
     expect(html).toContain(">Cuadre</span>");
     expect(html).toContain(">APP</span>");
-    expect(html).toContain(">Demo</span>");
     expect(html).toContain("El Trébol S.A.S.");
     expect(html).toContain("Control de combustible en planta");
   });
+
+  it("ya no anuncia modo demostración: el tablero muestra datos reales", () => {
+    expect(html).not.toContain(">Demo</span>");
+    expect(html).not.toContain("datos simulados");
+  });
+
   it("pestañas subrayadas: la activa lleva el borde amarillo", () => {
     expect(html).toContain("border-bottom:2px solid #F5E01B");
     for (const rotulo of ["Hoy", "Cargas", "Equipos", "Suministro"]) {
       expect(html).toContain(rotulo);
     }
   });
+
   it("el pie lleva las dos frases aprobadas", () => {
     expect(html).toContain("un servicio de Lubryco para sus clientes industriales");
     expect(html).toContain("Lubryco ve el volumen del tanque");

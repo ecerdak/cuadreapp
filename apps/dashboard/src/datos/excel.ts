@@ -5,7 +5,7 @@
 // como texto, para que el cliente pueda sumar sin limpiar la hoja.
 // SheetJS se carga bajo demanda: no pesa en el arranque del tablero.
 
-import type { DetalleCarga, FuenteDatosTablero } from "./puertos";
+import type { ContextoTablero, DetalleCarga, FuenteDatosTablero } from "./puertos";
 import { TEXTO_ESTADO } from "../tema";
 
 type Alcance = "dia" | "mes";
@@ -32,37 +32,46 @@ function filaCarga(detalle: DetalleCarga) {
   };
 }
 
-export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcance): Promise<void> {
+export async function descargarExcel(
+  fuente: FuenteDatosTablero,
+  identidad: ContextoTablero,
+  opciones: { alcance: Alcance; sedeId: string | null },
+): Promise<void> {
+  const { alcance, sedeId } = opciones;
   const XLSX = await import("xlsx");
   const anchos = <T extends object>(hoja: T, medidas: number[]): T => {
     (hoja as { "!cols"?: Array<{ wch: number }> })["!cols"] = medidas.map((w) => ({ wch: w }));
     return hoja;
   };
 
-  // Identidad por datos (DEC-017): el archivo lleva al cliente de la
-  // fuente, jamás un nombre hardcodeado.
-  const [pagina, hoy, identidad] = await Promise.all([
-    fuente.listarCargas({ estado: "todas" }),
-    fuente.resumenHoy(),
-    fuente.identidad(),
+  // Identidad por datos (DEC-017/DEC-018): el archivo lleva al cliente
+  // de la sesión, jamás un nombre hardcodeado.
+  const [pagina, hoy] = await Promise.all([
+    fuente.listarCargas({ estado: "todas", sedeId }),
+    fuente.resumenHoy({ sedeId }),
   ]);
   const hoyFecha = hoy.cargasDeHoy[0]?.fecha ?? "";
   const seleccion =
     alcance === "dia" ? pagina.cargas.filter((carga) => carga.fecha === hoyFecha) : pagina.cargas;
   const detalles = await Promise.all(seleccion.map((carga) => fuente.detalleCarga(carga.id)));
 
+  const sede = identidad.sedes.find((candidata) => candidata.id === sedeId);
   const libro = XLSX.utils.book_new();
   const encabezado = [
     ["CUADRE · Control de combustible en planta"],
-    ["Cliente", identidad.clienteNombre],
-    ["Sede", identidad.sedeVisible],
+    ["Cliente", identidad.cliente.nombre],
+    [
+      "Sede",
+      sede ? [sede.nombre, sede.ciudad].filter(Boolean).join(", ") : "Todas las sedes del cliente",
+    ],
+    ["Perfil operativo", identidad.perfil.nombre],
     ...(identidad.medidor
       ? [["Medidor", `${identidad.medidor.modelo} · instalado ${identidad.medidor.instalado}`]]
       : []),
     ["Alcance", alcance === "dia" ? "Detalle del día" : "Detalle de los últimos 14 días"],
     ["Proveedor", "Lubryco S.A.S. — Buga, Valle del Cauca"],
     [],
-    ["Nota", "DEMOSTRACIÓN: datos simulados. Existencias estimadas por balance; margen ±2%."],
+    ["Nota", "Existencias estimadas por balance; margen ±2%."],
   ];
   XLSX.utils.book_append_sheet(libro, anchos(XLSX.utils.aoa_to_sheet(encabezado), [14, 62]), "Portada");
 
@@ -77,8 +86,8 @@ export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcanc
 
   if (alcance === "mes") {
     const [equipos, suministro] = await Promise.all([
-      fuente.resumenEquipos(),
-      fuente.resumenSuministro(),
+      fuente.resumenEquipos({ sedeId }),
+      fuente.resumenSuministro({ sedeId }),
     ]);
 
     XLSX.utils.book_append_sheet(
@@ -138,11 +147,11 @@ export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcanc
       anchos(
         XLSX.utils.aoa_to_sheet([
           ["Concepto", "Galones"],
-          ["Entregado por Lubryco", suministro.entregadoTotalGal],
-          ["Despachado a equipos", -suministro.despachadoTotalGal],
-          ["Existencia estimada en tanque", suministro.existenciaEstimadaGal],
+          ["Entregado por Lubryco", suministro.balance.entregadoTotalGal],
+          ["Despachado a equipos", -suministro.balance.despachadoTotalGal],
+          ["Existencia estimada en tanque", suministro.balance.existenciaEstimadaGal ?? "—"],
           [],
-          ["Autonomía estimada (días)", suministro.autonomiaDias],
+          ["Autonomía estimada (días)", suministro.balance.autonomiaDias ?? "—"],
           ["Galones despachados sin equipo asignado", pagina.galSinRegistrarGal],
         ]),
         [40, 12],
@@ -152,7 +161,7 @@ export async function descargarExcel(fuente: FuenteDatosTablero, alcance: Alcanc
   }
 
   // Nombre de archivo derivado del cliente (sin espacios ni tildes).
-  const rotulo = identidad.clienteCorto
+  const rotulo = (identidad.cliente.nombreComercial ?? identidad.cliente.nombre)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^A-Za-z0-9]+/g, "_")

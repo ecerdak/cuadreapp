@@ -1,30 +1,30 @@
-// Marco del tablero, transcrito del contrato visual: co-marca Lubryco +
-// CuadreApp, chip DEMO, tarjeta del cliente, pestañas subrayadas bajo el
-// header (móvil resuelve con scroll horizontal), línea de contexto y el
-// pie de dos frases.
+// Marco del tablero: co-marca Lubryco + CuadreApp, tarjeta del cliente,
+// pestañas y pie. Dos reglas del contrato visual que no se negocian:
+//
+//   1. El chrome es de CuadreApp (DEC-018): la navegación, la
+//      tipografía y la estructura no cambian por cliente. El color
+//      corporativo acentúa lo que ES del cliente — su tarjeta —, nunca
+//      el subrayado de las pestañas.
+//   2. La identidad llega SIEMPRE por datos. Este archivo no sabe qué
+//      empresa está pintando, y las pestañas salen de los módulos que
+//      declara su Perfil Operativo.
 
-import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import type { ModuloTablero } from "@cuadreapp/dominio";
 import { TEMA } from "../tema";
 import { Logotipo, Placa } from "../marca/Logotipo";
 import { useMarca } from "../marca/useMarca";
-import type { IdentidadTablero } from "../datos/puertos";
-import { useFuenteTableroOpcional } from "../datos/proveedor";
+import { useTableroOpcional } from "../datos/contexto";
+import { cerrarSesion } from "../datos/sesion";
 import { variablesTema } from "../tema-cliente";
 import logoLubryco from "../marca/assets/lubryco.webp";
 
-// Identidad NEUTRA mientras la fuente resuelve (DEC-018): el marco
-// jamás nombra a un cliente en el código. La identidad real —nombre,
-// sede, logo y colores— llega SIEMPRE de los datos.
-const IDENTIDAD_NEUTRA: IdentidadTablero = {
-  clienteNombre: "",
-  clienteCorto: "",
-  sedeVisible: "",
-  logoUrl: null,
-  colorPrimario: null,
-  colorSecundario: null,
-  perfil: { codigo: "", nombre: "" },
-  medidor: null,
+/** Ruta y rótulo de cada módulo del vocabulario del dominio. */
+const MODULOS: Record<ModuloTablero, { ruta: string; rotulo: string }> = {
+  hoy: { ruta: "/hoy", rotulo: "Hoy" },
+  cargas: { ruta: "/cargas", rotulo: "Cargas" },
+  equipos: { ruta: "/equipos", rotulo: "Equipos" },
+  suministro: { ruta: "/suministro", rotulo: "Suministro" },
 };
 
 function inicialesDe(nombre: string): string {
@@ -36,41 +36,37 @@ function inicialesDe(nombre: string): string {
     .join("");
 }
 
-const PESTANAS = [
-  { ruta: "/hoy", rotulo: "Hoy" },
-  { ruta: "/cargas", rotulo: "Cargas" },
-  { ruta: "/equipos", rotulo: "Equipos" },
-  { ruta: "/suministro", rotulo: "Suministro" },
-];
-
-export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero } = {}) {
+export function DisposicionTablero() {
   useMarca("CuadreApp · Control de combustible en planta");
-  const fuente = useFuenteTableroOpcional();
-  const [identidad, setIdentidad] = useState<IdentidadTablero>(
-    props.identidadInicial ?? IDENTIDAD_NEUTRA,
-  );
-  useEffect(() => {
-    if (!fuente) return;
-    let vigente = true;
-    void fuente
-      .identidad()
-      .then((datos) => {
-        if (vigente) setIdentidad(datos);
-      })
-      .catch(() => {
-        // sin identidad de la fuente, el marco conserva la de demostración
-      });
-    return () => {
-      vigente = false;
-    };
-  }, [fuente]);
+  const navegar = useNavigate();
+  const estado = useTableroOpcional();
+  const contexto = estado?.contexto ?? null;
+
+  const cliente = contexto?.cliente;
+  const nombreVisible = cliente ? (cliente.nombreComercial ?? cliente.nombre) : "";
+  const sedes = contexto?.sedes ?? [];
+  const sedeVisible = (() => {
+    if (!estado) return "";
+    const elegida = sedes.find((sede) => sede.id === estado.sedeId);
+    if (elegida) return [elegida.nombre, elegida.ciudad].filter(Boolean).join(", ");
+    return sedes.length === 1
+      ? [sedes[0]!.nombre, sedes[0]!.ciudad].filter(Boolean).join(", ")
+      : `${sedes.length} sedes`;
+  })();
+  const modulos = contexto?.perfil.modulos ?? [];
+  // Sin sede fija y con más de una, el supervisor puede filtrar.
+  const puedeElegirSede = Boolean(estado && contexto?.sedeActual === null && sedes.length > 1);
+
   return (
     <div
       className="min-h-dvh w-full"
       style={{
         background: TEMA.fondo,
         color: TEMA.texto,
-        ...(variablesTema(identidad) as React.CSSProperties),
+        ...(variablesTema({
+          colorPrimario: cliente?.colorPrimario ?? null,
+          colorSecundario: cliente?.colorSecundario ?? null,
+        }) as React.CSSProperties),
       }}
     >
       <header style={{ borderBottom: `1px solid ${TEMA.linea}`, background: TEMA.panel }}>
@@ -93,21 +89,7 @@ export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero 
           </div>
 
           <div className="flex items-center" style={{ gap: 12 }}>
-            <span
-              className="uppercase font-semibold"
-              title="Datos simulados: ninguna cifra proviene de la operación real"
-              style={{
-                fontSize: 9.5,
-                letterSpacing: "0.12em",
-                color: TEMA.amarillo,
-                border: `1px solid ${TEMA.amarillo}66`,
-                borderRadius: 4,
-                padding: "3px 7px",
-              }}
-            >
-              Demo
-            </span>
-            {identidad.clienteCorto ? (
+            {nombreVisible ? (
               <div
                 className="flex items-center rounded-md"
                 style={{
@@ -117,15 +99,15 @@ export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero 
                   padding: "6px 12px 6px 6px",
                 }}
               >
-                {identidad.logoUrl ? (
+                {cliente?.logoUrl ? (
                   <img
-                    src={identidad.logoUrl}
-                    alt={identidad.clienteCorto}
+                    src={cliente.logoUrl}
+                    alt={nombreVisible}
                     style={{ height: 48, width: 48, borderRadius: 6, objectFit: "contain" }}
                   />
                 ) : (
                   <span
-                    aria-label={`Iniciales de ${identidad.clienteCorto}`}
+                    aria-label={`Iniciales de ${nombreVisible}`}
                     className="flex items-center justify-center rounded-md font-semibold"
                     style={{
                       height: 48,
@@ -136,30 +118,69 @@ export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero 
                       color: TEMA.suave,
                     }}
                   >
-                    {inicialesDe(identidad.clienteCorto) || "?"}
+                    {inicialesDe(nombreVisible) || "?"}
                   </span>
                 )}
                 <div>
                   <div className="font-semibold" style={{ fontSize: 13 }}>
-                    {identidad.clienteCorto}
+                    {nombreVisible}
                   </div>
-                  <div style={{ fontSize: 10.5, color: TEMA.suave }}>{identidad.sedeVisible}</div>
+                  <div style={{ fontSize: 10.5, color: TEMA.suave }}>{sedeVisible}</div>
                 </div>
               </div>
+            ) : null}
+
+            {puedeElegirSede ? (
+              <label className="flex flex-col" style={{ fontSize: 10, color: TEMA.suave, gap: 3 }}>
+                <span className="uppercase" style={{ letterSpacing: "0.12em" }}>
+                  Sede
+                </span>
+                <select
+                  value={estado!.sedeId ?? ""}
+                  onChange={(evento) => estado!.elegirSede(evento.target.value || null)}
+                  className="rounded-md focus-visible:outline focus-visible:outline-2"
+                  style={{
+                    fontSize: 12.5,
+                    color: TEMA.texto,
+                    background: TEMA.panelAlto,
+                    border: `1px solid ${TEMA.linea}`,
+                    padding: "6px 8px",
+                  }}
+                >
+                  <option value="">Todas las sedes</option>
+                  {sedes.map((sede) => (
+                    <option key={sede.id} value={sede.id}>
+                      {sede.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+
+            {contexto ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void cerrarSesion().then(() => navegar("/entrar", { replace: true }));
+                }}
+                className="focus-visible:outline"
+                style={{ fontSize: 12.5, color: TEMA.azul }}
+              >
+                Cerrar sesión
+              </button>
             ) : null}
           </div>
         </div>
 
-        {/* pestañas */}
         <nav
           aria-label="Secciones del tablero"
           className="mx-auto flex overflow-x-auto px-5"
           style={{ maxWidth: 1180, gap: 4 }}
         >
-          {PESTANAS.map((pestana) => (
+          {modulos.map((modulo) => (
             <NavLink
-              key={pestana.ruta}
-              to={pestana.ruta}
+              key={modulo}
+              to={MODULOS[modulo].ruta}
               className="whitespace-nowrap font-semibold focus-visible:outline focus-visible:outline-2"
               style={({ isActive }) => ({
                 fontSize: 13,
@@ -172,7 +193,7 @@ export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero 
                 background: "transparent",
               })}
             >
-              {pestana.rotulo}
+              {MODULOS[modulo].rotulo}
             </NavLink>
           ))}
         </nav>
@@ -181,12 +202,11 @@ export function DisposicionTablero(props: { identidadInicial?: IdentidadTablero 
       <main className="mx-auto px-5 py-6" style={{ maxWidth: 1180 }}>
         <div className="mb-5 flex flex-wrap items-baseline justify-between" style={{ gap: 8 }}>
           <div style={{ fontSize: 12, color: TEMA.suave }}>
-            {identidad.clienteNombre ? `${identidad.clienteNombre} · ` : ""}datos simulados de
-            demostración
+            {contexto ? `${contexto.cliente.nombre} · ${contexto.perfil.nombre}` : ""}
           </div>
-          {identidad.medidor ? (
+          {contexto?.medidor ? (
             <div style={{ fontSize: 11, color: TEMA.suave }}>
-              Medidor {identidad.medidor.modelo} · instalado {identidad.medidor.instalado}
+              Medidor {contexto.medidor.modelo} · instalado {contexto.medidor.instalado}
             </div>
           ) : null}
         </div>

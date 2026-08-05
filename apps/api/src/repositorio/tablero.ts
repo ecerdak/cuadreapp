@@ -73,6 +73,9 @@ export interface CargaTablero {
   inventarioFinalGal: number | null;
   /** Capacidad del equipo al momento de leer — para el % de llenado. */
   capacidadEquipoGal: number | null;
+  /** Tamaño del salto del totalizador, si lo hubo. El tablero lo usa
+   *  para nombrar el problema sin pedir el detalle de la carga. */
+  galNoRegistrados: number | null;
 }
 
 /** Balance del combustible del cliente. `existenciaEstimadaGal` y

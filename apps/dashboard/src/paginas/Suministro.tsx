@@ -1,16 +1,24 @@
-// [Pestaña Suministro] La composición del diseño aprobado: ZonaA de
-// reabastecimiento con la tarjeta de balance a la derecha (entregado −
-// despachado = en tanque) y la tabla de remisiones con "Recibido por".
+// [Pestaña Suministro] Reabastecimiento: entregas de Lubryco y el
+// balance entregado − despachado = en tanque.
+//
+// Mientras no exista el registro de entregas (Etapa 3), la pestaña
+// muestra su estado vacío honesto y el balance en «—». Deliberado: la
+// existencia estimada necesita una línea base, y una cifra que el
+// supervisor no pueda auditar es peor que no mostrar ninguna.
 
 import { useFuenteTablero } from "../datos/proveedor";
+import { mensajeDeError, useTablero } from "../datos/contexto";
 import { useConsulta } from "../datos/consulta";
 import { Esqueleto, EstadoError, EstadoVacio, Eyebrow, Panel, Th, ZonaA } from "../componentes/basicos";
 import { formatearEntero } from "../componentes/numeros";
 import { TEMA } from "../tema";
 
+const gal = (valor: number | null): string => (valor === null ? "—" : `${formatearEntero(valor)} gal`);
+
 export function Suministro() {
   const fuente = useFuenteTablero();
-  const { consulta, recargar } = useConsulta(() => fuente.resumenSuministro());
+  const { sedeId } = useTablero();
+  const { consulta, recargar } = useConsulta(() => fuente.resumenSuministro({ sedeId }), [sedeId]);
 
   if (consulta.estado === "cargando") {
     return (
@@ -21,9 +29,10 @@ export function Suministro() {
     );
   }
   if (consulta.estado === "error")
-    return <EstadoError detalle={consulta.detalle} onReintentar={recargar} />;
+    return <EstadoError detalle={mensajeDeError(consulta.detalle)} onReintentar={recargar} />;
 
   const { datos } = consulta;
+  const { balance } = datos;
   const ultima = datos.entregas[0];
 
   return (
@@ -41,12 +50,21 @@ export function Suministro() {
               ]
             : []),
           {
-            valor: `${datos.autonomiaDias.toLocaleString("es-CO")} días`,
+            valor:
+              balance.autonomiaDias === null
+                ? "—"
+                : `${balance.autonomiaDias.toLocaleString("es-CO")} días`,
             etiqueta: "Autonomía restante",
             color:
-              datos.autonomiaDias <= 4 ? TEMA.rojo : datos.autonomiaDias <= 7 ? TEMA.ambar : TEMA.texto,
+              balance.autonomiaDias === null
+                ? TEMA.suave
+                : balance.autonomiaDias <= 4
+                  ? TEMA.rojo
+                  : balance.autonomiaDias <= 7
+                    ? TEMA.ambar
+                    : TEMA.texto,
           },
-          ...(datos.pedidoSugeridoGal > 0
+          ...(datos.pedidoSugeridoGal !== null && datos.pedidoSugeridoGal > 0
             ? [
                 {
                   valor: `${formatearEntero(datos.pedidoSugeridoGal)} gal`,
@@ -64,11 +82,11 @@ export function Suministro() {
             <div className="mt-3 flex flex-col" style={{ gap: 7, fontSize: 12 }}>
               <div className="flex justify-between">
                 <span style={{ color: TEMA.suave }}>Entregado</span>
-                <span className="font-mono">{formatearEntero(datos.entregadoTotalGal)} gal</span>
+                <span className="font-mono">{gal(balance.entregadoTotalGal)}</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ color: TEMA.suave }}>Despachado</span>
-                <span className="font-mono">− {formatearEntero(datos.despachadoTotalGal)} gal</span>
+                <span className="font-mono">− {gal(balance.despachadoTotalGal)}</span>
               </div>
               <div
                 className="flex justify-between pt-2"
@@ -76,12 +94,14 @@ export function Suministro() {
               >
                 <span style={{ color: TEMA.texto }}>En tanque</span>
                 <span className="font-mono font-semibold" style={{ color: TEMA.amarillo }}>
-                  {formatearEntero(datos.existenciaEstimadaGal)} gal
+                  {gal(balance.existenciaEstimadaGal)}
                 </span>
               </div>
             </div>
             <div style={{ fontSize: 10.5, color: TEMA.suave, marginTop: 10, lineHeight: 1.5 }}>
-              Cifra estimada. Se confirma con aforo del tanque; margen esperado ±2 %.
+              {balance.existenciaEstimadaGal === null
+                ? "La existencia se calcula desde la primera entrega registrada."
+                : "Cifra estimada. Se confirma con aforo del tanque; margen esperado ±2 %."}
             </div>
           </div>
         }
@@ -92,7 +112,10 @@ export function Suministro() {
         </div>
         {datos.entregas.length === 0 ? (
           <div className="p-5">
-            <EstadoVacio mensaje="Sin entregas registradas" />
+            <EstadoVacio
+              mensaje="Sin entregas registradas"
+              detalle="Cada entrega llega con la lectura y la foto del medidor del carrotanque; aparecerán aquí en cuanto se registren."
+            />
           </div>
         ) : (
           <div className="mt-3 overflow-x-auto px-2 pb-3">
@@ -126,10 +149,10 @@ export function Suministro() {
                         {formatearEntero(entrega.galones)}
                       </td>
                       <td className="font-mono" style={{ ...celda, fontSize: 12, color: TEMA.suave }}>
-                        {entrega.placaCarrotanque}
+                        {entrega.placaCarrotanque ?? "—"}
                       </td>
                       <td style={{ ...celda, fontSize: 12, color: TEMA.suave }}>
-                        {entrega.recibidoPor}
+                        {entrega.recibidoPor ?? "—"}
                       </td>
                     </tr>
                   );

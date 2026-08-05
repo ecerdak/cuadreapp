@@ -1,17 +1,20 @@
-// [Pestaña Equipos] Quién se salió de su patrón de consumo (spec §8.2),
-// con la tabla del diseño aprobado: 6 columnas incluida "Uso", fila
-// resaltada cuando el desvío es fuerte y el pie que explica qué suele
-// significar un desvío.
+// [Pestaña Equipos] Quién se salió de su patrón de consumo (spec §8.2).
+// La tabla se adapta a lo que el equipo mide: con contador muestra uso,
+// rendimiento y desvío; sin contador (carrotanques, por ejemplo)
+// muestra capacidad y llenado. Lo decide el DATO del equipo, no el
+// cliente ni una configuración aparte.
 
 import { useFuenteTablero } from "../datos/proveedor";
+import { mensajeDeError, useTablero } from "../datos/contexto";
 import { useConsulta } from "../datos/consulta";
 import { Esqueleto, EstadoError, EstadoVacio, Eyebrow, Panel, Th, ZonaA } from "../componentes/basicos";
-import { formatearGal } from "../componentes/numeros";
+import { formatearEntero, formatearGal } from "../componentes/numeros";
 import { TEMA } from "../tema";
 
 export function Equipos() {
   const fuente = useFuenteTablero();
-  const { consulta, recargar } = useConsulta(() => fuente.resumenEquipos());
+  const { sedeId } = useTablero();
+  const { consulta, recargar } = useConsulta(() => fuente.resumenEquipos({ sedeId }), [sedeId]);
 
   if (consulta.estado === "cargando") {
     return (
@@ -22,27 +25,30 @@ export function Equipos() {
     );
   }
   if (consulta.estado === "error")
-    return <EstadoError detalle={consulta.detalle} onReintentar={recargar} />;
+    return <EstadoError detalle={mensajeDeError(consulta.detalle)} onReintentar={recargar} />;
 
   const { datos } = consulta;
   if (datos.equipos.length === 0) {
     return (
       <EstadoVacio
         mensaje="Sin equipos registrados"
-        detalle="Los equipos aparecen aquí al configurar la sede."
+        detalle="Los equipos aparecen aquí al configurarlos en la consola."
       />
     );
   }
 
+  // Con contador se mide rendimiento; sin contador, llenado del tanque.
+  const hayRendimiento = datos.equipos.some((equipo) => equipo.medida !== null);
+  const hayLlenado = datos.equipos.some((equipo) => equipo.llenadoPct !== null);
   const masDesviado = [...datos.equipos].sort(
-    (a, b) => Math.abs(b.desvioPct ?? 0) - Math.abs(a.desvioPct ?? 0),
+    (uno, otro) => Math.abs(otro.desvioPct ?? 0) - Math.abs(uno.desvioPct ?? 0),
   )[0];
 
   return (
     <>
       <ZonaA
         veredicto={datos.veredicto}
-        titulo="Desvío detectado"
+        titulo={hayRendimiento ? "Desvío detectado" : "Equipos del cliente"}
         hechos={[
           ...(masDesviado && masDesviado.desvioPct !== null
             ? [
@@ -73,9 +79,11 @@ export function Equipos() {
                 <Th>Equipo</Th>
                 <Th>Descripción</Th>
                 <Th derecha>Galones</Th>
-                <Th derecha>Uso</Th>
-                <Th derecha>Rendimiento</Th>
-                <Th derecha>Desvío</Th>
+                {hayRendimiento ? <Th derecha>Uso</Th> : null}
+                {hayRendimiento ? <Th derecha>Rendimiento</Th> : null}
+                {hayRendimiento ? <Th derecha>Desvío</Th> : null}
+                {hayLlenado ? <Th derecha>Capacidad</Th> : null}
+                {hayLlenado ? <Th derecha>Llenado</Th> : null}
               </tr>
             </thead>
             <tbody>
@@ -86,6 +94,7 @@ export function Equipos() {
                   padding: "11px 12px",
                   borderBottom: `1px solid ${TEMA.lineaSuave}`,
                 } as const;
+                const suave = { ...celda, fontSize: 12, color: TEMA.suave, textAlign: "right" } as const;
                 return (
                   <tr
                     key={equipo.codigo}
@@ -98,41 +107,68 @@ export function Equipos() {
                     <td className="font-mono" style={{ ...celda, fontSize: 13, textAlign: "right" }}>
                       {formatearGal(equipo.galones7d)}
                     </td>
-                    <td
-                      className="font-mono"
-                      style={{ ...celda, fontSize: 12, color: TEMA.suave, textAlign: "right" }}
-                    >
-                      {equipo.uso ?? "—"}
-                    </td>
-                    <td className="font-mono" style={{ ...celda, fontSize: 13, textAlign: "right" }}>
-                      {equipo.rendimiento !== null
-                        ? `${equipo.rendimiento.toLocaleString("es-CO")} ${equipo.medida ?? ""}`
-                        : "—"}
-                    </td>
-                    <td style={{ ...celda, textAlign: "right" }}>
-                      <span
-                        className="font-mono font-semibold"
-                        style={{
-                          fontSize: 12.5,
-                          color: alerta ? TEMA.rojo : desvio > 5 ? TEMA.ambar : TEMA.suave,
-                        }}
-                      >
-                        {equipo.desvioPct !== null
-                          ? `${desvio > 0 ? "+" : ""}${desvio.toLocaleString("es-CO")}%`
+                    {hayRendimiento ? (
+                      <td className="font-mono" style={suave}>
+                        {equipo.uso ?? "—"}
+                      </td>
+                    ) : null}
+                    {hayRendimiento ? (
+                      <td className="font-mono" style={{ ...celda, fontSize: 13, textAlign: "right" }}>
+                        {equipo.rendimiento !== null
+                          ? `${equipo.rendimiento.toLocaleString("es-CO")} ${equipo.medida ?? ""}`
                           : "—"}
-                      </span>
-                    </td>
+                      </td>
+                    ) : null}
+                    {hayRendimiento ? (
+                      <td style={{ ...celda, textAlign: "right" }}>
+                        <span
+                          className="font-mono font-semibold"
+                          style={{
+                            fontSize: 12.5,
+                            color: alerta ? TEMA.rojo : desvio > 5 ? TEMA.ambar : TEMA.suave,
+                          }}
+                        >
+                          {equipo.desvioPct !== null
+                            ? `${desvio > 0 ? "+" : ""}${desvio.toLocaleString("es-CO")}%`
+                            : "—"}
+                        </span>
+                      </td>
+                    ) : null}
+                    {hayLlenado ? (
+                      <td className="font-mono" style={suave}>
+                        {equipo.capacidadTanqueGal === null
+                          ? "—"
+                          : `${formatearEntero(equipo.capacidadTanqueGal)} gal`}
+                      </td>
+                    ) : null}
+                    {hayLlenado ? (
+                      <td
+                        className="font-mono font-semibold"
+                        style={{ ...celda, fontSize: 13, textAlign: "right" }}
+                      >
+                        {equipo.llenadoPct === null
+                          ? "—"
+                          : `${equipo.llenadoPct.toLocaleString("es-CO")} %`}
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <div className="px-5 pb-5" style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.6 }}>
-          El desvío compara cada equipo contra su propia mediana histórica y contra los equipos de su
-          misma clase. Un tractor que se sale del patrón suele ser inyectores, filtro, un operario que
-          deja el motor encendido en las esperas — o combustible que sale del equipo por otro lado.
-        </div>
+        {hayRendimiento ? (
+          <div className="px-5 pb-5" style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.6 }}>
+            El desvío compara cada equipo contra su propia mediana histórica y contra los equipos de su
+            misma clase. Un tractor que se sale del patrón suele ser inyectores, filtro, un operario que
+            deja el motor encendido en las esperas — o combustible que sale del equipo por otro lado.
+          </div>
+        ) : (
+          <div className="px-5 pb-5" style={{ fontSize: 11, color: TEMA.suave, lineHeight: 1.6 }}>
+            Estos equipos no llevan horómetro ni odómetro: lo que se sigue es cuánto reciben y con cuánto
+            quedan frente a su capacidad.
+          </div>
+        )}
       </Panel>
     </>
   );

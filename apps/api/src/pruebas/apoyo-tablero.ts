@@ -60,6 +60,7 @@ export function cargaFalsa(sobre: Partial<CargaTablero> = {}): CargaTablero {
     llegadaGal: null,
     inventarioFinalGal: null,
     capacidadEquipoGal: 80,
+    galNoRegistrados: null,
     ...sobre,
   };
 }

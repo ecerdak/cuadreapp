@@ -24,11 +24,8 @@ const NOMBRES_DE_CLIENTE = /sacyr|trébol|trebol/i;
 // Lugares donde el nombre es dato (demo, fixtures, assets), no lógica.
 const PERMITIDOS = [
   /\.test\.(ts|tsx)$/, // fixtures de prueba
-  /\/pruebas\//, // fakes y ayudantes de prueba
+  /\/pruebas\//, // fakes, escenarios y ayudantes de prueba
   /\/marca\//, // assets de marca del paquete de diseño
-  /apps\/dashboard\/src\/datos\/contexto-cliente\.ts$/, // identidad demo (fallback del marco)
-  /apps\/dashboard\/src\/datos\/fuente-simulada\.ts$/, // fuente de demostración
-  /apps\/dashboard\/src\/simulacion\//, // escenario simulado
 ];
 
 // Patrones de LÓGICA por cliente (DEC-018): prohibidos en todas

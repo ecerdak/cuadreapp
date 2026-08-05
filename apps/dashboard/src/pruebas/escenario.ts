@@ -1,3 +1,5 @@
+// FIXTURE DE PRUEBAS — no entra al build de producción.
+//
 // Escenario de demostración determinista. Dos propiedades no
 // negociables, heredadas del mockup aprobado:
 //   1. La aritmética CIERRA: las tandas suman el totalizador y los
@@ -14,6 +16,22 @@ import { validarCarga, type Bandera, type EstadoCarga, type TipoMedidor } from "
 export const HOY_SIMULADO = "2026-08-01";
 export const TOT_INSTALACION_GAL = 1200.0;
 export const EXISTENCIA_INICIAL_GAL = 600.0;
+
+/** Identidad del cliente del escenario. Equivale a una fila de la
+ *  tabla `clientes`: en producción TODO esto viene de la base
+ *  (DEC-017/DEC-018) y el código no nombra a ningún cliente. */
+export const CLIENTE_SIMULADO = {
+  nombre: "Industrias Alimenticias El Trébol S.A.S.",
+  corto: "El Trébol S.A.S.",
+  sede: "Planta Buga, Valle del Cauca",
+  colorPrimario: "#1E9B4B",
+  colorSecundario: "#0E5C2C",
+} as const;
+
+export const MEDIDOR_SIMULADO = {
+  modelo: "Fill-Rite Serie 900",
+  instalado: "2026-07-06",
+} as const;
 
 export interface EquipoSimulado {
   codigo: string;
@@ -277,16 +295,12 @@ export function balanceSimulado() {
   const consumoDiario = Math.round((despachado7d / 7) * 10) / 10;
   const autonomiaDias = consumoDiario > 0 ? Math.round((existencia / consumoDiario) * 10) / 10 : 0;
 
-  const proxima = new Date(`${HOY_SIMULADO}T12:00:00-05:00`);
-  proxima.setDate(proxima.getDate() + Math.max(0, Math.floor(autonomiaDias - 2 - 2)));
-
   return {
     despachadoTotalGal: despachado,
     entregadoTotalGal: entregado,
     existenciaEstimadaGal: existencia,
     consumoDiarioGal: consumoDiario,
     autonomiaDias,
-    proximaEntregaSugerida: proxima.toISOString().slice(0, 10),
   };
 }
 
