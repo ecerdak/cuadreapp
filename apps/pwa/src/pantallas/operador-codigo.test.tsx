@@ -27,9 +27,6 @@ beforeAll(() => {
   });
 });
 
-/** El CTA primario es el único amarillo con relleno de la pantalla. */
-const ctaHabilitado = (html: string) => html.includes("background:#F5E01B;color:#101A22");
-
 const operador = (id: string, nombre: string, codigo: string): ConductorCatalogo => ({
   id,
   nombre,
