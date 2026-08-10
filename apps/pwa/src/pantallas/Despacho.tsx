@@ -1,7 +1,12 @@
 // [6-INV] DESPACHO (perfil «Carga sobre Inventario», DEC-016): foto
 // final y los galones despachados por Lubryco. El TOTAL AL SALIR se
 // calcula solo (llegada + despachados, cálculo del dominio) — el
-// operador jamás lo escribe. El botón queda en gris hasta la foto.
+// operador jamás lo escribe.
+//
+// El rótulo del botón nombra SIEMPRE lo que falta: antes decía
+// «Guardar la carga» con la foto tomada aunque faltaran los galones, y
+// al tocarlo no pasaba nada. Rótulo y acción salen ahora de la misma
+// condición — misma estrategia que la pantalla de llegada.
 
 import { calcularInventarioFinal } from "@cuadreapp/dominio";
 import { aNumero, formatearGal } from "../ui/numeros";
@@ -21,6 +26,17 @@ import { C } from "../marca/tokens";
 
 type Foto = { bytes: ArrayBuffer; tipo: string };
 
+/** Rótulo del botón según lo que falta. Exportado para probarlo sin
+ *  montar la pantalla: es la regla que elimina el estado muerto.
+ *  `hayLectura` es «el campo tiene un número», no «el número es
+ *  bueno»: despachar 0,0 se guarda y se marca (RI1), nunca se bloquea. */
+export function rotuloDespacho(hayFoto: boolean, hayLectura: boolean, guardando: boolean): string {
+  if (guardando) return "Guardando…";
+  if (!hayFoto) return "Toma la foto para continuar";
+  if (!hayLectura) return "Escribe los galones para seguir";
+  return "Guardar la carga";
+}
+
 export function Despacho(props: {
   llegada: string;
   despachados: string;
@@ -38,6 +54,11 @@ export function Despacho(props: {
   const total =
     llegada !== null && despachados !== null ? calcularInventarioFinal(llegada, despachados) : null;
   const listo = props.fotoFinal !== null && despachados !== null && !props.guardando;
+  const rotuloCta = rotuloDespacho(
+    props.fotoFinal !== null,
+    despachados !== null,
+    props.guardando === true,
+  );
 
   return (
     <>
@@ -117,11 +138,7 @@ export function Despacho(props: {
           }}
           tono={listo ? "primario" : "gris"}
         >
-          {props.guardando
-            ? "Guardando…"
-            : props.fotoFinal
-              ? "Guardar la carga"
-              : "Toma la foto para seguir"}
+          {rotuloCta}
         </BotonGrande>
       </div>
     </>
