@@ -129,30 +129,41 @@ retirado de la operación. Los usuarios admin adicionales siguen siendo un
 paso de infraestructura hasta que exista la pantalla de usuarios (fuera del
 alcance del piloto).
 
-## 8. Dar de alta a un supervisor en el Dashboard de Cliente
+## 8. Dar de alta a un usuario del Dashboard de Cliente
 
 El Dashboard es **uno solo para todas las empresas**
 (https://cuadreappdashboard-production.up.railway.app): no hay URL,
 subdominio ni despliegue por cliente. Quien inicia sesión determina qué
-empresa se carga. Alta de un supervisor (mismo paso manual que el admin,
-hasta que exista la pantalla de usuarios):
+empresa se carga.
 
-1. Consola Admin: crear el cliente con su identidad, perfil, sedes,
-   equipos, operadores y dispositivos.
-2. Supabase → Authentication → Add user: email y contraseña del supervisor.
-3. Insertar su fila en `usuarios`:
-   - `rol_id = 1` (supervisor) o `2` (admin_cliente),
-   - `cliente_id` = el del cliente,
-   - `sede_id` = la sede si debe ver solo una; **`null` para que vea todas
-     las sedes de su cliente** (el tablero le ofrece el selector),
-   - `activo = true`.
-4. Compartir el enlace único (la ficha del cliente en la consola tiene
-   «Copiar enlace» en su pestaña Dashboard).
+**Desde la consola, sin SQL y sin entrar a Supabase** (Etapa P.2):
 
-Requisito de infraestructura: la migración `20260805120000_tablero_cliente`
-debe estar aplicada — es la que otorga `tablero.leer` a supervisor y
-admin_cliente. Sin ella, el login funciona y el tablero responde 403.
+1. Consola Admin → **Clientes** → el cliente → pestaña **Dashboard**.
+2. Sección **Accesos al Dashboard** → **+ Crear acceso**.
+3. Nombre, correo, rol (_Supervisor_ por defecto) y sede
+   (_Todas las sedes_ si debe verlas todas).
+4. La consola muestra **una sola vez** la contraseña temporal: cópiala y
+   entrégala por tu canal. No se guarda en ninguna parte.
+5. Comparte el enlace único con **Copiar enlace** en la misma pestaña.
+
+Una cuenta **por persona**, aunque compartan rol: es lo que permite ver
+el último acceso de cada quien, revocar a uno sin tocar a los demás y
+tener trazabilidad. Desde la misma tabla se desactiva un acceso o se
+genera una contraseña nueva.
+
+**Un usuario del Dashboard no es un operador de campo.** Los operadores
+viven en la pestaña _Operación_, entran con código+PIN dentro de la PWA
+y no tienen sesión. Son dos altas distintas: crear una no crea la otra.
+Una misma persona puede ser ambas cosas.
 
 Un `admin_lubryco` **no** entra al Dashboard (su sesión no tiene
-`cliente_id`): su vista de un cliente es la pestaña Dashboard de la ficha
-en la consola.
+`cliente_id`): su vista de un cliente es la vista previa de la pestaña
+Dashboard en la consola.
+
+Requisitos de infraestructura:
+
+- `20260805120000_tablero_cliente` — otorga `tablero.leer` a supervisor y
+  admin_cliente. Sin ella el login funciona y el tablero responde 403.
+- `20260810070000_accesos_dashboard` — agrega `usuarios.email` y
+  `usuarios.ultimo_acceso_en`. Sin ella la consola no puede listar ni
+  sellar accesos.
