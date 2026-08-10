@@ -122,7 +122,11 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
       jwks: dependencias.jwks,
     });
 
-    registrarRutasAuth(rutas, { proveedor: dependencias.proveedorIdentidad, autenticar });
+    registrarRutasAuth(rutas, {
+      proveedor: dependencias.proveedorIdentidad,
+      autenticar,
+      repositorioSeguridad: dependencias.repositorioSeguridad,
+    });
     registrarRutaEnrolamiento(rutas, {
       proveedor: dependencias.proveedorIdentidad,
       repositorioSeguridad: dependencias.repositorioSeguridad,
@@ -139,6 +143,7 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
         repositorio: dependencias.repositorioAdmin,
         almacenFotos: dependencias.almacenFotos,
         almacenLogos: dependencias.almacenLogos ?? null,
+        proveedorIdentidad: dependencias.proveedorIdentidad,
         autenticar,
       });
     }

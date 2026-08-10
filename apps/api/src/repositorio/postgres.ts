@@ -227,6 +227,16 @@ export class RepositorioCargasPostgres implements RepositorioCargas {
 export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
   constructor(private readonly pool: pg.Pool) {}
 
+  async registrarAcceso(usuarioId: string, cuandoIso: string): Promise<void> {
+    // Solo en el login: una escritura por sesión iniciada, no por
+    // petición. Si falla, el login NO se cae — es telemetría, no
+    // autorización (quien llama la envuelve).
+    await this.pool.query(`update usuarios set ultimo_acceso_en = $2 where id = $1`, [
+      usuarioId,
+      cuandoIso,
+    ]);
+  }
+
   async obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null> {
     const resultado = await this.pool.query(
       `select u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo as rol,

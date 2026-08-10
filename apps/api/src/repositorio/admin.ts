@@ -148,6 +148,34 @@ export interface TableroCliente {
   historial: CargaAdmin[];
 }
 
+/** Persona con acceso al Dashboard de UN cliente (Etapa P.2).
+ *
+ *  No confundir con un operador de campo: los operadores viven en
+ *  `conductores`, se identifican con código+PIN dentro de la app y no
+ *  tienen sesión. Estos son usuarios de Auth con correo y contraseña.
+ *  Una misma persona puede ser ambas cosas sin que las filas se
+ *  relacionen — son dominios distintos a propósito. */
+export interface AccesoDashboardAdmin {
+  usuarioId: string;
+  nombre: string;
+  email: string | null;
+  /** `supervisor` o `admin_cliente`: los dos roles con tablero.leer. */
+  rol: string;
+  /** null = ve todas las sedes de su cliente (DEC-018). */
+  sedeId: string | null;
+  sedeNombre: string | null;
+  activo: boolean;
+  creadoEn: string;
+  /** null = la cuenta nunca se ha usado. */
+  ultimoAccesoEn: string | null;
+}
+
+/** Roles que pueden entrar al Dashboard. Son los mismos a los que
+ *  20260805120000_tablero_cliente otorga `tablero.leer`: la consola no
+ *  puede inventar uno que el RBAC no reconozca. */
+export const ROLES_DASHBOARD = ["supervisor", "admin_cliente"] as const;
+export type RolDashboard = (typeof ROLES_DASHBOARD)[number];
+
 export interface RepositorioAdmin {
   resumen(inicioHoyIso: string, ahoraIso: string): Promise<ResumenAdmin>;
   listarCargas(filtro: { clienteId?: string; limite: number }): Promise<CargaAdmin[]>;
@@ -268,6 +296,36 @@ export interface RepositorioAdmin {
     inicioHoyIso: string,
     desdeHistorialIso: string,
   ): Promise<TableroCliente | null>;
+
+  /* ============ Accesos al Dashboard (Etapa P.2) ============ */
+
+  /** Los usuarios del Dashboard de UN cliente. El clienteId lo fija la
+   *  ruta con el alcance del administrador — nunca el navegador. */
+  listarAccesosDashboard(clienteId: string): Promise<AccesoDashboardAdmin[]>;
+
+  /** Inserta la fila de `usuarios` para una identidad de Auth YA
+   *  creada. `usuarioId` es el id de auth.users (la PK es compartida).
+   *  Lanza ConflictoUnicidad si el correo ya está tomado. */
+  crearAccesoDashboard(datos: {
+    usuarioId: string;
+    clienteId: string;
+    sedeId: string | null;
+    rol: RolDashboard;
+    nombre: string;
+    email: string;
+  }): Promise<AccesoDashboardAdmin>;
+
+  /** Edita un acceso comprobando que pertenezca al cliente indicado:
+   *  el filtro por cliente es parte de la escritura, no una validación
+   *  previa que se pueda olvidar. null = no existe en ese cliente. */
+  editarAccesoDashboard(
+    clienteId: string,
+    usuarioId: string,
+    cambios: { nombre?: string; sedeId?: string | null; rol?: RolDashboard; activo?: boolean },
+  ): Promise<AccesoDashboardAdmin | null>;
+
+  /** Comprueba pertenencia antes de tocar la identidad en Auth. */
+  accesoDashboardDeCliente(clienteId: string, usuarioId: string): Promise<AccesoDashboardAdmin | null>;
 }
 
 /** Violación de unicidad (Postgres 23505) traducida a un error propio. */

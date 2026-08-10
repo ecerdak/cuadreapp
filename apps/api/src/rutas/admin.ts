@@ -8,9 +8,14 @@ import { z } from "zod";
 import { randomUUID, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { CODIGOS_PERFIL } from "@cuadreapp/dominio";
-import { ConflictoUnicidad, type ClienteAdmin, type RepositorioAdmin } from "../repositorio/admin.js";
+import {
+  ConflictoUnicidad,
+  ROLES_DASHBOARD,
+  type ClienteAdmin,
+  type RepositorioAdmin,
+} from "../repositorio/admin.js";
 import { exigirPermiso, type PreManejador } from "../seguridad/autenticacion.js";
-import type { AlmacenFotos } from "../seguridad/tipos.js";
+import type { AlmacenFotos, ProveedorIdentidad } from "../seguridad/tipos.js";
 import { inicioHoyBogota } from "../tiempo.js";
 
 const generarCodigoEnrolamiento = (prefijo: string) =>
@@ -66,6 +71,31 @@ const esquemaSedeCambios = z.object({
   radio_geocerca_m: z.number().int().min(10).max(5000).optional(),
   activo: z.boolean().optional(),
 });
+
+/* ============ Accesos al Dashboard (Etapa P.2) ============ */
+
+// Un acceso es una PERSONA con correo y contraseña, no un operador de
+// campo: los operadores viven en `conductores` y entran con código+PIN
+// dentro de la app. Aquí no hay ni puede haber PIN.
+const esquemaAcceso = z.object({
+  nombre: z.string().trim().min(2).max(120),
+  email: z.string().trim().toLowerCase().email().max(160),
+  rol: z.enum(ROLES_DASHBOARD).default("supervisor"),
+  // DEC-018: null = ve todas las sedes de su cliente.
+  sede_id: z.string().uuid().nullish(),
+  // Ausente: la API genera una temporal y la devuelve UNA vez.
+  password: z.string().min(10).max(72).optional(),
+});
+const esquemaAccesoCambios = z.object({
+  nombre: z.string().trim().min(2).max(120).optional(),
+  rol: z.enum(ROLES_DASHBOARD).optional(),
+  sede_id: z.string().uuid().nullable().optional(),
+  activo: z.boolean().optional(),
+});
+
+/** Contraseña temporal legible pero no adivinable. Se muestra una vez
+ *  en la consola y no se guarda en ninguna parte: la autoridad es Auth. */
+const generarPasswordTemporal = () => `Cuadre-${randomBytes(6).toString("base64url")}`;
 
 /* ============ Logo del cliente (DEC-017) ============ */
 
@@ -147,6 +177,9 @@ export interface DependenciasAdmin {
   almacenFotos: AlmacenFotos;
   /** Bucket privado de logos (DEC-017). null: logo deshabilitado. */
   almacenLogos: AlmacenFotos | null;
+  /** Alta de identidades de Auth para los accesos al Dashboard
+   *  (Etapa P.2). null: la consola no administra accesos. */
+  proveedorIdentidad: ProveedorIdentidad | null;
   autenticar: PreManejador;
 }
 
@@ -257,8 +290,6 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     if (!cliente) return respuesta.status(404).send({ error: "NO_EXISTE" });
     return presentarCliente(cliente);
   });
-
-  /* ============ Logo del cliente (DEC-017) ============ */
 
   // Los parsers binarios pueden existir ya (los registra la ruta de
   // fotos en el mismo scope); solo se agregan los que falten.
@@ -537,4 +568,151 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
     );
     return { ...tablero, historial };
   });
+
+  /* ============ Accesos al Dashboard del cliente (Etapa P.2) ============ */
+  //
+  // El `cliente_id` sale SIEMPRE del parámetro de ruta, y el parámetro
+  // se comprueba contra el alcance de quien administra: un
+  // admin_lubryco (sin cliente en su sesión) administra cualquiera; un
+  // administrador con cliente propio solo el suyo. El cuerpo de la
+  // petición jamás nombra un cliente.
+  //
+  // Estos usuarios NO son operadores: crear un acceso no toca
+  // `conductores`, y crear un operador no crea acceso. Son dos altas
+  // distintas, a propósito.
+
+  /** null = ya respondió; quien llama solo retorna. */
+  const clienteAdministrable = (
+    solicitud: { sesion?: { clienteId: string | null } },
+    respuesta: FastifyReply,
+    clienteId: string,
+  ): string | null => {
+    if (!z.string().uuid().safeParse(clienteId).success) {
+      void respuesta.status(400).send({ error: "ENTRADA_INVALIDA", detalle: "cliente inválido" });
+      return null;
+    }
+    const propio = solicitud.sesion?.clienteId ?? null;
+    if (propio !== null && propio !== clienteId) {
+      void respuesta.status(403).send({ error: "FUERA_DE_ALCANCE" });
+      return null;
+    }
+    return clienteId;
+  };
+
+  const exigirProveedor = (respuesta: FastifyReply): ProveedorIdentidad | null => {
+    if (!deps.proveedorIdentidad) {
+      void respuesta.status(503).send({ error: "IDENTIDAD_NO_DISPONIBLE" });
+      return null;
+    }
+    return deps.proveedorIdentidad;
+  };
+
+  app.get("/api/v1/admin/clientes/:clienteId/accesos", lectura, async (solicitud, respuesta) => {
+    const { clienteId } = solicitud.params as { clienteId: string };
+    const alcance = clienteAdministrable(solicitud, respuesta, clienteId);
+    if (!alcance) return;
+    return { accesos: await repositorio.listarAccesosDashboard(alcance) };
+  });
+
+  app.post("/api/v1/admin/clientes/:clienteId/accesos", escritura, async (solicitud, respuesta) => {
+    const { clienteId } = solicitud.params as { clienteId: string };
+    const alcance = clienteAdministrable(solicitud, respuesta, clienteId);
+    if (!alcance) return;
+    const proveedor = exigirProveedor(respuesta);
+    if (!proveedor) return;
+    const datos = validar(esquemaAcceso, solicitud.body, respuesta);
+    if (!datos) return;
+
+    // 1. Identidad en Auth. Si el correo ya existe se dice cuál es el
+    //    problema: es un dato que escribe una persona.
+    const password = datos.password ?? generarPasswordTemporal();
+    const identidad = await proveedor.crearIdentidadPersona(datos.email, password);
+    if (identidad === "correo_en_uso") {
+      solicitud.observable.resultado = "correo_en_uso";
+      return respuesta.status(409).send({
+        error: "CORREO_EN_USO",
+        detalle: "Ese correo ya tiene una cuenta en CuadreApp.",
+      });
+    }
+    if (!identidad) {
+      solicitud.observable.resultado = "identidad_no_creada";
+      return respuesta.status(502).send({ error: "IDENTIDAD_NO_CREADA" });
+    }
+
+    // 2. Fila del RBAC propio. La identidad ya existe: si esto falla,
+    //    queda una cuenta de Auth sin fila — inofensiva, porque sin
+    //    fila en `usuarios` la API rechaza toda sesión (401).
+    const acceso = await conConflicto(respuesta, () =>
+      repositorio.crearAccesoDashboard({
+        usuarioId: identidad.usuarioId,
+        clienteId: alcance,
+        sedeId: datos.sede_id ?? null,
+        rol: datos.rol ?? "supervisor",
+        nombre: datos.nombre,
+        email: datos.email,
+      }),
+    );
+    if (!acceso) return;
+
+    solicitud.observable.clienteId = alcance;
+    solicitud.observable.resultado = "acceso_creado";
+    // La contraseña temporal viaja UNA vez y no se persiste en ningún lado.
+    return respuesta.status(201).send({ ...acceso, password_temporal: password });
+  });
+
+  app.patch(
+    "/api/v1/admin/clientes/:clienteId/accesos/:usuarioId",
+    escritura,
+    async (solicitud, respuesta) => {
+      const { clienteId, usuarioId } = solicitud.params as {
+        clienteId: string;
+        usuarioId: string;
+      };
+      const alcance = clienteAdministrable(solicitud, respuesta, clienteId);
+      if (!alcance) return;
+      const cambios = validar(esquemaAccesoCambios, solicitud.body, respuesta);
+      if (!cambios) return;
+
+      const acceso = await repositorio.editarAccesoDashboard(alcance, usuarioId, {
+        ...(cambios.nombre !== undefined ? { nombre: cambios.nombre } : {}),
+        ...("sede_id" in cambios ? { sedeId: cambios.sede_id ?? null } : {}),
+        ...(cambios.rol !== undefined ? { rol: cambios.rol } : {}),
+        ...(cambios.activo !== undefined ? { activo: cambios.activo } : {}),
+      });
+      // Un acceso de otro cliente responde igual que uno inexistente:
+      // sin oráculo de existencia entre empresas.
+      if (!acceso) return respuesta.status(404).send({ error: "NO_EXISTE" });
+      solicitud.observable.clienteId = alcance;
+      solicitud.observable.resultado = "acceso_editado";
+      return acceso;
+    },
+  );
+
+  app.post(
+    "/api/v1/admin/clientes/:clienteId/accesos/:usuarioId/password",
+    escritura,
+    async (solicitud, respuesta) => {
+      const { clienteId, usuarioId } = solicitud.params as {
+        clienteId: string;
+        usuarioId: string;
+      };
+      const alcance = clienteAdministrable(solicitud, respuesta, clienteId);
+      if (!alcance) return;
+      const proveedor = exigirProveedor(respuesta);
+      if (!proveedor) return;
+
+      // Pertenencia PRIMERO: no se toca una identidad de Auth sin
+      // confirmar que el acceso es de este cliente.
+      const acceso = await repositorio.accesoDashboardDeCliente(alcance, usuarioId);
+      if (!acceso) return respuesta.status(404).send({ error: "NO_EXISTE" });
+
+      const password = generarPasswordTemporal();
+      if (!(await proveedor.cambiarPassword(usuarioId, password))) {
+        return respuesta.status(502).send({ error: "PASSWORD_NO_CAMBIADA" });
+      }
+      solicitud.observable.clienteId = alcance;
+      solicitud.observable.resultado = "password_restablecida";
+      return { ...acceso, password_temporal: password };
+    },
+  );
 }

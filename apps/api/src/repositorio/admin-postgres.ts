@@ -4,6 +4,7 @@
 
 import pg from "pg";
 import type {
+  AccesoDashboardAdmin,
   CargaAdmin,
   ClienteAdmin,
   CodigoAdmin,
@@ -13,6 +14,7 @@ import type {
   PerfilOperativoAdmin,
   RepositorioAdmin,
   ResumenAdmin,
+  RolDashboard,
   SedeAdmin,
   TableroCliente,
 } from "./admin.js";
@@ -62,6 +64,30 @@ function filaACarga(fila: Record<string, unknown>): CargaAdmin {
     banderas: fila.banderas as Bandera[],
     notas: (fila.notas as string | null) ?? null,
     fotos: fila.fotos as Array<{ momento: string; ruta: string }>,
+  };
+}
+
+function filaAAcceso(f: {
+  id: string;
+  nombre: string;
+  email: string | null;
+  rol: string;
+  sede_id: string | null;
+  sede_nombre: string | null;
+  activo: boolean;
+  creado_en: string | Date;
+  ultimo_acceso_en: string | Date | null;
+}): AccesoDashboardAdmin {
+  return {
+    usuarioId: f.id,
+    nombre: f.nombre,
+    email: f.email ?? null,
+    rol: f.rol,
+    sedeId: f.sede_id ?? null,
+    sedeNombre: f.sede_nombre ?? null,
+    activo: f.activo,
+    creadoEn: new Date(f.creado_en).toISOString(),
+    ultimoAccesoEn: f.ultimo_acceso_en ? new Date(f.ultimo_acceso_en).toISOString() : null,
   };
 }
 
@@ -822,5 +848,91 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
       })),
       historial: historial.rows.map(filaACarga),
     };
+  }
+
+  /* ============ Accesos al Dashboard (Etapa P.2) ============ */
+
+  // El cliente_id SIEMPRE entra como parámetro de la consulta, nunca
+  // como filtro aplicado después: una fila de otro cliente no puede
+  // salir de aquí aunque quien llame se equivoque.
+  private static readonly SELECT_ACCESO = `
+    select u.id, u.nombre, u.email, u.sede_id, u.activo, u.creado_en, u.ultimo_acceso_en,
+           r.codigo as rol, s.nombre as sede_nombre
+    from usuarios u
+    join roles r on r.id = u.rol_id
+    left join sedes s on s.id = u.sede_id`;
+
+  async listarAccesosDashboard(clienteId: string): Promise<AccesoDashboardAdmin[]> {
+    const resultado = await this.pool.query(
+      `${RepositorioAdminPostgres.SELECT_ACCESO}
+       where u.cliente_id = $1 and r.codigo in ('supervisor', 'admin_cliente')
+       order by u.activo desc, u.nombre`,
+      [clienteId],
+    );
+    return resultado.rows.map(filaAAcceso);
+  }
+
+  async accesoDashboardDeCliente(
+    clienteId: string,
+    usuarioId: string,
+  ): Promise<AccesoDashboardAdmin | null> {
+    const resultado = await this.pool.query(
+      `${RepositorioAdminPostgres.SELECT_ACCESO}
+       where u.cliente_id = $1 and u.id = $2 and r.codigo in ('supervisor', 'admin_cliente')`,
+      [clienteId, usuarioId],
+    );
+    return resultado.rows[0] ? filaAAcceso(resultado.rows[0]) : null;
+  }
+
+  async crearAccesoDashboard(datos: {
+    usuarioId: string;
+    clienteId: string;
+    sedeId: string | null;
+    rol: RolDashboard;
+    nombre: string;
+    email: string;
+  }): Promise<AccesoDashboardAdmin> {
+    try {
+      const resultado = await this.pool.query(
+        `insert into usuarios (id, cliente_id, sede_id, rol_id, nombre, email)
+         select $1, $2, $3, r.id, $4, $5 from roles r where r.codigo = $6
+         returning id, nombre, email, sede_id, activo, creado_en, ultimo_acceso_en,
+                   (select codigo from roles where id = usuarios.rol_id) as rol,
+                   (select nombre from sedes where id = usuarios.sede_id) as sede_nombre`,
+        [datos.usuarioId, datos.clienteId, datos.sedeId, datos.nombre, datos.email, datos.rol],
+      );
+      return filaAAcceso(resultado.rows[0]!);
+    } catch (error) {
+      traducirUnicidad(error);
+    }
+  }
+
+  async editarAccesoDashboard(
+    clienteId: string,
+    usuarioId: string,
+    cambios: { nombre?: string; sedeId?: string | null; rol?: RolDashboard; activo?: boolean },
+  ): Promise<AccesoDashboardAdmin | null> {
+    const resultado = await this.pool.query(
+      `update usuarios set
+         nombre  = coalesce($3, nombre),
+         sede_id = case when $4 then $5::uuid else sede_id end,
+         rol_id  = coalesce((select id from roles where codigo = $6), rol_id),
+         activo  = coalesce($7, activo)
+       where cliente_id = $1 and id = $2
+         and rol_id in (select id from roles where codigo in ('supervisor', 'admin_cliente'))
+       returning id, nombre, email, sede_id, activo, creado_en, ultimo_acceso_en,
+                 (select codigo from roles where id = usuarios.rol_id) as rol,
+                 (select nombre from sedes where id = usuarios.sede_id) as sede_nombre`,
+      [
+        clienteId,
+        usuarioId,
+        cambios.nombre ?? null,
+        "sedeId" in cambios,
+        cambios.sedeId ?? null,
+        cambios.rol ?? null,
+        cambios.activo ?? null,
+      ],
+    );
+    return resultado.rows[0] ? filaAAcceso(resultado.rows[0]) : null;
   }
 }

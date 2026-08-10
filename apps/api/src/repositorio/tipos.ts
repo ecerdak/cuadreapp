@@ -163,6 +163,10 @@ export interface RepositorioSeguridad {
   /** Resuelve identidad + rol + alcance + permisos del RBAC propio.
    *  null si el usuario no existe o está inactivo. */
   obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null>;
+  /** Sella el último login exitoso (Etapa P.2). Es lo que permite a la
+   *  consola responder «¿esta cuenta se usa?» antes de revocarla. Se
+   *  invoca solo en /api/v1/auth/login, jamás por petición. */
+  registrarAcceso(usuarioId: string, cuandoIso: string): Promise<void>;
   /** null si el código no existe, expiró o ya fue usado. */
   validarCodigoEnrolamiento(codigo: string, ahora: Date): Promise<CodigoEnrolamientoValido | null>;
   /** Crea usuarios (rol dispositivo) + dispositivos y consume el código. */

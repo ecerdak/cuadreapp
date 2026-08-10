@@ -36,6 +36,21 @@ export interface ProveedorIdentidad {
    *  efímero que se usa una vez para acuñar la sesión y se descarta —
    *  nadie lo almacena jamás. null = fallo del proveedor. */
   crearIdentidadDispositivo(): Promise<{ usuarioId: string; tokens: TokensEmitidos } | null>;
+
+  /** Crea la identidad de una PERSONA con correo y contraseña (los
+   *  usuarios del Dashboard de un cliente). A diferencia del
+   *  dispositivo, aquí no se acuña sesión: la persona entra ella misma
+   *  por /api/v1/auth/login. `correo_en_uso` distingue el choque de
+   *  correo del fallo genérico, para que la consola diga cuál es. */
+  crearIdentidadPersona(
+    email: string,
+    password: string,
+  ): Promise<{ usuarioId: string } | "correo_en_uso" | null>;
+
+  /** Fija una contraseña nueva para una identidad existente. Es el
+   *  reset del administrador: no envía correo, devuelve la contraseña
+   *  temporal a quien la pidió para que la entregue por su canal. */
+  cambiarPassword(usuarioId: string, password: string): Promise<boolean>;
 }
 
 /** Destino de archivos en un bucket privado de Storage (evidencia

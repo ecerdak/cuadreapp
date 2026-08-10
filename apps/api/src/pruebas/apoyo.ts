@@ -147,6 +147,11 @@ export class RepositorioSeguridadFalso implements RepositorioSeguridad {
   async obtenerCatalogo(): Promise<CatalogoSede | null> {
     return this.catalogo;
   }
+
+  accesosSellados: Array<{ usuarioId: string; cuandoIso: string }> = [];
+  async registrarAcceso(usuarioId: string, cuandoIso: string): Promise<void> {
+    this.accesosSellados.push({ usuarioId, cuandoIso });
+  }
 }
 
 const tokensFalsos = (sufijo: string): TokensEmitidos => ({
@@ -172,6 +177,32 @@ export class ProveedorIdentidadFalso implements ProveedorIdentidad {
 
   async cerrarSesion(accessToken: string): Promise<void> {
     this.sesionesCerradas.push(accessToken);
+  }
+
+  /* ---- Altas de personas del Dashboard (Etapa P.2) ---- */
+  personas: Array<{ usuarioId: string; email: string; password: string }> = [];
+  /** Correos que el proveedor considerará ya tomados. */
+  correosEnUso: string[] = [];
+  fallaAlCrearIdentidad = false;
+
+  async crearIdentidadPersona(
+    email: string,
+    password: string,
+  ): Promise<{ usuarioId: string } | "correo_en_uso" | null> {
+    if (this.fallaAlCrearIdentidad) return null;
+    if (this.correosEnUso.includes(email) || this.personas.some((p) => p.email === email)) {
+      return "correo_en_uso";
+    }
+    const usuarioId = `00000000-0000-4000-9000-${String(this.personas.length + 1).padStart(12, "0")}`;
+    this.personas.push({ usuarioId, email, password });
+    return { usuarioId };
+  }
+
+  async cambiarPassword(usuarioId: string, password: string): Promise<boolean> {
+    const persona = this.personas.find((p) => p.usuarioId === usuarioId);
+    if (!persona) return false;
+    persona.password = password;
+    return true;
   }
 
   async crearIdentidadDispositivo(): Promise<{ usuarioId: string; tokens: TokensEmitidos } | null> {

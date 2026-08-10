@@ -52,6 +52,46 @@ export class ProveedorIdentidadSupabase implements ProveedorIdentidad {
     });
   }
 
+  /** Alta de una persona del Dashboard. El correo lo escribe el
+   *  administrador, así que el choque con uno existente es un caso
+   *  esperado y se distingue del fallo del proveedor: la consola
+   *  necesita decir «ese correo ya tiene cuenta», no «error». */
+  async crearIdentidadPersona(
+    email: string,
+    password: string,
+  ): Promise<{ usuarioId: string } | "correo_en_uso" | null> {
+    const respuesta = await fetch(`${this.config.url}/auth/v1/admin/users`, {
+      method: "POST",
+      headers: {
+        apikey: this.config.claveServiceRole,
+        authorization: `Bearer ${this.config.claveServiceRole}`,
+        "content-type": "application/json",
+      },
+      // email_confirm: la cuenta queda utilizable de inmediato — el
+      // administrador entrega la contraseña temporal por su canal.
+      body: JSON.stringify({ email, password, email_confirm: true }),
+    });
+    if (respuesta.ok) {
+      const usuario = (await respuesta.json()) as { id: string };
+      return { usuarioId: usuario.id };
+    }
+    if (respuesta.status === 422 || respuesta.status === 409) return "correo_en_uso";
+    return null;
+  }
+
+  async cambiarPassword(usuarioId: string, password: string): Promise<boolean> {
+    const respuesta = await fetch(`${this.config.url}/auth/v1/admin/users/${usuarioId}`, {
+      method: "PUT",
+      headers: {
+        apikey: this.config.claveServiceRole,
+        authorization: `Bearer ${this.config.claveServiceRole}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    });
+    return respuesta.ok;
+  }
+
   async crearIdentidadDispositivo(): Promise<{ usuarioId: string; tokens: TokensEmitidos } | null> {
     // Secreto efímero: se usa una única vez para acuñar la sesión del
     // dispositivo y se descarta. Nadie lo conoce ni lo almacena; la

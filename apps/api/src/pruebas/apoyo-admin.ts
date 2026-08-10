@@ -4,6 +4,8 @@
 import type { CodigoPerfil } from "@cuadreapp/dominio";
 import type { SesionAutenticada } from "../seguridad/tipos.js";
 import type {
+  AccesoDashboardAdmin,
+  RolDashboard,
   CargaAdmin,
   ClienteAdmin,
   CodigoAdmin,
@@ -51,6 +53,9 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
   dispositivos: DispositivoAdmin[] = [];
   usuariosDesactivados: string[] = [];
   cargas: CargaAdmin[] = [];
+  /** Accesos al Dashboard. Espejo en memoria de `usuarios` filtrado a
+   *  los roles con tablero.leer — nunca mezcla con `operadores`. */
+  accesos: AccesoDashboardAdmin[] = [];
 
   async resumen(): Promise<ResumenAdmin> {
     return {
@@ -420,5 +425,67 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
         })),
       historial: cargas,
     };
+  }
+
+  /* ============ Accesos al Dashboard (Etapa P.2) ============ */
+
+  async listarAccesosDashboard(clienteId: string): Promise<AccesoDashboardAdmin[]> {
+    return this.accesos.filter((a) => this.clienteDe.get(a.usuarioId) === clienteId);
+  }
+
+  async accesoDashboardDeCliente(
+    clienteId: string,
+    usuarioId: string,
+  ): Promise<AccesoDashboardAdmin | null> {
+    const acceso = this.accesos.find((a) => a.usuarioId === usuarioId);
+    if (!acceso || this.clienteDe.get(usuarioId) !== clienteId) return null;
+    return acceso;
+  }
+
+  /** cliente de cada acceso: en la base es `usuarios.cliente_id`. */
+  clienteDe = new Map<string, string>();
+
+  async crearAccesoDashboard(datos: {
+    usuarioId: string;
+    clienteId: string;
+    sedeId: string | null;
+    rol: RolDashboard;
+    nombre: string;
+    email: string;
+  }): Promise<AccesoDashboardAdmin> {
+    if (this.accesos.some((a) => a.email?.toLowerCase() === datos.email.toLowerCase())) {
+      throw new ConflictoUnicidad();
+    }
+    const acceso: AccesoDashboardAdmin = {
+      usuarioId: datos.usuarioId,
+      nombre: datos.nombre,
+      email: datos.email,
+      rol: datos.rol,
+      sedeId: datos.sedeId,
+      sedeNombre: this.sedes.find((s) => s.id === datos.sedeId)?.nombre ?? null,
+      activo: true,
+      creadoEn: new Date(0).toISOString(),
+      ultimoAccesoEn: null,
+    };
+    this.accesos.push(acceso);
+    this.clienteDe.set(datos.usuarioId, datos.clienteId);
+    return acceso;
+  }
+
+  async editarAccesoDashboard(
+    clienteId: string,
+    usuarioId: string,
+    cambios: { nombre?: string; sedeId?: string | null; rol?: RolDashboard; activo?: boolean },
+  ): Promise<AccesoDashboardAdmin | null> {
+    const acceso = this.accesos.find((a) => a.usuarioId === usuarioId);
+    if (!acceso || this.clienteDe.get(usuarioId) !== clienteId) return null;
+    if (cambios.nombre !== undefined) acceso.nombre = cambios.nombre;
+    if ("sedeId" in cambios) {
+      acceso.sedeId = cambios.sedeId ?? null;
+      acceso.sedeNombre = this.sedes.find((s) => s.id === acceso.sedeId)?.nombre ?? null;
+    }
+    if (cambios.rol !== undefined) acceso.rol = cambios.rol;
+    if (cambios.activo !== undefined) acceso.activo = cambios.activo;
+    return acceso;
   }
 }
