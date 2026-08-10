@@ -16,6 +16,7 @@ import { useConsulta } from "../../datos/consulta";
 import { ChipEstado, Esqueleto, EstadoError, Eyebrow, Panel, Th, celda, gal, horaCorta } from "../../ui";
 import { TEMA } from "../../tema";
 import type { ContextoFicha } from "./FichaCliente";
+import { AccesosDashboard } from "./AccesosDashboard";
 
 /** URL del Dashboard de Cliente. Única para todas las empresas: el
  *  login decide cuál se carga (DEC-018). Configurable por entorno para
@@ -35,6 +36,7 @@ export function DashboardCliente() {
   return (
     <div className="flex flex-col gap-4">
       <AvisoPreview />
+      <AccesosDashboard key={`accesos-${cliente.id}`} clienteId={cliente.id} />
       <TableroDeCliente key={cliente.id} clienteId={cliente.id} />
     </div>
   );

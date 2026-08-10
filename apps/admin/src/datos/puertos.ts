@@ -55,6 +55,32 @@ export interface Equipo {
   activo: boolean;
 }
 
+/** Persona con acceso al Dashboard de un cliente (Etapa P.2).
+ *
+ *  NO es un operador de campo. Los operadores viven en `Operador`, se
+ *  identifican con código+PIN dentro de la PWA y no tienen sesión.
+ *  Estos entran al Dashboard con correo y contraseña. Una persona puede
+ *  ser ambas cosas; las entidades no se relacionan. */
+export interface AccesoDashboard {
+  usuarioId: string;
+  nombre: string;
+  email: string | null;
+  /** `supervisor` o `admin_cliente`. */
+  rol: string;
+  /** null = ve todas las sedes de su cliente. */
+  sedeId: string | null;
+  sedeNombre: string | null;
+  activo: boolean;
+  creadoEn: string;
+  /** null = la cuenta nunca se ha usado. */
+  ultimoAccesoEn: string | null;
+}
+
+/** Alta o reinicio de contraseña: la temporal viaja UNA vez. */
+export interface AccesoConPassword extends AccesoDashboard {
+  password_temporal: string;
+}
+
 export interface Operador {
   id: string;
   clienteId: string;
@@ -230,4 +256,17 @@ export interface FuenteAdmin {
   reenrolarDispositivo(id: string): Promise<{ dispositivo: Dispositivo; codigo: Codigo }>;
 
   tablero(clienteId: string): Promise<Tablero>;
+
+  /* ---- Accesos al Dashboard (Etapa P.2) ---- */
+  accesosDashboard(clienteId: string): Promise<AccesoDashboard[]>;
+  crearAccesoDashboard(
+    clienteId: string,
+    datos: { nombre: string; email: string; rol?: string; sedeId?: string | null },
+  ): Promise<AccesoConPassword>;
+  editarAccesoDashboard(
+    clienteId: string,
+    usuarioId: string,
+    cambios: { nombre?: string; rol?: string; sedeId?: string | null; activo?: boolean },
+  ): Promise<AccesoDashboard>;
+  reiniciarPasswordAcceso(clienteId: string, usuarioId: string): Promise<AccesoConPassword>;
 }

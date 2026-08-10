@@ -3,6 +3,8 @@
 // de la API llegan con su código propio (CONFLICTO, NO_EXISTE…).
 
 import type {
+  AccesoConPassword,
+  AccesoDashboard,
   Carga,
   Cliente,
   Codigo,
@@ -332,5 +334,59 @@ export class FuenteAdminHttp implements FuenteAdmin {
 
   async tablero(clienteId: string): Promise<Tablero> {
     return json(await solicitar(`/api/v1/admin/tablero/${clienteId}`));
+  }
+
+  /* ---- Accesos al Dashboard (Etapa P.2) ---- */
+  // El clienteId va SIEMPRE en la ruta: la API lo comprueba contra el
+  // alcance del administrador. El cuerpo nunca nombra un cliente.
+
+  async accesosDashboard(clienteId: string): Promise<AccesoDashboard[]> {
+    const cuerpo = await json<{ accesos: AccesoDashboard[] }>(
+      await solicitar(`/api/v1/admin/clientes/${clienteId}/accesos`),
+    );
+    return cuerpo.accesos;
+  }
+
+  async crearAccesoDashboard(
+    clienteId: string,
+    datos: { nombre: string; email: string; rol?: string; sedeId?: string | null },
+  ): Promise<AccesoConPassword> {
+    return json(
+      await solicitar(`/api/v1/admin/clientes/${clienteId}/accesos`, {
+        method: "POST",
+        body: JSON.stringify({
+          nombre: datos.nombre,
+          email: datos.email,
+          ...(datos.rol ? { rol: datos.rol } : {}),
+          ...(datos.sedeId !== undefined ? { sede_id: datos.sedeId } : {}),
+        }),
+      }),
+    );
+  }
+
+  async editarAccesoDashboard(
+    clienteId: string,
+    usuarioId: string,
+    cambios: { nombre?: string; rol?: string; sedeId?: string | null; activo?: boolean },
+  ): Promise<AccesoDashboard> {
+    return json(
+      await solicitar(`/api/v1/admin/clientes/${clienteId}/accesos/${usuarioId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          ...(cambios.nombre !== undefined ? { nombre: cambios.nombre } : {}),
+          ...(cambios.rol !== undefined ? { rol: cambios.rol } : {}),
+          ...(cambios.sedeId !== undefined ? { sede_id: cambios.sedeId } : {}),
+          ...(cambios.activo !== undefined ? { activo: cambios.activo } : {}),
+        }),
+      }),
+    );
+  }
+
+  async reiniciarPasswordAcceso(clienteId: string, usuarioId: string): Promise<AccesoConPassword> {
+    return json(
+      await solicitar(`/api/v1/admin/clientes/${clienteId}/accesos/${usuarioId}/password`, {
+        method: "POST",
+      }),
+    );
   }
 }

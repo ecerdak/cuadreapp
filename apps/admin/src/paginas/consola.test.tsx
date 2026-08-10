@@ -118,6 +118,44 @@ function fuenteFalsa(): FuenteAdmin & { estado: { clientes: Cliente[]; sedes: Se
   const estado = { clientes: [clienteFalso()], sedes: [sedeFalsa()] };
   return {
     estado,
+    // Accesos al Dashboard: el doble no los ejercita, pero el contrato
+    // los exige — un cliente recién creado empieza sin ninguno.
+    accesosDashboard: async () => [],
+    crearAccesoDashboard: async (_clienteId: string, datos: { nombre: string; email: string }) => ({
+      usuarioId: "u-1",
+      nombre: datos.nombre,
+      email: datos.email,
+      rol: "supervisor",
+      sedeId: null,
+      sedeNombre: null,
+      activo: true,
+      creadoEn: new Date(0).toISOString(),
+      ultimoAccesoEn: null,
+      password_temporal: "Cuadre-temporal",
+    }),
+    editarAccesoDashboard: async (_c: string, usuarioId: string) => ({
+      usuarioId,
+      nombre: "Acceso",
+      email: "acceso@empresa.test",
+      rol: "supervisor",
+      sedeId: null,
+      sedeNombre: null,
+      activo: true,
+      creadoEn: new Date(0).toISOString(),
+      ultimoAccesoEn: null,
+    }),
+    reiniciarPasswordAcceso: async (_c: string, usuarioId: string) => ({
+      usuarioId,
+      nombre: "Acceso",
+      email: "acceso@empresa.test",
+      rol: "supervisor",
+      sedeId: null,
+      sedeNombre: null,
+      activo: true,
+      creadoEn: new Date(0).toISOString(),
+      ultimoAccesoEn: null,
+      password_temporal: "Cuadre-nueva",
+    }),
     resumen: async () => RESUMEN,
     cargas: async () => [CARGA],
     perfiles: async () => [
