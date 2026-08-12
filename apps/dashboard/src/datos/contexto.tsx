@@ -124,12 +124,14 @@ export function ProveedorContextoTablero(props: {
         return <SinEmpresa />;
       case "sin_permiso":
         return <SinPermiso />;
-      default:
+      default: {
+        const humano = mensajeDeError(consulta.causa);
         return (
           <div className="p-6">
-            <EstadoError detalle={mensajeDeError(consulta.detalle)} onReintentar={recargar} />
+            <EstadoError detalle={humano.frase} referencia={humano.referencia} onReintentar={recargar} />
           </div>
         );
+      }
     }
   }
 
@@ -177,16 +179,43 @@ export function SinPermiso() {
   );
 }
 
-/** Errores de la API traducidos a una frase para el supervisor. */
-export function mensajeDeError(error: unknown): string {
+/** Lo que ve la persona cuando algo falla: una frase en su idioma y,
+ *  si la API respondió, la referencia (request_id) para soporte. */
+export interface ErrorHumano {
+  frase: string;
+  referencia: string | null;
+}
+
+/** Errores traducidos a una frase para el supervisor (P0.5). Jamás se
+ *  muestra un código crudo como mensaje principal: HTTP_500, TypeError
+ *  y Failed to fetch son diagnóstico, no comunicación. Los códigos de
+ *  DOMINIO desconocidos sí se citan entre paréntesis — nombran una
+ *  regla del negocio, no una tripa del sistema. */
+export function mensajeDeError(error: unknown): ErrorHumano {
   if (error instanceof ErrorApi) {
     const conocidos: Record<string, string> = {
       SEDE_FUERA_DE_ALCANCE: "Esa sede no pertenece a tu alcance.",
       CARGA_NO_ENCONTRADA: "Esa carga ya no está disponible.",
       CLIENTE_NO_DISPONIBLE: "La empresa de tu usuario está desactivada.",
+      SESION_VENCIDA: "Tu sesión expiró. Vuelve a entrar.",
     };
-    const frase = conocidos[error.codigo] ?? `No se pudo consultar la información (${error.codigo}).`;
-    return error.requestId ? `${frase} Referencia: ${error.requestId}` : frase;
+    const frase =
+      conocidos[error.codigo] ??
+      (/^HTTP_5\d\d$/.test(error.codigo)
+        ? "El servidor tuvo un problema al responder. Intenta nuevamente."
+        : /^HTTP_\d+$/.test(error.codigo)
+          ? "No se pudo consultar la información. Intenta nuevamente."
+          : `No se pudo consultar la información (${error.codigo}).`);
+    return { frase, referencia: error.requestId ?? null };
   }
-  return String(error);
+  if (error instanceof SesionVencida) {
+    return { frase: "Tu sesión expiró. Vuelve a entrar.", referencia: null };
+  }
+  if (error instanceof TypeError) {
+    return {
+      frase: "No se pudo contactar el servidor. Revisa tu conexión e intenta de nuevo.",
+      referencia: null,
+    };
+  }
+  return { frase: "Algo no salió bien al cargar la información. Intenta nuevamente.", referencia: null };
 }

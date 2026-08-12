@@ -3,7 +3,7 @@
 // estado nunca se comunica solo por color, el foco es visible y los
 // esqueletos respetan prefers-reduced-motion.
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { EstadoCarga } from "@cuadreapp/dominio";
 import { COLOR_ESTADO, TEMA, TEXTO_ESTADO, TONO_ZONA } from "../tema";
 import type { Veredicto } from "../datos/puertos";
@@ -192,7 +192,13 @@ export function EstadoVacio(props: { mensaje: string; detalle?: string }) {
   );
 }
 
-export function EstadoError(props: { detalle: string; onReintentar: () => void }) {
+export function EstadoError(props: {
+  detalle: string;
+  /** request_id de la API (P0.5): la referencia que soporte necesita. */
+  referencia?: string | null;
+  onReintentar: () => void;
+}) {
+  const [refCopiada, setRefCopiada] = useState(false);
   return (
     <div
       role="alert"
@@ -205,6 +211,27 @@ export function EstadoError(props: { detalle: string; onReintentar: () => void }
       <p className="mt-1 text-xs" style={{ color: TEMA.suave }}>
         {props.detalle}
       </p>
+      {props.referencia ? (
+        <p className="mt-2 text-xs" style={{ color: TEMA.tenue }}>
+          Soporte:{" "}
+          <code className="font-mono" style={{ userSelect: "all" }}>
+            {props.referencia}
+          </code>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard
+                ?.writeText(props.referencia!)
+                .then(() => setRefCopiada(true))
+                .catch(() => setRefCopiada(false));
+            }}
+            className="focus-visible:outline"
+            style={{ marginLeft: 8, fontSize: 11, color: TEMA.azul }}
+          >
+            {refCopiada ? "Copiada ✓" : "Copiar"}
+          </button>
+        </p>
+      ) : null}
       <button
         type="button"
         onClick={props.onReintentar}

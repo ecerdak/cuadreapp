@@ -28,8 +28,10 @@ export function Hoy() {
   }, [recargar]);
 
   if (consulta.estado === "cargando") return <EsqueletoHoy />;
-  if (consulta.estado === "error")
-    return <EstadoError detalle={mensajeDeError(consulta.detalle)} onReintentar={recargar} />;
+  if (consulta.estado === "error") {
+    const humano = mensajeDeError(consulta.causa);
+    return <EstadoError detalle={humano.frase} referencia={humano.referencia} onReintentar={recargar} />;
+  }
 
   const { datos } = consulta;
   const { balance } = datos;

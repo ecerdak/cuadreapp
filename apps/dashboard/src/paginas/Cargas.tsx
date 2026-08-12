@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { EstadoCarga } from "@cuadreapp/dominio";
 import { useFuenteTablero } from "../datos/proveedor";
-import { mensajeDeError, useTablero } from "../datos/contexto";
+import { mensajeDeError, useTablero, type ErrorHumano } from "../datos/contexto";
 import { useConsulta } from "../datos/consulta";
 import {
   BotonExcel,
@@ -44,6 +44,7 @@ export function Cargas() {
   const [parametros, setParametros] = useSearchParams();
   const estado = (parametros.get("estado") ?? "todas") as EstadoCarga | "todas";
   const [exportando, setExportando] = useState(false);
+  const [errorExportacion, setErrorExportacion] = useState<ErrorHumano | null>(null);
   const { consulta, recargar } = useConsulta(
     () => fuente.listarCargas({ estado, sedeId }),
     [estado, sedeId],
@@ -64,8 +65,10 @@ export function Cargas() {
       </div>
     );
   }
-  if (consulta.estado === "error")
-    return <EstadoError detalle={mensajeDeError(consulta.detalle)} onReintentar={recargar} />;
+  if (consulta.estado === "error") {
+    const humano = mensajeDeError(consulta.causa);
+    return <EstadoError detalle={humano.frase} referencia={humano.referencia} onReintentar={recargar} />;
+  }
 
   const { datos } = consulta;
   const seleccionada = datos.cargas.find((carga) => carga.id === idSeleccion) ?? datos.cargas[0] ?? null;
@@ -74,7 +77,12 @@ export function Cargas() {
   const exportar = (alcance: "dia" | "mes") => {
     if (exportando) return;
     setExportando(true);
-    void descargarExcel(fuente, contexto, { alcance, sedeId }).finally(() => setExportando(false));
+    setErrorExportacion(null);
+    // P0.5: una exportación que falla lo DICE — antes el botón dejaba
+    // de girar y no pasaba nada, con la promesa rechazada en silencio.
+    descargarExcel(fuente, contexto, { alcance, sedeId })
+      .catch((error: unknown) => setErrorExportacion(mensajeDeError(error)))
+      .finally(() => setExportando(false));
   };
 
   return (
@@ -119,6 +127,15 @@ export function Cargas() {
                   {exportando ? "Generando…" : "Últimos 14 días"}
                 </BotonExcel>
               </div>
+              {errorExportacion ? (
+                <div
+                  role="alert"
+                  style={{ fontSize: 11, color: TEMA.rojo, marginTop: 9, lineHeight: 1.5 }}
+                >
+                  No se pudo generar el Excel. {errorExportacion.frase}
+                  {errorExportacion.referencia ? ` Soporte: ${errorExportacion.referencia}` : ""}
+                </div>
+              ) : null}
               <div style={{ fontSize: 10.5, color: TEMA.suave, marginTop: 9, lineHeight: 1.5 }}>
                 El archivo completo trae cinco hojas: cargas, consumo por día, consumo por equipo,
                 entregas y balance.
@@ -264,12 +281,14 @@ function PanelEvidencia(props: { id: string }) {
       </div>
     );
   }
-  if (consulta.estado === "error")
+  if (consulta.estado === "error") {
+    const humano = mensajeDeError(consulta.causa);
     return (
       <div className="lg:col-span-2">
-        <EstadoError detalle={mensajeDeError(consulta.detalle)} onReintentar={recargar} />
+        <EstadoError detalle={humano.frase} referencia={humano.referencia} onReintentar={recargar} />
       </div>
     );
+  }
 
   const { datos } = consulta;
   const Evidencia = evidenciaDeCarga(datos.resumen.perfilCodigo);

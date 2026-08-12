@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type Consulta<T> =
   | { estado: "cargando" }
-  | { estado: "error"; detalle: string }
+  /** `detalle` es el String(error) para clasificar; `causa` conserva el
+   *  error real — mensajeDeError() lo traduce a frase + request_id.
+   *  Sin la causa, toda pantalla mostraba «Error: HTTP_500» (P0.5). */
+  | { estado: "error"; detalle: string; causa: unknown }
   | { estado: "listo"; datos: T; actualizadoEn: Date };
 
 export interface UsoConsulta<T> {
@@ -30,7 +33,7 @@ export function useConsulta<T>(cargar: () => Promise<T>, dependencias: unknown[]
         if (activo) setConsulta({ estado: "listo", datos, actualizadoEn: new Date() });
       })
       .catch((error: unknown) => {
-        if (activo) setConsulta({ estado: "error", detalle: String(error) });
+        if (activo) setConsulta({ estado: "error", detalle: String(error), causa: error });
       });
     return () => {
       activo = false;
