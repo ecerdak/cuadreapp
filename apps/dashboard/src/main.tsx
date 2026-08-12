@@ -19,6 +19,7 @@ import { ProveedorContextoTablero, useTablero } from "./datos/contexto";
 import { haySesion } from "./datos/sesion";
 import { DisposicionTablero } from "./disposicion/DisposicionTablero";
 import { Entrar } from "./paginas/Entrar";
+import { CambiarContrasena, ContrasenaNueva, Recuperar, Restablecer } from "./paginas/Contrasena";
 import { Hoy } from "./paginas/Hoy";
 import { Cargas } from "./paginas/Cargas";
 import { Equipos } from "./paginas/Equipos";
@@ -28,10 +29,21 @@ function ConSesion() {
   const navegar = useNavigate();
   if (!haySesion()) return <Navigate to="/entrar" replace />;
   return (
-    <ProveedorContextoTablero alPerderSesion={() => navegar("/entrar", { replace: true })}>
+    <ProveedorContextoTablero
+      alPerderSesion={() => navegar("/entrar?motivo=sesion", { replace: true })}
+      alPasswordTemporal={() => navegar("/contrasena-nueva", { replace: true })}
+    >
       <Outlet />
     </ProveedorContextoTablero>
   );
+}
+
+/** Pantallas que necesitan sesión pero NO el contexto de la empresa:
+ *  el primer ingreso forzado ocurre ANTES de que el tablero abra (la
+ *  API responde 403 PASSWORD_TEMPORAL hasta definir la contraseña). */
+function ConSesionSinContexto() {
+  if (!haySesion()) return <Navigate to="/entrar" replace />;
+  return <Outlet />;
 }
 
 /** Un módulo que el perfil del cliente no declara no se pinta. */
@@ -46,7 +58,13 @@ createRoot(document.getElementById("raiz")!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/entrar" element={<Entrar />} />
+        <Route path="/recuperar" element={<Recuperar />} />
+        <Route path="/restablecer" element={<Restablecer />} />
+        <Route element={<ConSesionSinContexto />}>
+          <Route path="/contrasena-nueva" element={<ContrasenaNueva />} />
+        </Route>
         <Route element={<ConSesion />}>
+          <Route path="/contrasena" element={<CambiarContrasena />} />
           <Route element={<DisposicionTablero />}>
             <Route index element={<Navigate to="/hoy" replace />} />
             <Route path="/hoy" element={<Hoy />} />

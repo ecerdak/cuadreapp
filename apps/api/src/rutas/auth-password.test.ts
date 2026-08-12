@@ -6,11 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { armarAplicacion, crearToken, ID_CLIENTE } from "../pruebas/apoyo.js";
 import { RepositorioAdminFalso, sesionAdmin, ID_ADMIN } from "../pruebas/apoyo-admin.js";
-import {
-  ID_SUPERVISOR,
-  RepositorioTableroFalso,
-  sesionSupervisor,
-} from "../pruebas/apoyo-tablero.js";
+import { ID_SUPERVISOR, RepositorioTableroFalso, sesionSupervisor } from "../pruebas/apoyo-tablero.js";
 import type { SesionAutenticada } from "../seguridad/tipos.js";
 
 const ID_PERSONA = "77aa1111-2222-4333-8444-555566667777";
@@ -125,7 +121,9 @@ describe("POST /api/v1/auth/password — cambio con sesión", () => {
       headers: await auth({ email: EMAIL }),
       payload: { password_actual: "equivocada", password_nueva: "MiClavePropia1" },
     });
-    expect(respuesta.statusCode).toBe(401);
+    // 403, no 401: un 401 haría que el cliente HTTP intente renovar la
+    // sesión (que está perfectamente viva) y hasta la cierre.
+    expect(respuesta.statusCode).toBe(403);
     expect(respuesta.json().error).toBe("PASSWORD_ACTUAL_INCORRECTA");
     expect(proveedorIdentidad.passwordsCambiadas).toEqual([]);
     expect(repositorioSeguridad.passwordsDefinitivas).toEqual([]);

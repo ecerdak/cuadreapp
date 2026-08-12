@@ -177,10 +177,15 @@ export function registrarRutasAuth(
       );
       if (!verificacion) {
         solicitud.observable.resultado = "password_actual_incorrecta";
-        return respuesta.status(401).send({ error: "PASSWORD_ACTUAL_INCORRECTA" });
+        // 403, no 401: un 401 en una ruta autenticada significa «token
+        // vencido» para el cliente HTTP y dispararía su renovación —
+        // aquí la sesión está bien, lo incorrecto es la contraseña.
+        return respuesta.status(403).send({ error: "PASSWORD_ACTUAL_INCORRECTA" });
       }
 
-      if (!(await dependencias.proveedor.cambiarPassword(sesion.usuarioId, analisis.data.password_nueva))) {
+      if (
+        !(await dependencias.proveedor.cambiarPassword(sesion.usuarioId, analisis.data.password_nueva))
+      ) {
         solicitud.observable.resultado = "password_no_cambiada";
         return respuesta.status(502).send({ error: "PASSWORD_NO_CAMBIADA" });
       }
@@ -222,7 +227,9 @@ export function registrarRutasAuth(
       }
 
       const sesion = solicitud.sesion!;
-      if (!(await dependencias.proveedor.cambiarPassword(sesion.usuarioId, analisis.data.password_nueva))) {
+      if (
+        !(await dependencias.proveedor.cambiarPassword(sesion.usuarioId, analisis.data.password_nueva))
+      ) {
         solicitud.observable.resultado = "password_no_cambiada";
         return respuesta.status(502).send({ error: "PASSWORD_NO_CAMBIADA" });
       }

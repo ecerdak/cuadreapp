@@ -39,18 +39,21 @@ export function useTableroOpcional(): EstadoTablero | null {
   return useContext(ContextoEmpresa);
 }
 
-export type FallaDeAcceso = "sesion_vencida" | "sin_empresa" | "sin_permiso" | "otra";
+export type FallaDeAcceso =
+  "sesion_vencida" | "sin_empresa" | "sin_permiso" | "password_temporal" | "otra";
 
 /** Qué pantalla merece una falla al resolver el contexto. Separado del
- *  componente para poder probarlo: son las cuatro puertas por las que
- *  un usuario puede quedarse sin tablero, y cada una dice algo
- *  distinto. Una sesión que expiró vuelve al login; un usuario de la
- *  consola (sin empresa) o sin permiso reciben una explicación, no un
- *  error de red que no significa nada para ellos. */
+ *  componente para poder probarlo: son las puertas por las que un
+ *  usuario puede quedarse sin tablero, y cada una dice algo distinto.
+ *  Una sesión que expiró vuelve al login; una contraseña temporal va a
+ *  definir la propia (P0.1); un usuario de la consola (sin empresa) o
+ *  sin permiso reciben una explicación, no un error de red que no
+ *  significa nada para ellos. */
 export function clasificarFalla(detalle: string): FallaDeAcceso {
   if (detalle.includes("SESION_VENCIDA") || detalle.includes(SesionVencida.name)) {
     return "sesion_vencida";
   }
+  if (detalle.includes("PASSWORD_TEMPORAL")) return "password_temporal";
   if (detalle.includes("SIN_CLIENTE_EN_SESION")) return "sin_empresa";
   if (detalle.includes("SIN_PERMISO") || detalle.includes("NO_AUTORIZADO")) return "sin_permiso";
   return "otra";
@@ -66,6 +69,9 @@ export function ProveedorContextoTablero(props: {
   children: ReactNode;
   /** Se invoca cuando la sesión ya no sirve: el marco vuelve al login. */
   alPerderSesion?: () => void;
+  /** P0.1: la sesión entró con la contraseña temporal — el marco lleva
+   *  a definir la propia antes de pintar el tablero. */
+  alPasswordTemporal?: () => void;
 }) {
   const fuente = useFuenteTablero();
   const { consulta, recargar } = useConsulta(() => fuente.contexto());
@@ -100,6 +106,9 @@ export function ProveedorContextoTablero(props: {
     switch (clasificarFalla(consulta.detalle)) {
       case "sesion_vencida":
         props.alPerderSesion?.();
+        return null;
+      case "password_temporal":
+        props.alPasswordTemporal?.();
         return null;
       case "sin_empresa":
         return <SinEmpresa />;

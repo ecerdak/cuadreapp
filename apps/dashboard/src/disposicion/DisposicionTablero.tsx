@@ -9,7 +9,7 @@
 //      empresa está pintando, y las pestañas salen de los módulos que
 //      declara su Perfil Operativo.
 
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import type { ModuloTablero } from "@cuadreapp/dominio";
 import { TEMA } from "../tema";
 import { Logotipo, Placa } from "../marca/Logotipo";
@@ -158,16 +158,25 @@ export function DisposicionTablero() {
             ) : null}
 
             {contexto ? (
-              <button
-                type="button"
-                onClick={() => {
-                  void cerrarSesion().then(() => navegar("/entrar", { replace: true }));
-                }}
-                className="focus-visible:outline"
-                style={{ fontSize: 12.5, color: TEMA.azul }}
-              >
-                Cerrar sesión
-              </button>
+              <div className="flex items-center" style={{ gap: 14 }}>
+                <Link
+                  to="/contrasena"
+                  className="focus-visible:outline"
+                  style={{ fontSize: 12.5, color: TEMA.suave }}
+                >
+                  Cambiar contraseña
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void cerrarSesion().then(() => navegar("/entrar", { replace: true }));
+                  }}
+                  className="focus-visible:outline"
+                  style={{ fontSize: 12.5, color: TEMA.azul }}
+                >
+                  Cerrar sesión
+                </button>
+              </div>
             ) : null}
           </div>
         </div>

@@ -28,15 +28,105 @@ export function haySesion(): boolean {
   return accessToken !== null || localStorage.getItem(CLAVE_REFRESH) !== null;
 }
 
-export async function iniciarSesion(email: string, password: string): Promise<boolean> {
+export interface ResultadoLogin {
+  ok: boolean;
+  /** P0.1: la contraseña vigente es la TEMPORAL de la consola — el
+   *  tablero está cerrado (403) hasta definir una propia. */
+  debeCambiarPassword: boolean;
+  /** Por qué falló, para que el login hable claro (P0.4):
+   *  `limite` = demasiados intentos (429); `credenciales` = lo demás. */
+  motivo?: "credenciales" | "limite";
+}
+
+/** La contraseña temporal recién usada, SOLO en memoria y solo para el
+ *  primer ingreso forzado: la pantalla de contraseña nueva la consume
+ *  como «contraseña actual» sin pedirla otra vez. Jamás se almacena. */
+let passwordTemporalEnMemoria: string | null = null;
+
+export function tomarPasswordTemporal(): string | null {
+  const password = passwordTemporalEnMemoria;
+  passwordTemporalEnMemoria = null;
+  return password;
+}
+
+export async function iniciarSesion(email: string, password: string): Promise<ResultadoLogin> {
   const respuesta = await fetch(`${URL_API}/api/v1/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  if (!respuesta.ok) return false;
-  guardarTokens((await respuesta.json()) as Tokens);
-  return true;
+  if (!respuesta.ok) {
+    return {
+      ok: false,
+      debeCambiarPassword: false,
+      motivo: respuesta.status === 429 ? "limite" : "credenciales",
+    };
+  }
+  const cuerpo = (await respuesta.json()) as Tokens & { debe_cambiar_password?: boolean };
+  guardarTokens(cuerpo);
+  const debeCambiarPassword = cuerpo.debe_cambiar_password === true;
+  passwordTemporalEnMemoria = debeCambiarPassword ? password : null;
+  return { ok: true, debeCambiarPassword };
+}
+
+/* ============ Ciclo de contraseña (P0.1) ============ */
+
+export type ResultadoCambioPassword = "ok" | "actual_incorrecta" | "error";
+
+export async function cambiarPassword(
+  passwordActual: string,
+  passwordNueva: string,
+): Promise<ResultadoCambioPassword> {
+  try {
+    const respuesta = await solicitar("/api/v1/auth/password", {
+      method: "POST",
+      body: JSON.stringify({ password_actual: passwordActual, password_nueva: passwordNueva }),
+    });
+    if (respuesta.ok) return "ok";
+    const cuerpo = (await respuesta.json().catch(() => ({}))) as { error?: string };
+    return cuerpo.error === "PASSWORD_ACTUAL_INCORRECTA" ? "actual_incorrecta" : "error";
+  } catch {
+    return "error";
+  }
+}
+
+/** «Olvidé mi contraseña»: la respuesta del servidor es idéntica exista
+ *  o no la cuenta; false solo significa que no se pudo contactar. */
+export async function solicitarRecuperacion(email: string): Promise<boolean> {
+  try {
+    const respuesta = await fetch(`${URL_API}/api/v1/auth/recuperar`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return respuesta.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Tokens que trae el enlace del correo de recuperación (fragmento
+ *  #access_token=…&refresh_token=…). null = enlace inválido/expirado. */
+export function tokensDelFragmento(fragmento: string): Tokens | null {
+  const parametros = new URLSearchParams(fragmento.startsWith("#") ? fragmento.slice(1) : fragmento);
+  const access = parametros.get("access_token");
+  const refresh = parametros.get("refresh_token");
+  return access && refresh ? { access_token: access, refresh_token: refresh } : null;
+}
+
+/** Adopta la sesión del enlace del correo y define la contraseña. La
+ *  posesión del enlace es la prueba — no hay contraseña actual. */
+export async function restablecerPassword(tokens: Tokens, passwordNueva: string): Promise<boolean> {
+  guardarTokens(tokens);
+  try {
+    const respuesta = await solicitar("/api/v1/auth/password-restablecer", {
+      method: "POST",
+      body: JSON.stringify({ password_nueva: passwordNueva }),
+    });
+    return respuesta.ok;
+  } catch {
+    return false;
+  }
 }
 
 async function refrescar(): Promise<boolean> {
@@ -57,6 +147,7 @@ async function refrescar(): Promise<boolean> {
 
 export function cerrarSesionLocal(): void {
   accessToken = null;
+  passwordTemporalEnMemoria = null;
   localStorage.removeItem(CLAVE_REFRESH);
 }
 
