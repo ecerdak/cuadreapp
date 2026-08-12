@@ -306,12 +306,16 @@ Documentada retroactivamente el 12-ago-2026: los cuatro commits del 10-ago
 - Consola: pestaña **Accesos** en la ficha del cliente — una cuenta por persona, último acceso visible, activar/desactivar y nueva contraseña.
 - `docs/OPERACIONES.md` §8: el alta de usuarios del Dashboard deja de necesitar SQL.
 
-## [P.3 UX Hardening P0] (12-ago-2026) — trabajo LOCAL, listo para desplegar
+## [P.3 UX Hardening P0] (12-ago-2026) — DESPLEGADO a producción
 
 Cierre de los hallazgos P0 del Executive UX Audit del flujo comercial
-(12-ago-2026). **Nada de esto está desplegado**: commits locales en `main`,
-pendientes de push; el plan de despliegue exige aplicar
-`20260812090000_password_temporal` ANTES de desplegar la API.
+(12-ago-2026). **Desplegado el 12-ago-2026** (`b9c919f`): la migración
+`20260812090000_password_temporal` se aplicó y verificó ANTES del push;
+API, Admin y Dashboard corren `b9c919f` desde GitHub; verificación
+automática en verde (salud 20/20, contratos de auth nuevos, bundles
+servidos con el código P0). **Pendiente de smoke humano** (alta real de
+un acceso, ciclo de contraseña completo, revocación y aislamiento con
+cuentas reales).
 
 ### Agregado
 
@@ -333,6 +337,13 @@ pendientes de push; el plan de despliegue exige aplicar
 
 - Suministro ya estaba correctamente condicionado: el dominio lo declara solo para perfiles con medidor (invariante probado), la pestaña sale de `perfil.modulos`, la ruta redirige si el perfil no lo declara, y `pnpm sin-clientes` garantiza por máquina que nada decide por nombre de cliente.
 
+### Desplegado (12-ago-2026)
+
+- Historial de migraciones reparado (`20260805120000`, `20260810070000` → applied) y `20260812090000_password_temporal` aplicada y verificada contra el esquema real (columna boolean NOT NULL default false; backfill correcto: cero filas — aún no existían roles del Dashboard).
+- Supabase Auth: `site_url` corregida (estaba en `http://localhost:3000`) y `https://…/restablecer` autorizada como Redirect URL; `URL_RESTABLECER_PASSWORD` fijada en la API (la API vieja la toleró: Zod descarta claves desconocidas).
+- Push `71d7213..b9c919f`; Railway desplegó API, Admin y Dashboard desde GitHub (SUCCESS). La PWA quedó SKIPPED **correctamente** (este push no tocó `apps/pwa`); sigue sirviendo el artefacto CLI del 10-ago, verificado con los seis fixes del flujo del operador presentes en el bundle.
+
 ### Pendiente
 
-- Despliegue: repair de las migraciones del 5 y 10-ago en `schema_migrations`, aplicar `20260812090000_password_temporal`, push y despliegues (la migración ANTES que la API; la API antes que los frontends), configurar la Redirect URL de Supabase para `/restablecer` y `URL_RESTABLECER_PASSWORD`, humo del ciclo completo con un usuario real.
+- **Smoke humano**: crear el primer acceso real desde la consola, ciclo completo de contraseña (temporal → propia → recuperación), revocación en vivo y aislamiento multiempresa con dos cuentas reales.
+- **Trazabilidad Git de la PWA**: el servicio tiene watch path `/apps/pwa/**` y Railway evalúa el diff del ÚLTIMO commit del push — un push cuyo commit cabeza no toca la PWA queda SKIPPED aunque el rango sí la toque (así se perdió el deploy Git del 10-ago). Reconciliar desde el dashboard de Railway: servicio PWA → Settings → quitar/ajustar el watch path → Deploy.

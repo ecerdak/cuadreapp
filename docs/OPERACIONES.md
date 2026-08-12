@@ -61,6 +61,7 @@ El despliegue real del 2-ago-2026 colocó los TRES servicios en Railway (decisi�
 - Si algún servicio tiene un Custom Start Command puesto a mano en la UI, **bórralo**: manda el archivo de config.
 - Healthcheck de los frontends: `/salud` (lo sirve el propio servidor estático).
 - Tras cambiar `VITE_API_URL` hay que **redesplegar** la PWA: Vite lo incrusta en el build.
+- **Watch paths y SKIPPED:** API, Dashboard y PWA tienen watch paths (`/apps/api/**`, `/apps/dashboard/**`, `/apps/pwa/**`) configurados en la UI de Railway, y Railway evalúa el diff del **último commit del push**, no del rango completo: un push cuyo commit cabeza no toca el watch path queda `SKIPPED` aunque el rango sí lo toque. Así perdió la PWA su deploy Git del 10-ago-2026 (hoy sirve el artefacto `railway up` de esa madrugada, verificado con los fixes del operador en el bundle). Para reconciliar: servicio PWA → Settings → quitar/ajustar el watch path → Deploy.
 
 ## 3. Puesta en marcha de un entorno (orden)
 
@@ -176,9 +177,10 @@ Requisitos de infraestructura:
   `usuarios.ultimo_acceso_en`. Sin ella la consola no puede listar ni
   sellar accesos.
 - `20260812090000_password_temporal` — agrega
-  `usuarios.debe_cambiar_password`. **Debe aplicarse ANTES de desplegar
-  la API que la consulta** (el login y `/tablero/*` la leen). Sin ella,
-  la API desplegada tras el P0 falla al resolver sesiones.
+  `usuarios.debe_cambiar_password`. **Aplicada y verificada el
+  12-ago-2026**, antes del deploy de la API que la consulta. El
+  historial de `schema_migrations` quedó reparado ese mismo día (las
+  migraciones del 5 y 10-ago se habían aplicado a mano).
 - Correo de recuperación: en Supabase Auth, autorizar
   `https://<dominio-del-dashboard>/restablecer` como **Redirect URL** y
   fijar `URL_RESTABLECER_PASSWORD` en la API. Sin esto, «¿Olvidaste tu
