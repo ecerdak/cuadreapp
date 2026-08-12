@@ -270,6 +270,12 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
     ]);
   }
 
+  async usuarioEstaDesactivado(usuarioId: string): Promise<boolean> {
+    const resultado = await this.pool.query(`select activo from usuarios where id = $1`, [usuarioId]);
+    const fila = resultado.rows[0];
+    return fila !== undefined && fila.activo === false;
+  }
+
   async validarCodigoEnrolamiento(
     codigo: string,
     ahora: Date,

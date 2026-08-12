@@ -163,6 +163,10 @@ export interface RepositorioSeguridad {
   /** Resuelve identidad + rol + alcance + permisos del RBAC propio.
    *  null si el usuario no existe o está inactivo. */
   obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null>;
+  /** P0.4: true SOLO si la fila existe y está desactivada — el login
+   *  le dice «tu acceso está desactivado» a quien fue revocado, nunca
+   *  a quien simplemente no está en el RBAC. */
+  usuarioEstaDesactivado(usuarioId: string): Promise<boolean>;
   /** Sella el último login exitoso (Etapa P.2). Es lo que permite a la
    *  consola responder «¿esta cuenta se usa?» antes de revocarla. Se
    *  invoca solo en /api/v1/auth/login, jamás por petición. */

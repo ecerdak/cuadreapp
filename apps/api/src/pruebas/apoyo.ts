@@ -163,6 +163,13 @@ export class RepositorioSeguridadFalso implements RepositorioSeguridad {
     const sesion = this.sesiones.get(usuarioId);
     if (sesion) this.sesiones.set(usuarioId, { ...sesion, debeCambiarPassword: false });
   }
+
+  /** P0.4: ids con fila en el RBAC pero desactivados («Desactivar» en
+   *  la consola). No confundir con ids ausentes de `sesiones`. */
+  desactivados = new Set<string>();
+  async usuarioEstaDesactivado(usuarioId: string): Promise<boolean> {
+    return this.desactivados.has(usuarioId);
+  }
 }
 
 const tokensFalsos = (sufijo: string): TokensEmitidos => ({

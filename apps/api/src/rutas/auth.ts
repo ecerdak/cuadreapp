@@ -114,6 +114,23 @@ export function registrarRutasAuth(
     }
 
     const usuarioId = claimsDe(tokens.access_token).sub;
+
+    // P0.4: el usuario revocado desde la consola no recibe sesión del
+    // Dashboard — y se le dice, en vez de dejarlo rebotar contra 401.
+    // Consultar el estado jamás tumba el login de los demás (si el
+    // repo falla se sigue: el middleware corta en CADA petición y es
+    // la barrera real; esto es la versión con explicación).
+    if (usuarioId && dependencias.repositorioSeguridad) {
+      try {
+        if (await dependencias.repositorioSeguridad.usuarioEstaDesactivado(usuarioId)) {
+          solicitud.observable.resultado = "acceso_desactivado";
+          return respuesta.status(403).send({ error: "ACCESO_DESACTIVADO" });
+        }
+      } catch {
+        /* ver comentario */
+      }
+    }
+
     await sellarAcceso(usuarioId);
     solicitud.observable.resultado = "login";
     return respuesta
