@@ -92,6 +92,18 @@ export class ProveedorIdentidadSupabase implements ProveedorIdentidad {
     return respuesta.ok;
   }
 
+  async enviarRecuperacion(email: string, redirigirA?: string): Promise<void> {
+    // GoTrue responde 200 exista o no la cuenta; cualquier fallo del
+    // proveedor se traga aquí — la ruta responde igual en todos los
+    // casos y el detalle queda en la observabilidad de la petición.
+    const destino = redirigirA ? `?redirect_to=${encodeURIComponent(redirigirA)}` : "";
+    await fetch(`${this.config.url}/auth/v1/recover${destino}`, {
+      method: "POST",
+      headers: { apikey: this.config.claveAnon, "content-type": "application/json" },
+      body: JSON.stringify({ email }),
+    }).catch(() => {});
+  }
+
   async crearIdentidadDispositivo(): Promise<{ usuarioId: string; tokens: TokensEmitidos } | null> {
     // Secreto efímero: se usa una única vez para acuñar la sesión del
     // dispositivo y se descarta. Nadie lo conoce ni lo almacena; la

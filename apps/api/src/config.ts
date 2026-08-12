@@ -19,6 +19,10 @@ const esquema = z.object({
   BUCKET_LOGOS: z.string().min(1).default("logos-clientes"),
   /** Lista separada por comas; sin ella, se permiten los *.up.railway.app. */
   CORS_ORIGENES: z.string().optional(),
+  /** P0.1: URL de la pantalla /restablecer del Dashboard (destino del
+   *  correo de recuperación). Debe estar autorizada como Redirect URL
+   *  en Supabase Auth; sin ella decide la Site URL del proyecto. */
+  URL_RESTABLECER_PASSWORD: z.string().url().optional(),
   PORT: z.coerce.number().int().positive().default(3000),
 });
 

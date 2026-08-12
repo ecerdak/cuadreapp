@@ -239,7 +239,7 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
 
   async obtenerSesion(usuarioId: string): Promise<SesionAutenticada | null> {
     const resultado = await this.pool.query(
-      `select u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo as rol,
+      `select u.id, u.nombre, u.cliente_id, u.sede_id, u.debe_cambiar_password, r.codigo as rol,
               cl.perfil_codigo as perfil,
               coalesce(array_agg(rp.permiso_codigo) filter (where rp.permiso_codigo is not null), '{}') as permisos
        from usuarios u
@@ -247,7 +247,7 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
        left join clientes cl on cl.id = u.cliente_id
        left join rol_permisos rp on rp.rol_id = u.rol_id
        where u.id = $1 and u.activo
-       group by u.id, u.nombre, u.cliente_id, u.sede_id, r.codigo, cl.perfil_codigo`,
+       group by u.id, u.nombre, u.cliente_id, u.sede_id, u.debe_cambiar_password, r.codigo, cl.perfil_codigo`,
       [usuarioId],
     );
     const fila = resultado.rows[0];
@@ -260,7 +260,14 @@ export class RepositorioSeguridadPostgres implements RepositorioSeguridad {
       sedeId: fila.sede_id,
       permisos: fila.permisos,
       perfil: (fila.perfil as CodigoPerfil | null) ?? null,
+      debeCambiarPassword: fila.debe_cambiar_password === true,
     };
+  }
+
+  async marcarPasswordDefinitiva(usuarioId: string): Promise<void> {
+    await this.pool.query(`update usuarios set debe_cambiar_password = false where id = $1`, [
+      usuarioId,
+    ]);
   }
 
   async validarCodigoEnrolamiento(

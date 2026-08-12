@@ -469,7 +469,16 @@ export class RepositorioAdminFalso implements RepositorioAdmin {
     };
     this.accesos.push(acceso);
     this.clienteDe.set(datos.usuarioId, datos.clienteId);
+    this.passwordsTemporales.add(datos.usuarioId);
     return acceso;
+  }
+
+  /** P0.1: espejo del flag `debe_cambiar_password`. */
+  passwordsTemporales = new Set<string>();
+  async marcarPasswordTemporal(clienteId: string, usuarioId: string): Promise<void> {
+    if (this.clienteDe.get(usuarioId) === clienteId) {
+      this.passwordsTemporales.add(usuarioId);
+    }
   }
 
   async editarAccesoDashboard(

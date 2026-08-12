@@ -38,6 +38,7 @@ const app = construirAplicacion({
   secretoJwt: config.SUPABASE_JWT_SECRET,
   jwks: createRemoteJWKSet(new URL(`${config.SUPABASE_URL}/auth/v1/.well-known/jwks.json`)),
   origenesCors: config.CORS_ORIGENES?.split(",").map((origen) => origen.trim()),
+  urlRestablecerPassword: config.URL_RESTABLECER_PASSWORD,
   verificarListo: async () => {
     try {
       await pool.query("select 1");

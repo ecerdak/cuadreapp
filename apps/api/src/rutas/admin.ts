@@ -710,6 +710,9 @@ export function registrarRutasAdmin(app: FastifyInstance, deps: DependenciasAdmi
       if (!(await proveedor.cambiarPassword(usuarioId, password))) {
         return respuesta.status(502).send({ error: "PASSWORD_NO_CAMBIADA" });
       }
+      // P0.1: vuelve a ser temporal — el tablero exigirá definir una
+      // propia en el siguiente ingreso.
+      await repositorio.marcarPasswordTemporal(alcance, usuarioId);
       solicitud.observable.clienteId = alcance;
       solicitud.observable.resultado = "password_restablecida";
       return { ...acceso, password_temporal: password };

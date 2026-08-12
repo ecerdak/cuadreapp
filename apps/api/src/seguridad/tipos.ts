@@ -16,6 +16,10 @@ export interface SesionAutenticada {
   /** Perfil Operativo del cliente de la sesión (DEC-016); null cuando
    *  la sesión no tiene cliente (alcance multicliente/admin). */
   perfil: CodigoPerfil | null;
+  /** P0.1: la contraseña vigente es la TEMPORAL de la consola. Con
+   *  esto activo el tablero exige definir una propia antes de entrar.
+   *  Opcional: ausente equivale a false (roles sin ciclo de contraseña). */
+  debeCambiarPassword?: boolean;
 }
 
 export interface TokensEmitidos {
@@ -51,6 +55,13 @@ export interface ProveedorIdentidad {
    *  reset del administrador: no envía correo, devuelve la contraseña
    *  temporal a quien la pidió para que la entregue por su canal. */
   cambiarPassword(usuarioId: string, password: string): Promise<boolean>;
+
+  /** P0.1: dispara el correo de recuperación del proveedor. Silencioso
+   *  a propósito — la respuesta al cliente jamás depende de si el
+   *  correo existe (sin oráculo de cuentas). El envío real depende de
+   *  la configuración del proyecto de Supabase (remitente de correo y
+   *  `redirect_to` autorizado); ver docs/OPERACIONES.md. */
+  enviarRecuperacion(email: string, redirigirA?: string): Promise<void>;
 }
 
 /** Destino de archivos en un bucket privado de Storage (evidencia

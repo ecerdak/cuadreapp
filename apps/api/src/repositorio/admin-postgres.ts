@@ -894,8 +894,11 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
   }): Promise<AccesoDashboardAdmin> {
     try {
       const resultado = await this.pool.query(
-        `insert into usuarios (id, cliente_id, sede_id, rol_id, nombre, email)
-         select $1, $2, $3, r.id, $4, $5 from roles r where r.codigo = $6
+        // debe_cambiar_password = true: la contraseña del alta es la
+        // temporal de la consola; el tablero exige definir una propia
+        // en el primer ingreso (P0.1).
+        `insert into usuarios (id, cliente_id, sede_id, rol_id, nombre, email, debe_cambiar_password)
+         select $1, $2, $3, r.id, $4, $5, true from roles r where r.codigo = $6
          returning id, nombre, email, sede_id, activo, creado_en, ultimo_acceso_en,
                    (select codigo from roles where id = usuarios.rol_id) as rol,
                    (select nombre from sedes where id = usuarios.sede_id) as sede_nombre`,
@@ -934,5 +937,13 @@ export class RepositorioAdminPostgres implements RepositorioAdmin {
       ],
     );
     return resultado.rows[0] ? filaAAcceso(resultado.rows[0]) : null;
+  }
+
+  async marcarPasswordTemporal(clienteId: string, usuarioId: string): Promise<void> {
+    await this.pool.query(
+      `update usuarios set debe_cambiar_password = true
+       where cliente_id = $1 and id = $2`,
+      [clienteId, usuarioId],
+    );
   }
 }

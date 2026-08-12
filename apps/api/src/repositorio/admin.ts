@@ -326,6 +326,10 @@ export interface RepositorioAdmin {
 
   /** Comprueba pertenencia antes de tocar la identidad en Auth. */
   accesoDashboardDeCliente(clienteId: string, usuarioId: string): Promise<AccesoDashboardAdmin | null>;
+
+  /** P0.1: la consola regeneró la contraseña — vuelve a ser temporal y
+   *  el tablero exigirá definir una propia en el siguiente ingreso. */
+  marcarPasswordTemporal(clienteId: string, usuarioId: string): Promise<void>;
 }
 
 /** Violación de unicidad (Postgres 23505) traducida a un error propio. */

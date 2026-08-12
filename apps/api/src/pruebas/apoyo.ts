@@ -31,8 +31,12 @@ export const ID_CLIENTE = "dddd1111-2222-4333-8444-555566667777";
 export const ID_SEDE = "eeee1111-2222-4333-8444-555566667777";
 export const ID_DISPOSITIVO_USUARIO = "99991111-2222-4333-8444-555566667777";
 
-export async function crearToken(usuarioId: string, secreto = SECRETO_PRUEBA): Promise<string> {
-  return new SignJWT({ sub: usuarioId })
+export async function crearToken(
+  usuarioId: string,
+  secreto = SECRETO_PRUEBA,
+  claims: Record<string, unknown> = {},
+): Promise<string> {
+  return new SignJWT({ sub: usuarioId, ...claims })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -152,6 +156,13 @@ export class RepositorioSeguridadFalso implements RepositorioSeguridad {
   async registrarAcceso(usuarioId: string, cuandoIso: string): Promise<void> {
     this.accesosSellados.push({ usuarioId, cuandoIso });
   }
+
+  passwordsDefinitivas: string[] = [];
+  async marcarPasswordDefinitiva(usuarioId: string): Promise<void> {
+    this.passwordsDefinitivas.push(usuarioId);
+    const sesion = this.sesiones.get(usuarioId);
+    if (sesion) this.sesiones.set(usuarioId, { ...sesion, debeCambiarPassword: false });
+  }
 }
 
 const tokensFalsos = (sufijo: string): TokensEmitidos => ({
@@ -164,11 +175,18 @@ export class ProveedorIdentidadFalso implements ProveedorIdentidad {
   credencialesValidas = { email: "supervisor@trebol.com", password: "correcta" };
   refreshValido = "refresh-vigente";
   sesionesCerradas: string[] = [];
+  /** Si se fija, el access token del login es un JWT real con este
+   *  sub — para las pruebas que leen el flag de contraseña temporal. */
+  usuarioIdSesion: string | null = null;
 
   async iniciarSesionConPassword(email: string, password: string): Promise<TokensEmitidos | null> {
-    return email === this.credencialesValidas.email && password === this.credencialesValidas.password
-      ? tokensFalsos("login")
-      : null;
+    if (email !== this.credencialesValidas.email || password !== this.credencialesValidas.password) {
+      return null;
+    }
+    if (this.usuarioIdSesion) {
+      return { ...tokensFalsos("login"), access_token: await crearToken(this.usuarioIdSesion) };
+    }
+    return tokensFalsos("login");
   }
 
   async refrescarSesion(refreshToken: string): Promise<TokensEmitidos | null> {
@@ -198,11 +216,25 @@ export class ProveedorIdentidadFalso implements ProveedorIdentidad {
     return { usuarioId };
   }
 
+  fallaAlCambiarPassword = false;
+  /** Cambios sobre identidades que no nacieron como «persona» del fake
+   *  (p. ej. la sesión de una prueba de /auth/password). */
+  passwordsCambiadas: Array<{ usuarioId: string; password: string }> = [];
+
   async cambiarPassword(usuarioId: string, password: string): Promise<boolean> {
+    if (this.fallaAlCambiarPassword) return false;
     const persona = this.personas.find((p) => p.usuarioId === usuarioId);
-    if (!persona) return false;
-    persona.password = password;
+    if (persona) {
+      persona.password = password;
+    } else {
+      this.passwordsCambiadas.push({ usuarioId, password });
+    }
     return true;
+  }
+
+  recuperacionesEnviadas: Array<{ email: string; redirigirA?: string }> = [];
+  async enviarRecuperacion(email: string, redirigirA?: string): Promise<void> {
+    this.recuperacionesEnviadas.push({ email, redirigirA });
   }
 
   async crearIdentidadDispositivo(): Promise<{ usuarioId: string; tokens: TokensEmitidos } | null> {

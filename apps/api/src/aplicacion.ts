@@ -48,6 +48,10 @@ export interface Dependencias {
    *  Sin lista explícita, se permiten los dominios *.up.railway.app
    *  (los frontends del proyecto). Nunca "*": la API lleva Bearer. */
   origenesCors?: string[];
+  /** P0.1: URL de la pantalla /restablecer del Dashboard, destino del
+   *  enlace del correo de recuperación. Sin ella decide la Site URL de
+   *  Supabase. */
+  urlRestablecerPassword?: string;
 }
 
 export function construirAplicacion(dependencias: Dependencias): FastifyInstance {
@@ -126,6 +130,7 @@ export function construirAplicacion(dependencias: Dependencias): FastifyInstance
       proveedor: dependencias.proveedorIdentidad,
       autenticar,
       repositorioSeguridad: dependencias.repositorioSeguridad,
+      urlRestablecerPassword: dependencias.urlRestablecerPassword,
     });
     registrarRutaEnrolamiento(rutas, {
       proveedor: dependencias.proveedorIdentidad,

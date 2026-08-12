@@ -51,7 +51,20 @@ export function ventanaTablero(ahora: Date): VentanaTablero {
 
 export function registrarRutasTablero(app: FastifyInstance, deps: DependenciasTablero): void {
   const { repositorio } = deps;
-  const proteger = { preHandler: [deps.autenticar, exigirPermiso("tablero.leer")] };
+
+  /** P0.1: con la contraseña TEMPORAL de la consola no se entra al
+   *  tablero — primero se define una propia (/api/v1/auth/password).
+   *  La autoridad es este 403, no la pantalla del Dashboard. */
+  const exigirPasswordDefinitiva: PreManejador = async (solicitud, respuesta) => {
+    if (solicitud.sesion?.debeCambiarPassword === true) {
+      solicitud.observable.resultado = "password_temporal";
+      return respuesta.status(403).send({ error: "PASSWORD_TEMPORAL" });
+    }
+  };
+
+  const proteger = {
+    preHandler: [deps.autenticar, exigirPermiso("tablero.leer"), exigirPasswordDefinitiva],
+  };
 
   /** Alcance de la sesión, con la sede pedida ya validada.
    *  - Sesión CON sede fija: manda la suya; pedir otra es 403.

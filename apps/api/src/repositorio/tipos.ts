@@ -167,6 +167,9 @@ export interface RepositorioSeguridad {
    *  consola responder «¿esta cuenta se usa?» antes de revocarla. Se
    *  invoca solo en /api/v1/auth/login, jamás por petición. */
   registrarAcceso(usuarioId: string, cuandoIso: string): Promise<void>;
+  /** P0.1: la persona definió su contraseña propia — la temporal deja
+   *  de gobernar el ingreso al tablero. */
+  marcarPasswordDefinitiva(usuarioId: string): Promise<void>;
   /** null si el código no existe, expiró o ya fue usado. */
   validarCodigoEnrolamiento(codigo: string, ahora: Date): Promise<CodigoEnrolamientoValido | null>;
   /** Crea usuarios (rol dispositivo) + dispositivos y consume el código. */
