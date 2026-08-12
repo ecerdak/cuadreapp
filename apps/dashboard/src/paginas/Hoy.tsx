@@ -10,6 +10,7 @@ import { useTablero } from "../datos/contexto";
 import { useConsulta } from "../datos/consulta";
 import { mensajeDeError } from "../datos/contexto";
 import { EstadoError, ZonaA } from "../componentes/basicos";
+import { BienvenidaTablero } from "../componentes/bienvenida";
 import { formatearEntero } from "../componentes/numeros";
 import { EsqueletoHoy } from "../perfiles/paneles";
 import { panelDe } from "../perfiles/registro";
@@ -35,6 +36,13 @@ export function Hoy() {
 
   const { datos } = consulta;
   const { balance } = datos;
+
+  // P0.6: sin NINGUNA carga en la historia, el tablero se presenta en
+  // lugar de mostrarse en cero. El polling de arriba sigue vivo: la
+  // primera carga sincronizada reemplaza esta pantalla sola.
+  if (!datos.tieneCargas) {
+    return <BienvenidaTablero contexto={contexto} alActualizar={recargar} />;
+  }
 
   return (
     <>

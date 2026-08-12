@@ -139,15 +139,27 @@ export function PanelInventario({ datos }: PropsPanel) {
 /* ============ Consumo de 14 días ============ */
 
 export function PanelConsumo({ datos }: PropsPanel) {
+  // 14 barras de altura cero no son un gráfico: son un vacío que no se
+  // presenta como tal (P0.6). Quincena quieta → se dice con palabras.
+  const sinConsumo = datos.consumo14d.every((dia) => dia.galones === 0);
   return (
     <Panel className="p-5">
       <Eyebrow>Consumo diario · últimos 14 días</Eyebrow>
-      <div className="mt-5">
-        <GraficoConsumo dias={datos.consumo14d} />
-      </div>
-      <div className="mt-3" style={{ fontSize: 11, color: TEMA.suave }}>
-        El día de hoy va parcial.
-      </div>
+      {sinConsumo ? (
+        <div className="mt-4" style={{ fontSize: 12, color: TEMA.suave, lineHeight: 1.6 }}>
+          Sin consumo registrado en los últimos 14 días. El gráfico aparece con la primera carga de la
+          quincena.
+        </div>
+      ) : (
+        <>
+          <div className="mt-5">
+            <GraficoConsumo dias={datos.consumo14d} />
+          </div>
+          <div className="mt-3" style={{ fontSize: 11, color: TEMA.suave }}>
+            El día de hoy va parcial.
+          </div>
+        </>
+      )}
     </Panel>
   );
 }

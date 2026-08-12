@@ -96,6 +96,9 @@ export interface InventarioHoy {
 }
 
 export interface ResumenHoy {
+  /** false = el alcance no registró NINGUNA carga en su historia: el
+   *  tablero muestra la bienvenida, no paneles en cero (P0.6). */
+  tieneCargas: boolean;
   veredicto: Veredicto;
   /** Totalizador del medidor; null en perfiles sin medidor o cuando el
    *  alcance abarca varias sedes (sumarlos no significaría nada). */

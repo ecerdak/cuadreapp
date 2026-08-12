@@ -121,6 +121,7 @@ export class FuenteSimulada implements FuenteDatosTablero {
         .reverse();
       const simulado = balanceSimulado();
       return {
+        tieneCargas: CARGAS_SIMULADAS.length > 0,
         veredicto: veredictoHoy(cargasDeHoy),
         totalizadorGal: TOTALIZADOR_FINAL_GAL,
         galSinRegistrarGal: galSinRegistrar(),

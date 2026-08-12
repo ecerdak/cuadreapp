@@ -190,6 +190,24 @@ describe("hoy — hechos de la API, veredicto del tablero", () => {
     await fuente.resumenHoy({ sedeId: "s1" });
     expect(solicitar).toHaveBeenCalledWith("/api/v1/tablero/hoy?sede_id=s1");
   });
+
+  it("tieneCargas viaja tal cual, y ante una API sin el campo se asume que HAY (P0.6)", async () => {
+    const base = {
+      cargasDeHoy: [],
+      consumo14d: [],
+      totalizadorGal: null,
+      galSinRegistrarGal: 0,
+      balance: BALANCE_VACIO,
+      inventarioHoy: { recibidoGal: 0, despachadoGal: 0, totalSalidaGal: 0, capacidadGal: null },
+    };
+    solicitar.mockResolvedValueOnce(respuesta({ ...base, tieneCargas: false }));
+    expect((await fuente.resumenHoy(SIN_SEDE)).tieneCargas).toBe(false);
+
+    // Sin el campo (API vieja), la bienvenida jamás tapa un tablero con
+    // historia: se asume true.
+    solicitar.mockResolvedValueOnce(respuesta(base));
+    expect((await fuente.resumenHoy(SIN_SEDE)).tieneCargas).toBe(true);
+  });
 });
 
 describe("cargas y evidencia", () => {

@@ -79,6 +79,7 @@ const CARGA_INVENTARIO: CargaResumen = {
 };
 
 const HOY_BASE: ResumenHoy = {
+  tieneCargas: true,
   veredicto: { tono: "ok", titulo: "Todo cuadra." },
   totalizadorGal: 1889.5,
   galSinRegistrarGal: 0,

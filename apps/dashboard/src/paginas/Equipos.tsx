@@ -34,7 +34,7 @@ export function Equipos() {
     return (
       <EstadoVacio
         mensaje="Sin equipos registrados"
-        detalle="Los equipos aparecen aquí al configurarlos en la consola."
+        detalle="Lubryco registra los equipos de tu operación; aparecen aquí apenas queden listos."
       />
     );
   }

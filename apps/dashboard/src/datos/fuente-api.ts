@@ -67,6 +67,7 @@ const consulta = (parametros: Record<string, string | undefined | null>) => {
 type CargaApi = Omit<CargaResumen, "equipoDescripcion"> & { equipoDescripcion: string | null };
 
 interface HoyApi {
+  tieneCargas?: boolean;
   cargasDeHoy: CargaApi[];
   consumo14d: Array<{ fecha: string; galones: number }>;
   totalizadorGal: number | null;
@@ -170,6 +171,10 @@ export class FuenteApi implements FuenteDatosTablero {
     const cargasDeHoy = datos.cargasDeHoy.map(aCarga);
     const hoy = datos.consumo14d.at(-1)?.fecha;
     return {
+      // Tolerante con una API que aún no mande el campo: ante la duda
+      // se asume que HAY cargas — la bienvenida jamás debe taparle el
+      // tablero a un cliente con historia.
+      tieneCargas: datos.tieneCargas ?? true,
       veredicto: veredictoHoy(cargasDeHoy),
       totalizadorGal: datos.totalizadorGal,
       galSinRegistrarGal: datos.galSinRegistrarGal,
