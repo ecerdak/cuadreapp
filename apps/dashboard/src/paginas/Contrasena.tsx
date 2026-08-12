@@ -14,6 +14,7 @@ import { TEMA } from "../tema";
 import { useMarca } from "../marca/useMarca";
 import {
   cambiarPassword,
+  cerrarSesion,
   restablecerPassword,
   solicitarRecuperacion,
   tokensDelFragmento,
@@ -39,6 +40,8 @@ function FormularioContrasena(props: {
   passwordActualConocida: string | null;
   etiquetaEnviar: string;
   alCambiar: () => void;
+  /** Salida bajo el botón: ninguna pantalla de acceso es un callejón. */
+  pie?: React.ReactNode;
 }) {
   const [actual, setActual] = useState("");
   const [nueva, setNueva] = useState("");
@@ -97,7 +100,27 @@ function FormularioContrasena(props: {
       />
       {error ? <AvisoAcceso>{error}</AvisoAcceso> : null}
       <BotonAcceso etiqueta={props.etiquetaEnviar} ocupado={enviando} />
+      {props.pie ?? null}
     </TarjetaAcceso>
+  );
+}
+
+/** Salida de las pantallas con sesión pero sin marco: cierra la sesión
+ *  y vuelve al login. La usa el primer ingreso forzado — la persona
+ *  puede estar en la cuenta equivocada o no tener la temporal a mano. */
+function SalidaCerrarSesion() {
+  const navegar = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void cerrarSesion().then(() => navegar("/entrar", { replace: true }));
+      }}
+      className="focus-visible:outline"
+      style={{ fontSize: 11.5, color: TEMA.azul, textAlign: "center" }}
+    >
+      Cerrar sesión
+    </button>
   );
 }
 
@@ -116,7 +139,21 @@ export function ContrasenaNueva() {
       passwordActualConocida={temporal}
       etiquetaEnviar="Guardar y entrar"
       alCambiar={() => navegar("/hoy", { replace: true })}
+      pie={<SalidaCerrarSesion />}
     />
+  );
+}
+
+/** Confirmación del cambio voluntario. El botón ES la navegación: la
+ *  vuelta al tablero la decide el clic, no un temporizador. Exportada
+ *  para que la prueba asegure que la salida existe de verdad. */
+export function ContrasenaActualizada(props: { alVolver: () => void }) {
+  return (
+    <TarjetaAcceso onSubmit={props.alVolver} bajada="Cambiar contraseña">
+      <AvisoAcceso tono="ok">✓ Contraseña actualizada.</AvisoAcceso>
+      <BotonAcceso etiqueta="Volver al tablero" />
+      <span className="sr-only">La contraseña quedó actualizada</span>
+    </TarjetaAcceso>
   );
 }
 
@@ -127,13 +164,7 @@ export function CambiarContrasena() {
   const [listo, setListo] = useState(false);
 
   if (listo) {
-    return (
-      <TarjetaAcceso bajada="Cambiar contraseña">
-        <AvisoAcceso tono="ok">✓ Contraseña actualizada.</AvisoAcceso>
-        <BotonAcceso etiqueta="Volver al tablero" />
-        <span className="sr-only">La contraseña quedó actualizada</span>
-      </TarjetaAcceso>
-    );
+    return <ContrasenaActualizada alVolver={() => navegar("/hoy", { replace: true })} />;
   }
 
   return (
@@ -142,10 +173,16 @@ export function CambiarContrasena() {
       descripcion="Escribe tu contraseña actual y define la nueva."
       passwordActualConocida={null}
       etiquetaEnviar="Cambiar contraseña"
-      alCambiar={() => {
-        setListo(true);
-        setTimeout(() => navegar("/hoy", { replace: true }), 1200);
-      }}
+      alCambiar={() => setListo(true)}
+      pie={
+        <Link
+          to="/hoy"
+          className="focus-visible:outline"
+          style={{ fontSize: 11.5, color: TEMA.azul, textAlign: "center" }}
+        >
+          Volver al tablero sin cambiarla
+        </Link>
+      }
     />
   );
 }

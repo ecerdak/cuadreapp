@@ -5,7 +5,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
-import { CambiarContrasena, ContrasenaNueva, Recuperar, Restablecer } from "./Contrasena";
+import {
+  CambiarContrasena,
+  ContrasenaActualizada,
+  ContrasenaNueva,
+  Recuperar,
+  Restablecer,
+} from "./Contrasena";
 import { Entrar } from "./Entrar";
 import { clasificarFalla } from "../datos/contexto";
 import { iniciarSesion, tomarPasswordTemporal } from "../datos/sesion";
@@ -53,6 +59,11 @@ describe("primer ingreso forzado (ContrasenaNueva)", () => {
     const html = pintar(<ContrasenaNueva />);
     expect(html).toContain("Contraseña actual");
   });
+
+  it("no es un callejón: ofrece cerrar sesión sin definir la contraseña", () => {
+    const html = pintar(<ContrasenaNueva />);
+    expect(html).toContain("Cerrar sesión");
+  });
 });
 
 describe("cambio voluntario (CambiarContrasena)", () => {
@@ -61,6 +72,21 @@ describe("cambio voluntario (CambiarContrasena)", () => {
     expect(html).toContain("Cambiar contraseña");
     expect(html).toContain("Contraseña actual");
     expect(html).toContain("Repite la contraseña nueva");
+  });
+
+  it("permite volver al tablero sin cambiar la contraseña", () => {
+    const html = pintar(<CambiarContrasena />);
+    expect(html).toContain("Volver al tablero sin cambiarla");
+    expect(html).toContain('href="/hoy"');
+  });
+
+  it("la confirmación tiene una vuelta al tablero real, no decorativa", () => {
+    const html = pintar(<ContrasenaActualizada alVolver={() => {}} />);
+    expect(html).toContain("✓ Contraseña actualizada.");
+    expect(html).toContain("Volver al tablero");
+    // El botón envía el formulario cuyo onSubmit navega: es un submit
+    // dentro de una tarjeta CON manejador, no un adorno.
+    expect(html).toContain('type="submit"');
   });
 });
 
