@@ -65,6 +65,7 @@ function aResumen(carga: CargaSimulada): CargaResumen {
     estado: carga.estado,
     banderas: carga.banderas,
     perfilCodigo: "medidor_doble",
+    duracionSegundos: carga.duracionSegundos,
     llegadaGal: null,
     inventarioFinalGal: null,
     capacidadEquipoGal:

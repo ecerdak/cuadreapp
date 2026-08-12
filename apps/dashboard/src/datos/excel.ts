@@ -1,16 +1,30 @@
-// Exportación a Excel, portada del diseño aprobado (descargarExcel del
-// mockup): las columnas salen en el orden en que un auditor las revisa —
-// identificación, las cuatro lecturas del medidor, el resultado, y al
-// final el veredicto con su bandera. Los galones van como número, no
-// como texto, para que el cliente pueda sumar sin limpiar la hoja.
-// SheetJS se carga bajo demanda: no pesa en el arranque del tablero.
+// Exportación a Excel, consciente del Perfil Operativo (P0.8).
+//
+// La forma de la hoja de cargas la decide la MISMA vista de evidencia
+// que el perfil declara en el dominio (vistaEvidencia): un cliente que
+// mide con tanda y totalizador exporta esas cuatro lecturas; uno que
+// carga sobre inventario exporta llegada, cargados, total al salir y
+// duración. Nada aquí decide por código de perfil ni por cliente.
+//
+// Datos: la vista de inventario sale COMPLETA de la lista de cargas
+// (cero peticiones de detalle); la de medidor necesita las lecturas,
+// que solo viajan en el detalle — se piden por lotes acotados, no
+// todas a la vez. Las hojas de suministro (Entregas y Balance) solo
+// existen si el perfil declara el módulo.
+//
+// Los galones van como número, no como texto, para que el cliente
+// pueda sumar sin limpiar la hoja. SheetJS se carga bajo demanda.
 
-import type { ContextoTablero, DetalleCarga, FuenteDatosTablero } from "./puertos";
+import type { CargaResumen, ContextoTablero, DetalleCarga, FuenteDatosTablero } from "./puertos";
+import { formatearDuracion } from "../componentes/numeros";
 import { TEXTO_ESTADO } from "../tema";
 
 type Alcance = "dia" | "mes";
+type Celda = string | number;
 
-function filaCarga(detalle: DetalleCarga) {
+/** Vista de medidor: identificación, las cuatro lecturas, el resultado
+ *  y el veredicto — el orden en que un auditor las revisa. */
+export function filaCargaMedidor(detalle: DetalleCarga): Record<string, Celda> {
   const { resumen } = detalle;
   return {
     Fecha: resumen.fecha,
@@ -18,7 +32,6 @@ function filaCarga(detalle: DetalleCarga) {
     Equipo: resumen.equipoCodigo,
     Descripción: resumen.equipoDescripcion,
     Conductor: resumen.conductorNombre,
-    // Perfil Medidor Doble; una carga de otro perfil deja las celdas vacías.
     "Tanda inicial (gal)": detalle.lecturas?.tandaInicial ?? "",
     "Totalizador inicial": detalle.lecturas?.totInicial ?? "",
     "Tanda final (gal)": detalle.lecturas?.tandaFinal ?? "",
@@ -31,6 +44,46 @@ function filaCarga(detalle: DetalleCarga) {
     "Gal sin registrar": detalle.galNoRegistrados ?? "",
   };
 }
+
+const ANCHOS_MEDIDOR = [12, 7, 9, 26, 18, 15, 16, 14, 16, 16, 18, 15, 12, 22, 15];
+
+/** Vista de inventario: las tres cifras del flujo (con cuánto llegó,
+ *  cuánto se cargó, total al salir), la duración y el veredicto. Sale
+ *  completa de la lista — sin pedir el detalle de cada carga. */
+export function filaCargaInventario(carga: CargaResumen): Record<string, Celda> {
+  return {
+    Fecha: carga.fecha,
+    Hora: carga.hora,
+    Equipo: carga.equipoCodigo,
+    Descripción: carga.equipoDescripcion,
+    Operador: carga.conductorNombre,
+    "Llegó con (gal)": carga.llegadaGal ?? "",
+    "Galones cargados (gal)": carga.galones,
+    "Total al salir (gal)": carga.inventarioFinalGal ?? "",
+    Duración: formatearDuracion(carga.duracionSegundos),
+    Veredicto: TEXTO_ESTADO[carga.estado],
+    Banderas: carga.banderas.join(", ") || "—",
+  };
+}
+
+const ANCHOS_INVENTARIO = [12, 7, 9, 26, 18, 15, 18, 17, 13, 12, 22];
+
+/** Detalles por lotes acotados: la exportación de medidor necesita las
+ *  lecturas de cada carga, pero jamás cientos de peticiones a la vez. */
+export async function porLotes<T, R>(
+  elementos: T[],
+  tamano: number,
+  operacion: (elemento: T) => Promise<R>,
+): Promise<R[]> {
+  const resultados: R[] = [];
+  for (let inicio = 0; inicio < elementos.length; inicio += tamano) {
+    const lote = elementos.slice(inicio, inicio + tamano);
+    resultados.push(...(await Promise.all(lote.map(operacion))));
+  }
+  return resultados;
+}
+
+const CONCURRENCIA_DETALLES = 6;
 
 export async function descargarExcel(
   fuente: FuenteDatosTablero,
@@ -53,7 +106,15 @@ export async function descargarExcel(
   const hoyFecha = hoy.cargasDeHoy[0]?.fecha ?? "";
   const seleccion =
     alcance === "dia" ? pagina.cargas.filter((carga) => carga.fecha === hoyFecha) : pagina.cargas;
-  const detalles = await Promise.all(seleccion.map((carga) => fuente.detalleCarga(carga.id)));
+
+  const vistaMedidor = identidad.perfil.vistaEvidencia === "medidor";
+  const filas: Array<Record<string, Celda>> = vistaMedidor
+    ? (await porLotes(seleccion, CONCURRENCIA_DETALLES, (carga) => fuente.detalleCarga(carga.id))).map(
+        filaCargaMedidor,
+      )
+    : seleccion.map(filaCargaInventario);
+
+  const conSuministro = identidad.perfil.modulos.includes("suministro");
 
   const sede = identidad.sedes.find((candidata) => candidata.id === sedeId);
   const libro = XLSX.utils.book_new();
@@ -77,19 +138,11 @@ export async function descargarExcel(
 
   XLSX.utils.book_append_sheet(
     libro,
-    anchos(
-      XLSX.utils.json_to_sheet(detalles.map(filaCarga)),
-      [12, 7, 9, 26, 18, 15, 16, 14, 16, 16, 18, 15, 12, 22, 15],
-    ),
+    anchos(XLSX.utils.json_to_sheet(filas), vistaMedidor ? ANCHOS_MEDIDOR : ANCHOS_INVENTARIO),
     alcance === "dia" ? "Cargas del día" : "Detalle de cargas",
   );
 
   if (alcance === "mes") {
-    const [equipos, suministro] = await Promise.all([
-      fuente.resumenEquipos({ sedeId }),
-      fuente.resumenSuministro({ sedeId }),
-    ]);
-
     XLSX.utils.book_append_sheet(
       libro,
       anchos(
@@ -105,6 +158,7 @@ export async function descargarExcel(
       "Consumo por día",
     );
 
+    const equipos = await fuente.resumenEquipos({ sedeId });
     XLSX.utils.book_append_sheet(
       libro,
       anchos(
@@ -125,39 +179,44 @@ export async function descargarExcel(
       "Consumo por equipo",
     );
 
-    XLSX.utils.book_append_sheet(
-      libro,
-      anchos(
-        XLSX.utils.json_to_sheet(
-          suministro.entregas.map((entrega) => ({
-            Remisión: entrega.numeroRemision,
-            Fecha: entrega.fecha,
-            "Galones entregados": entrega.galones,
-            Carrotanque: entrega.placaCarrotanque,
-            "Recibido por": entrega.recibidoPor,
-          })),
+    // Entregas y balance existen solo si el perfil declara el módulo
+    // de suministro: al resto no se le fabrican hojas vacías (P0.8).
+    if (conSuministro) {
+      const suministro = await fuente.resumenSuministro({ sedeId });
+      XLSX.utils.book_append_sheet(
+        libro,
+        anchos(
+          XLSX.utils.json_to_sheet(
+            suministro.entregas.map((entrega) => ({
+              Remisión: entrega.numeroRemision,
+              Fecha: entrega.fecha,
+              "Galones entregados": entrega.galones,
+              Carrotanque: entrega.placaCarrotanque,
+              "Recibido por": entrega.recibidoPor,
+            })),
+          ),
+          [12, 14, 18, 14, 18],
         ),
-        [12, 14, 18, 14, 18],
-      ),
-      "Entregas Lubryco",
-    );
+        "Entregas Lubryco",
+      );
 
-    XLSX.utils.book_append_sheet(
-      libro,
-      anchos(
-        XLSX.utils.aoa_to_sheet([
-          ["Concepto", "Galones"],
-          ["Entregado por Lubryco", suministro.balance.entregadoTotalGal],
-          ["Despachado a equipos", -suministro.balance.despachadoTotalGal],
-          ["Existencia estimada en tanque", suministro.balance.existenciaEstimadaGal ?? "—"],
-          [],
-          ["Autonomía estimada (días)", suministro.balance.autonomiaDias ?? "—"],
-          ["Galones despachados sin equipo asignado", pagina.galSinRegistrarGal],
-        ]),
-        [40, 12],
-      ),
-      "Balance",
-    );
+      XLSX.utils.book_append_sheet(
+        libro,
+        anchos(
+          XLSX.utils.aoa_to_sheet([
+            ["Concepto", "Galones"],
+            ["Entregado por Lubryco", suministro.balance.entregadoTotalGal],
+            ["Despachado a equipos", -suministro.balance.despachadoTotalGal],
+            ["Existencia estimada en tanque", suministro.balance.existenciaEstimadaGal ?? "—"],
+            [],
+            ["Autonomía estimada (días)", suministro.balance.autonomiaDias ?? "—"],
+            ["Galones despachados sin equipo asignado", pagina.galSinRegistrarGal],
+          ]),
+          [40, 12],
+        ),
+        "Balance",
+      );
+    }
   }
 
   // Nombre de archivo derivado del cliente (sin espacios ni tildes).

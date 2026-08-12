@@ -63,8 +63,12 @@ const consulta = (parametros: Record<string, string | undefined | null>) => {
 /* ---- formas crudas de la API (lo que viaja por el cable) ---- */
 
 /** La descripción del equipo es opcional en la base; la pantalla
- *  siempre muestra algo legible. */
-type CargaApi = Omit<CargaResumen, "equipoDescripcion"> & { equipoDescripcion: string | null };
+ *  siempre muestra algo legible. La duración es opcional en el cable
+ *  para tolerar una API que aún no la mande. */
+type CargaApi = Omit<CargaResumen, "equipoDescripcion" | "duracionSegundos"> & {
+  equipoDescripcion: string | null;
+  duracionSegundos?: number | null;
+};
 
 interface HoyApi {
   tieneCargas?: boolean;
@@ -117,6 +121,7 @@ interface SuministroApi {
 const aCarga = (carga: CargaApi): CargaResumen => ({
   ...carga,
   equipoDescripcion: carga.equipoDescripcion ?? carga.equipoCodigo,
+  duracionSegundos: carga.duracionSegundos ?? null,
 });
 
 const porcentaje = (parte: number, total: number | null): number | null =>

@@ -6,7 +6,7 @@
 import type { Bandera } from "@cuadreapp/dominio";
 import type { DetalleCarga } from "../datos/puertos";
 import { Candado, Chip, Eyebrow, Panel } from "../componentes/basicos";
-import { formatearEntero, formatearGal } from "../componentes/numeros";
+import { formatearDuracion, formatearEntero, formatearGal } from "../componentes/numeros";
 import { TEMA } from "../tema";
 
 /** Mensajes por bandera con tono de supervisor. Traduce el veredicto
@@ -38,11 +38,6 @@ const mensajesDe = (banderas: Bandera[]): string[] =>
   banderas
     .map((bandera) => MENSAJE_SUPERVISOR[bandera])
     .filter((mensaje): mensaje is string => Boolean(mensaje));
-
-function duracionLegible(segundos: number): string {
-  const minutos = Math.floor(segundos / 60);
-  return `${minutos} min ${String(Math.round(segundos % 60)).padStart(2, "0")} s`;
-}
 
 function Foto(props: { rotulo: string; url: string | null; faltaTexto: string; alt: string }) {
   return (
@@ -224,7 +219,7 @@ export function EvidenciaInventario({ datos }: PropsEvidencia) {
       <Encabezado
         datos={datos}
         cifra={`${formatearGal(resumen.galones)} gal despachados`}
-        contexto={`${resumen.equipoDescripcion} · ${resumen.conductorNombre} · ${resumen.fecha} ${resumen.hora} · ${duracionLegible(datos.duracionSegundos)}`}
+        contexto={`${resumen.equipoDescripcion} · ${resumen.conductorNombre} · ${resumen.fecha} ${resumen.hora} · ${formatearDuracion(datos.duracionSegundos)}`}
       />
 
       <div className="mt-4 rounded-md px-4 py-3" style={{ border: `1px solid ${TEMA.linea}` }}>

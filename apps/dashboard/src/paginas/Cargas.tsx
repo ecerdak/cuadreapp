@@ -137,8 +137,9 @@ export function Cargas() {
                 </div>
               ) : null}
               <div style={{ fontSize: 10.5, color: TEMA.suave, marginTop: 9, lineHeight: 1.5 }}>
-                El archivo completo trae cinco hojas: cargas, consumo por día, consumo por equipo,
-                entregas y balance.
+                {contexto.perfil.modulos.includes("suministro")
+                  ? "El archivo completo trae cinco hojas: cargas, consumo por día, consumo por equipo, entregas y balance."
+                  : "El archivo completo trae tres hojas: cargas, consumo por día y consumo por equipo."}
               </div>
             </div>
           ) : undefined

@@ -68,6 +68,9 @@ export interface CargaResumen {
   /** Snapshot del perfil con el que nació la carga (DEC-016): la
    *  historia se muestra como se capturó, jamás reinterpretada. */
   perfilCodigo: CodigoPerfil;
+  /** Segundos entre inicio y fin del registro; null si la API aún no
+   *  lo manda. Permite exportar la duración sin pedir cada detalle. */
+  duracionSegundos: number | null;
   llegadaGal: number | null;
   inventarioFinalGal: number | null;
   capacidadEquipoGal: number | null;
