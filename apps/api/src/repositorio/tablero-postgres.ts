@@ -132,36 +132,37 @@ export class RepositorioTableroPostgres implements RepositorioTablero {
   async hoy(alcance: AlcanceTablero, ventana: VentanaTablero): Promise<HechosHoy> {
     const parametrosAlcance = [alcance.clienteId, alcance.sedeId];
 
-    const [cargasHoy, consumo, totalizador, sinRegistrar, inventario, balance] = await Promise.all([
-      this.pool.query(
-        `${SELECT_CARGA}
+    const [cargasHoy, consumo, totalizador, sinRegistrar, inventario, balance, existencia] =
+      await Promise.all([
+        this.pool.query(
+          `${SELECT_CARGA}
          where c.cliente_id = $1 and ($2::uuid is null or c.sede_id = $2) and c.finalizada_en >= $3
          order by c.finalizada_en desc`,
-        [...parametrosAlcance, ventana.inicioHoy],
-      ),
-      this.pool.query(
-        `select to_char(c.finalizada_en at time zone 'America/Bogota', 'YYYY-MM-DD') as dia,
+          [...parametrosAlcance, ventana.inicioHoy],
+        ),
+        this.pool.query(
+          `select to_char(c.finalizada_en at time zone 'America/Bogota', 'YYYY-MM-DD') as dia,
                 coalesce(sum(c.galones), 0) as galones
          from cargas c
          where c.cliente_id = $1 and ($2::uuid is null or c.sede_id = $2) and c.finalizada_en >= $3
          group by 1`,
-        [...parametrosAlcance, ventana.desde14d],
-      ),
-      this.pool.query(
-        `select d.tot_actual_gal
+          [...parametrosAlcance, ventana.desde14d],
+        ),
+        this.pool.query(
+          `select d.tot_actual_gal
          from dispensadores d
          join sedes s on s.id = d.sede_id
          where s.cliente_id = $1 and d.activo and ($2::uuid is null or d.sede_id = $2)`,
-        parametrosAlcance,
-      ),
-      this.pool.query(
-        `select coalesce(sum(greatest(c.gal_no_registrados, 0)), 0) as gal
+          parametrosAlcance,
+        ),
+        this.pool.query(
+          `select coalesce(sum(greatest(c.gal_no_registrados, 0)), 0) as gal
          from cargas c
          where c.cliente_id = $1 and ($2::uuid is null or c.sede_id = $2) and c.finalizada_en >= $3`,
-        [...parametrosAlcance, ventana.desde14d],
-      ),
-      this.pool.query(
-        `with del_dia as (
+          [...parametrosAlcance, ventana.desde14d],
+        ),
+        this.pool.query(
+          `with del_dia as (
            select c.equipo_id, c.llegada_gal, c.galones, c.inventario_final_gal
            from cargas c
            where c.cliente_id = $1 and ($2::uuid is null or c.sede_id = $2)
@@ -173,10 +174,19 @@ export class RepositorioTableroPostgres implements RepositorioTablero {
                 (select sum(e.capacidad_tanque_gal) from equipos e
                   where e.id in (select distinct equipo_id from del_dia)) as capacidad
          from del_dia`,
-        [...parametrosAlcance, ventana.inicioHoy],
-      ),
-      this.balance(alcance, ventana),
-    ]);
+          [...parametrosAlcance, ventana.inicioHoy],
+        ),
+        this.balance(alcance, ventana),
+        // P0.6: ¿alguna carga en la HISTORIA del alcance? Distingue el
+        // cliente nuevo (bienvenida) del día quieto (paneles en cero).
+        this.pool.query(
+          `select exists(
+           select 1 from cargas c
+           where c.cliente_id = $1 and ($2::uuid is null or c.sede_id = $2)
+         ) as tiene`,
+          parametrosAlcance,
+        ),
+      ]);
 
     const porDia = new Map<string, number>(
       consumo.rows.map((fila) => [fila.dia as string, Number(fila.galones)]),
@@ -184,6 +194,7 @@ export class RepositorioTableroPostgres implements RepositorioTablero {
     const filaInventario = inventario.rows[0]!;
 
     return {
+      tieneCargas: existencia.rows[0]!.tiene === true,
       cargasDeHoy: cargasHoy.rows.map(filaACarga),
       consumo14d: catorceDias(ventana.desde14d).map((fecha) => ({
         fecha,

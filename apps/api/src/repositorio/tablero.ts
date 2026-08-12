@@ -92,6 +92,10 @@ export interface BalanceTablero {
 }
 
 export interface HechosHoy {
+  /** ¿Este alcance registró alguna carga EN SU HISTORIA? false = el
+   *  cliente es nuevo y el tablero muestra la bienvenida en lugar de
+   *  paneles en cero (P0.6). No confundir con «hoy no hubo cargas». */
+  tieneCargas: boolean;
   cargasDeHoy: CargaTablero[];
   consumo14d: Array<{ fecha: string; galones: number }>;
   /** Totalizador del medidor de la sede. null si la sede no tiene uno

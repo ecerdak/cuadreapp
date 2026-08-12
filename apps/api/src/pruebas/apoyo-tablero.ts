@@ -164,6 +164,7 @@ export class RepositorioTableroFalso implements RepositorioTablero {
     const cargas = datos?.cargas ?? [];
     const inventario = cargas.filter((carga) => carga.llegadaGal !== null);
     return {
+      tieneCargas: cargas.length > 0,
       cargasDeHoy: cargas,
       consumo14d: cargas.map((carga) => ({ fecha: carga.fecha, galones: carga.galones })),
       totalizadorGal: this.totalizadorGal,
