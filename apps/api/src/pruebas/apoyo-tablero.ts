@@ -57,6 +57,7 @@ export function cargaFalsa(sobre: Partial<CargaTablero> = {}): CargaTablero {
     estado: "ok",
     banderas: [],
     perfilCodigo: "medidor_doble",
+    duracionSegundos: 312,
     llegadaGal: null,
     inventarioFinalGal: null,
     capacidadEquipoGal: 80,

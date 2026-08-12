@@ -68,6 +68,9 @@ export interface CargaTablero {
   banderas: Bandera[];
   /** Snapshot del perfil con el que nació la carga (DEC-016). */
   perfilCodigo: CodigoPerfil;
+  /** Segundos entre inicio y fin del registro. Viaja en la LISTA para
+   *  que la exportación no necesite el detalle carga por carga (P0.8). */
+  duracionSegundos: number | null;
   /** Solo carga_inventario; null en medidor_doble. */
   llegadaGal: number | null;
   inventarioFinalGal: number | null;
