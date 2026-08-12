@@ -37,6 +37,21 @@ const ROLES = [
   { valor: "admin_cliente", rotulo: "Administrador del cliente" },
 ];
 
+/** Acciones que piden confirmación (P0.9). Activar no está aquí a
+ *  propósito: es inocua y se puede repetir sin costo. */
+export interface AccionConfirmable {
+  tipo: "desactivar" | "reiniciar";
+  acceso: AccesoDashboard;
+}
+
+/** La consecuencia, dicha antes de ejecutar. Exportada para que la
+ *  prueba fije las frases: son el contrato de la confirmación. */
+export function textoConfirmacion(tipo: AccionConfirmable["tipo"], nombre: string): string {
+  return tipo === "desactivar"
+    ? `${nombre} perderá el acceso al Dashboard de inmediato. Podrás activarlo de nuevo cuando lo necesites.`
+    : `La contraseña actual de ${nombre} dejará de funcionar. La nueva es temporal y sirve para UN ingreso.`;
+}
+
 const fechaCorta = (iso: string | null): string =>
   iso === null
     ? "Nunca"
@@ -95,20 +110,51 @@ export function AccesosDashboard(props: { clienteId: string }) {
     }
   };
 
-  const alternar = async (acceso: AccesoDashboard) => {
-    await fuente.editarAccesoDashboard(props.clienteId, acceso.usuarioId, {
-      activo: !acceso.activo,
-    });
-    recargar();
+  // P0.9: desactivar y regenerar contraseña CONFIRMAN (dejan a alguien
+  // afuera o invalidan la contraseña vigente); activar no — es inocua
+  // y re-ejecutable. Y ninguna de las tres falla en silencio.
+  const [confirmando, setConfirmando] = useState<AccionConfirmable | null>(null);
+  const [ejecutando, setEjecutando] = useState(false);
+  const [errorAccion, setErrorAccion] = useState<string | null>(null);
+  const [avisoFallo, setAvisoFallo] = useState<string | null>(null);
+
+  const activar = async (acceso: AccesoDashboard) => {
+    setAvisoFallo(null);
+    try {
+      await fuente.editarAccesoDashboard(props.clienteId, acceso.usuarioId, { activo: true });
+      recargar();
+    } catch {
+      setAvisoFallo(`No se pudo activar el acceso de ${acceso.nombre}. Intenta de nuevo.`);
+    }
   };
 
-  const reiniciar = async (acceso: AccesoDashboard) => {
-    const nuevo = await fuente.reiniciarPasswordAcceso(props.clienteId, acceso.usuarioId);
-    setCredencial({
-      nombre: nuevo.nombre,
-      email: nuevo.email ?? acceso.email ?? "",
-      password: nuevo.password_temporal,
-    });
+  const confirmarAccion = async () => {
+    if (!confirmando) return;
+    setEjecutando(true);
+    setErrorAccion(null);
+    try {
+      if (confirmando.tipo === "desactivar") {
+        await fuente.editarAccesoDashboard(props.clienteId, confirmando.acceso.usuarioId, {
+          activo: false,
+        });
+      } else {
+        const nuevo = await fuente.reiniciarPasswordAcceso(
+          props.clienteId,
+          confirmando.acceso.usuarioId,
+        );
+        setCredencial({
+          nombre: nuevo.nombre,
+          email: nuevo.email ?? confirmando.acceso.email ?? "",
+          password: nuevo.password_temporal,
+        });
+      }
+      setConfirmando(null);
+      recargar();
+    } catch {
+      setErrorAccion("No se pudo completar la acción. Intenta de nuevo.");
+    } finally {
+      setEjecutando(false);
+    }
   };
 
   if (consulta.estado === "cargando") return <Esqueleto alto={220} />;
@@ -131,6 +177,12 @@ export function AccesosDashboard(props: { clienteId: string }) {
         </div>
         <Boton onClick={() => setCreando(true)}>+ Crear acceso</Boton>
       </div>
+
+      {avisoFallo ? (
+        <div className="px-5 pt-3" role="alert" style={{ fontSize: 12, color: TEMA.rojo }}>
+          {avisoFallo}
+        </div>
+      ) : null}
 
       {accesos.length === 0 ? (
         <div className="px-5 pb-5 pt-4" style={{ fontSize: 12.5, color: TEMA.tenue }}>
@@ -175,14 +227,18 @@ export function AccesosDashboard(props: { clienteId: string }) {
                   <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>
                     <button
                       type="button"
-                      onClick={() => void reiniciar(acceso)}
+                      onClick={() => setConfirmando({ tipo: "reiniciar", acceso })}
                       style={{ fontSize: 12, color: "var(--cliente-primario)", marginRight: 12 }}
                     >
                       Nueva contraseña
                     </button>
                     <button
                       type="button"
-                      onClick={() => void alternar(acceso)}
+                      onClick={() =>
+                        acceso.activo
+                          ? setConfirmando({ tipo: "desactivar", acceso })
+                          : void activar(acceso)
+                      }
                       style={{ fontSize: 12, color: acceso.activo ? TEMA.rojo : TEMA.suave }}
                     >
                       {acceso.activo ? "Desactivar" : "Activar"}
@@ -240,6 +296,27 @@ export function AccesosDashboard(props: { clienteId: string }) {
               el primer acceso la persona define su contraseña propia.
             </div>
           </div>
+        </Dialogo>
+      ) : null}
+
+      {confirmando ? (
+        <Dialogo
+          titulo={confirmando.tipo === "desactivar" ? "Desactivar acceso" : "Nueva contraseña temporal"}
+          error={errorAccion}
+          onCerrar={() => {
+            setConfirmando(null);
+            setErrorAccion(null);
+          }}
+          onEnviar={() => void confirmarAccion()}
+          enviando={ejecutando}
+          etiquetaEnviar={
+            confirmando.tipo === "desactivar" ? "Desactivar acceso" : "Generar nueva contraseña"
+          }
+          etiquetaEnviando={confirmando.tipo === "desactivar" ? "Desactivando…" : "Generando…"}
+        >
+          <p style={{ fontSize: 12.5, color: TEMA.suave, margin: 0, lineHeight: 1.6 }}>
+            {textoConfirmacion(confirmando.tipo, confirmando.acceso.nombre)}
+          </p>
         </Dialogo>
       ) : null}
 
