@@ -87,7 +87,9 @@ export function Boton(props: {
       style={{
         padding: "10px 16px",
         fontSize: 13,
-        color: props.secundario ? TEMA.texto : "#12202C",
+        // Deshabilitado LEGIBLE: «Guardando…» es información, no puede
+        // ser tinta invisible sobre el panel (P0.3).
+        color: props.deshabilitado ? TEMA.suave : props.secundario ? TEMA.texto : "#12202C",
         background: props.deshabilitado
           ? TEMA.panelAlto
           : props.secundario
@@ -160,18 +162,36 @@ export function Selector(props: {
   );
 }
 
-/** Diálogo de formulario: crear/editar entidades del catálogo. */
+/** Diálogo de formulario: crear/editar entidades del catálogo.
+ *
+ *  P0.3: UNA sola acción primaria por modal. El pie trae «Cancelar» y
+ *  el botón de envío con la etiqueta que el modal declare — el
+ *  contenido jamás agrega su propio botón primario (dos primarios en
+ *  un modal fue exactamente el defecto del alta de accesos). `sinPie`
+ *  es para diálogos informativos que traen sus propias acciones. */
 export function Dialogo(props: {
   titulo: string;
   error?: string | null;
   onCerrar: () => void;
-  onEnviar: () => void;
+  onEnviar?: () => void;
   enviando?: boolean;
+  /** Bloquea el envío (validación del modal), sin ocultar el botón. */
+  deshabilitado?: boolean;
+  /** Etiqueta de la acción primaria; «Guardar» si no se declara. */
+  etiquetaEnviar?: string;
+  etiquetaEnviando?: string;
+  /** Rótulo del cierre; «Cancelar» solo cuando de verdad cancela. */
+  etiquetaCerrar?: string;
+  /** Sin pie: el contenido trae sus propias acciones. */
+  sinPie?: boolean;
   children: ReactNode;
 }) {
   const enviar = (evento: FormEvent) => {
     evento.preventDefault();
-    props.onEnviar();
+    // Reentrada bloqueada: ni doble clic ni Enter repetido envían dos
+    // veces, y un envío deshabilitado tampoco entra por el teclado.
+    if (props.enviando || props.deshabilitado) return;
+    props.onEnviar?.();
   };
   return (
     <div
@@ -195,14 +215,18 @@ export function Dialogo(props: {
             {props.error}
           </div>
         ) : null}
-        <div className="mt-1 flex justify-end" style={{ gap: 8 }}>
-          <Boton secundario onClick={props.onCerrar}>
-            Cancelar
-          </Boton>
-          <Boton tipo="submit" deshabilitado={props.enviando}>
-            {props.enviando ? "Guardando…" : "Guardar"}
-          </Boton>
-        </div>
+        {props.sinPie ? null : (
+          <div className="mt-1 flex justify-end" style={{ gap: 8 }}>
+            <Boton secundario onClick={props.onCerrar}>
+              {props.etiquetaCerrar ?? "Cancelar"}
+            </Boton>
+            <Boton tipo="submit" deshabilitado={props.enviando || props.deshabilitado}>
+              {props.enviando
+                ? (props.etiquetaEnviando ?? "Guardando…")
+                : (props.etiquetaEnviar ?? "Guardar")}
+            </Boton>
+          </div>
+        )}
       </form>
     </div>
   );
