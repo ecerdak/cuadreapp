@@ -10,13 +10,14 @@
 // que no aplica.
 
 import "./estilos.css";
+import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from "react-router-dom";
 import type { ModuloTablero } from "@cuadreapp/dominio";
 import { ProveedorDatosTablero } from "./datos/proveedor";
 import { FuenteApi } from "./datos/fuente-api";
 import { ProveedorContextoTablero, useTablero } from "./datos/contexto";
-import { haySesion } from "./datos/sesion";
+import { alPerderLaSesion, haySesion } from "./datos/sesion";
 import { DisposicionTablero } from "./disposicion/DisposicionTablero";
 import { Entrar } from "./paginas/Entrar";
 import { CambiarContrasena, ContrasenaNueva, Recuperar, Restablecer } from "./paginas/Contrasena";
@@ -27,10 +28,20 @@ import { Suministro } from "./paginas/Suministro";
 
 function ConSesion() {
   const navegar = useNavigate();
+
+  // P0.4: si la sesión muere en una pestaña YA montada (expiró o la
+  // consola revocó el acceso), se vuelve al login con el motivo — en
+  // vez de dejar pantallas de error con un «Reintentar» imposible.
+  useEffect(() => {
+    alPerderLaSesion((motivo) => navegar(`/entrar?motivo=${motivo}`, { replace: true }));
+    return () => alPerderLaSesion(null);
+  }, [navegar]);
+
   if (!haySesion()) return <Navigate to="/entrar" replace />;
   return (
     <ProveedorContextoTablero
       alPerderSesion={() => navegar("/entrar?motivo=sesion", { replace: true })}
+      alAccesoDesactivado={() => navegar("/entrar?motivo=desactivado", { replace: true })}
       alPasswordTemporal={() => navegar("/contrasena-nueva", { replace: true })}
     >
       <Outlet />

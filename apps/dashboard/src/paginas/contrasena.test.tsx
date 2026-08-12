@@ -13,7 +13,7 @@ import {
   Restablecer,
 } from "./Contrasena";
 import { Entrar } from "./Entrar";
-import { clasificarFalla } from "../datos/contexto";
+import { clasificarFalla, SinEmpresa, SinPermiso } from "../datos/contexto";
 import { iniciarSesion, tomarPasswordTemporal } from "../datos/sesion";
 
 function pintar(elemento: React.ReactElement, ruta = "/"): string {
@@ -127,10 +127,36 @@ describe("la puerta del login (Entrar)", () => {
     const html = pintar(<Entrar />, "/entrar?motivo=sesion");
     expect(html).toContain("Tu sesión expiró. Vuelve a entrar.");
   });
+
+  it("un acceso revocado se dice con la verdad, no como sesión expirada (P0.4)", () => {
+    const html = pintar(<Entrar />, "/entrar?motivo=desactivado");
+    expect(html).toContain("Tu acceso al Dashboard está desactivado");
+    expect(html).toContain("Contacta al administrador de tu empresa");
+    expect(html).not.toContain("Tu sesión expiró");
+  });
 });
 
 describe("clasificación de la falla del contexto", () => {
   it("PASSWORD_TEMPORAL manda a definir la contraseña propia", () => {
     expect(clasificarFalla("Error: PASSWORD_TEMPORAL")).toBe("password_temporal");
+  });
+
+  it("ACCESO_DESACTIVADO se distingue de la sesión vencida (P0.4)", () => {
+    expect(clasificarFalla("Error: ACCESO_DESACTIVADO")).toBe("acceso_desactivado");
+    expect(clasificarFalla("Error: SESION_VENCIDA")).toBe("sesion_vencida");
+  });
+});
+
+describe("pantallas de acceso denegado (P0.4)", () => {
+  it("SinPermiso explica y tiene salida: cerrar sesión", () => {
+    const html = pintar(<SinPermiso />);
+    expect(html).toContain("Tu usuario no tiene acceso al Dashboard");
+    expect(html).toContain("Cerrar sesión");
+  });
+
+  it("SinEmpresa explica y tiene salida: cerrar sesión", () => {
+    const html = pintar(<SinEmpresa />);
+    expect(html).toContain("Tu usuario no tiene una empresa asignada");
+    expect(html).toContain("Cerrar sesión");
   });
 });

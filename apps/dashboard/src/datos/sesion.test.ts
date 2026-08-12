@@ -5,8 +5,10 @@
 // servidor decide. Estas pruebas fijan justamente eso, además del
 // comportamiento ante tokens inválidos.
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  AccesoDesactivado,
+  alPerderLaSesion,
   cambiarPassword,
   cerrarSesion,
   cerrarSesionLocal,
@@ -44,6 +46,10 @@ beforeEach(() => {
   cerrarSesionLocal();
 });
 
+afterEach(() => {
+  alPerderLaSesion(null);
+});
+
 describe("login del supervisor", () => {
   it("solo manda credenciales: ni empresa, ni sede, ni cliente_id", async () => {
     const fetchFalso = vi.fn().mockResolvedValue(respuesta(TOKENS));
@@ -75,6 +81,15 @@ describe("login del supervisor", () => {
       ok: false,
       motivo: "limite",
     });
+  });
+
+  it("el acceso revocado por la consola se distingue de las credenciales malas (P0.4)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(respuesta({ error: "ACCESO_DESACTIVADO" }, 403)));
+    expect(await iniciarSesion("revocada@empresa.com", "correcta")).toMatchObject({
+      ok: false,
+      motivo: "desactivado",
+    });
+    expect(haySesion()).toBe(false);
   });
 
   it("informa la contraseña temporal y la guarda SOLO en memoria para el primer cambio", async () => {
@@ -203,6 +218,39 @@ describe("tokens: renovación y expiración", () => {
     await iniciarSesion("supervisora@empresa.com", "clave");
     await expect(solicitar("/api/v1/tablero/hoy")).rejects.toBeInstanceOf(SesionVencida);
     expect(haySesion()).toBe(false);
+  });
+
+  it("un 401 SESION_INACTIVA es un acceso revocado: ni renueva, ni finge expiración (P0.4)", async () => {
+    const fetchFalso = vi
+      .fn()
+      .mockResolvedValueOnce(respuesta(TOKENS)) // login
+      .mockResolvedValueOnce(respuesta({ error: "SESION_INACTIVA" }, 401)); // petición
+    vi.stubGlobal("fetch", fetchFalso);
+    const motivos: string[] = [];
+    alPerderLaSesion((motivo) => motivos.push(motivo));
+
+    await iniciarSesion("supervisora@empresa.com", "clave");
+    await expect(solicitar("/api/v1/tablero/hoy")).rejects.toBeInstanceOf(AccesoDesactivado);
+
+    // Sin intento de refresh: revocado no se arregla renovando tokens.
+    expect(fetchFalso).toHaveBeenCalledTimes(2);
+    expect(haySesion()).toBe(false);
+    expect(motivos).toEqual(["desactivado"]);
+  });
+
+  it("la expiración en una pestaña montada avisa al marco para volver al login (P0.4)", async () => {
+    const fetchFalso = vi
+      .fn()
+      .mockResolvedValueOnce(respuesta(TOKENS))
+      .mockResolvedValueOnce(respuesta({ error: "TOKEN_INVALIDO" }, 401))
+      .mockResolvedValueOnce(respuesta({ error: "REFRESH_INVALIDO" }, 401));
+    vi.stubGlobal("fetch", fetchFalso);
+    const motivos: string[] = [];
+    alPerderLaSesion((motivo) => motivos.push(motivo));
+
+    await iniciarSesion("supervisora@empresa.com", "clave");
+    await expect(solicitar("/api/v1/tablero/hoy")).rejects.toBeInstanceOf(SesionVencida);
+    expect(motivos).toEqual(["sesion"]);
   });
 
   it("cerrar sesión revoca en el servidor y no deja rastro local", async () => {

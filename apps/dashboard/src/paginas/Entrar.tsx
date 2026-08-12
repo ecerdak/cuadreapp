@@ -14,6 +14,7 @@ import { AvisoAcceso, BotonAcceso, CampoAcceso, TarjetaAcceso } from "./acceso";
 /** Por qué se volvió al login sin que la persona lo pidiera (P0.4). */
 const MOTIVOS_DE_VUELTA: Record<string, string> = {
   sesion: "Tu sesión expiró. Vuelve a entrar.",
+  desactivado: "Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.",
 };
 
 export function Entrar() {
@@ -36,7 +37,9 @@ export function Entrar() {
           setError(
             resultado.motivo === "limite"
               ? "Demasiados intentos. Espera un minuto e inténtalo de nuevo."
-              : "Correo o contraseña incorrectos.",
+              : resultado.motivo === "desactivado"
+                ? "Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa."
+                : "Correo o contraseña incorrectos.",
           );
           return;
         }

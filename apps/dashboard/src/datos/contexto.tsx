@@ -8,12 +8,14 @@
 // nada que elegir (la API rechazaría cualquier otra).
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import type { ContextoTablero } from "./puertos";
 import { useFuenteTablero } from "./proveedor";
 import { useConsulta } from "./consulta";
 import { ErrorApi } from "./fuente-api";
-import { SesionVencida } from "./sesion";
-import { Esqueleto, EstadoError, Panel } from "../componentes/basicos";
+import { cerrarSesion, SesionVencida } from "./sesion";
+import { Esqueleto, EstadoError } from "../componentes/basicos";
+import { BotonAcceso, TarjetaAcceso } from "../paginas/acceso";
 import { TEMA } from "../tema";
 
 export interface EstadoTablero {
@@ -40,16 +42,18 @@ export function useTableroOpcional(): EstadoTablero | null {
 }
 
 export type FallaDeAcceso =
-  "sesion_vencida" | "sin_empresa" | "sin_permiso" | "password_temporal" | "otra";
+  "sesion_vencida" | "acceso_desactivado" | "sin_empresa" | "sin_permiso" | "password_temporal" | "otra";
 
 /** Qué pantalla merece una falla al resolver el contexto. Separado del
  *  componente para poder probarlo: son las puertas por las que un
  *  usuario puede quedarse sin tablero, y cada una dice algo distinto.
- *  Una sesión que expiró vuelve al login; una contraseña temporal va a
+ *  Una sesión que expiró vuelve al login; un acceso revocado también,
+ *  pero DICIENDO que fue revocado (P0.4); una contraseña temporal va a
  *  definir la propia (P0.1); un usuario de la consola (sin empresa) o
  *  sin permiso reciben una explicación, no un error de red que no
  *  significa nada para ellos. */
 export function clasificarFalla(detalle: string): FallaDeAcceso {
+  if (detalle.includes("ACCESO_DESACTIVADO")) return "acceso_desactivado";
   if (detalle.includes("SESION_VENCIDA") || detalle.includes(SesionVencida.name)) {
     return "sesion_vencida";
   }
@@ -69,6 +73,9 @@ export function ProveedorContextoTablero(props: {
   children: ReactNode;
   /** Se invoca cuando la sesión ya no sirve: el marco vuelve al login. */
   alPerderSesion?: () => void;
+  /** P0.4: la consola revocó el acceso — se vuelve al login con la
+   *  explicación verdadera, no con «tu sesión expiró». */
+  alAccesoDesactivado?: () => void;
   /** P0.1: la sesión entró con la contraseña temporal — el marco lleva
    *  a definir la propia antes de pintar el tablero. */
   alPasswordTemporal?: () => void;
@@ -107,6 +114,9 @@ export function ProveedorContextoTablero(props: {
       case "sesion_vencida":
         props.alPerderSesion?.();
         return null;
+      case "acceso_desactivado":
+        props.alAccesoDesactivado?.();
+        return null;
       case "password_temporal":
         props.alPasswordTemporal?.();
         return null;
@@ -126,36 +136,43 @@ export function ProveedorContextoTablero(props: {
   return <ContextoEmpresa.Provider value={valor}>{props.children}</ContextoEmpresa.Provider>;
 }
 
-function Aviso(props: { titulo: string; detalle: string }) {
+/** Aviso de acceso con la identidad del producto y una salida real:
+ *  ninguna de estas pantallas puede ser un callejón (P0.4). El botón
+ *  cierra la sesión y vuelve al login. */
+function AvisoDeAcceso(props: { titulo: string; detalle: string }) {
+  const navegar = useNavigate();
   return (
-    <div
-      className="flex min-h-dvh items-center justify-center p-6"
-      style={{ background: TEMA.fondo, color: TEMA.texto }}
+    <TarjetaAcceso
+      onSubmit={() => {
+        void cerrarSesion().then(() => navegar("/entrar", { replace: true }));
+      }}
     >
-      <Panel className="p-8 text-center" alto>
-        <p className="text-lg font-semibold">{props.titulo}</p>
-        <p className="mt-2" style={{ fontSize: 12.5, color: TEMA.suave, maxWidth: 420 }}>
-          {props.detalle}
-        </p>
-      </Panel>
-    </div>
+      <p className="font-semibold" style={{ fontSize: 15, textAlign: "center", margin: 0 }}>
+        {props.titulo}
+      </p>
+      <p style={{ fontSize: 12, color: TEMA.suave, lineHeight: 1.55, margin: 0, textAlign: "center" }}>
+        {props.detalle}
+      </p>
+      <BotonAcceso etiqueta="Cerrar sesión" />
+    </TarjetaAcceso>
   );
 }
 
-function SinEmpresa() {
+/** Exportadas para las pruebas: el texto que lee la persona es el contrato. */
+export function SinEmpresa() {
   return (
-    <Aviso
+    <AvisoDeAcceso
       titulo="Tu usuario no tiene una empresa asignada"
-      detalle="Este tablero muestra la operación de un cliente. Si administras CuadreApp, tu vista es la consola administrativa; si eres supervisor, pide que asocien tu usuario a la empresa."
+      detalle="Este tablero muestra la operación de un cliente. Si administras CuadreApp, tu vista es la consola administrativa; si eres supervisor de una empresa, pide a Lubryco que asocie tu usuario a ella."
     />
   );
 }
 
-function SinPermiso() {
+export function SinPermiso() {
   return (
-    <Aviso
-      titulo="Tu usuario no tiene acceso al tablero"
-      detalle="Pide a quien administra CuadreApp que habilite el permiso de tablero para tu cuenta."
+    <AvisoDeAcceso
+      titulo="Tu usuario no tiene acceso al Dashboard"
+      detalle="Tu cuenta existe pero no tiene habilitado el tablero. Pide al administrador de tu empresa (o a Lubryco) que lo habilite y vuelve a entrar."
     />
   );
 }

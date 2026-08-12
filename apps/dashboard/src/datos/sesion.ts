@@ -34,8 +34,9 @@ export interface ResultadoLogin {
    *  tablero está cerrado (403) hasta definir una propia. */
   debeCambiarPassword: boolean;
   /** Por qué falló, para que el login hable claro (P0.4):
-   *  `limite` = demasiados intentos (429); `credenciales` = lo demás. */
-  motivo?: "credenciales" | "limite";
+   *  `limite` = demasiados intentos (429); `desactivado` = la consola
+   *  revocó este acceso; `credenciales` = lo demás. */
+  motivo?: "credenciales" | "limite" | "desactivado";
 }
 
 /** La contraseña temporal recién usada, SOLO en memoria y solo para el
@@ -56,10 +57,16 @@ export async function iniciarSesion(email: string, password: string): Promise<Re
     body: JSON.stringify({ email, password }),
   });
   if (!respuesta.ok) {
+    const cuerpo = (await respuesta.json().catch(() => ({}))) as { error?: string };
     return {
       ok: false,
       debeCambiarPassword: false,
-      motivo: respuesta.status === 429 ? "limite" : "credenciales",
+      motivo:
+        respuesta.status === 429
+          ? "limite"
+          : cuerpo.error === "ACCESO_DESACTIVADO"
+            ? "desactivado"
+            : "credenciales",
     };
   }
   const cuerpo = (await respuesta.json()) as Tokens & { debe_cambiar_password?: boolean };
@@ -167,9 +174,46 @@ export class SesionVencida extends Error {
   }
 }
 
+/** P0.4: la consola revocó este acceso. NO es una sesión expirada —
+ *  renovar tokens no lo arregla y el mensaje debe decir la verdad. */
+export class AccesoDesactivado extends Error {
+  constructor() {
+    super("ACCESO_DESACTIVADO");
+  }
+}
+
+export type MotivoPerdidaDeSesion = "sesion" | "desactivado";
+
+/** El marco registra aquí su reacción (volver al login con el motivo).
+ *  Así una sesión que muere en una pestaña YA montada redirige de
+ *  inmediato, en vez de dejar un «Reintentar» imposible (P0.4). */
+let avisarPerdidaDeSesion: ((motivo: MotivoPerdidaDeSesion) => void) | null = null;
+
+export function alPerderLaSesion(avisar: ((motivo: MotivoPerdidaDeSesion) => void) | null): void {
+  avisarPerdidaDeSesion = avisar;
+}
+
+function perder(motivo: MotivoPerdidaDeSesion): never {
+  cerrarSesionLocal();
+  avisarPerdidaDeSesion?.(motivo);
+  throw motivo === "desactivado" ? new AccesoDesactivado() : new SesionVencida();
+}
+
+/** Un 401 con SESION_INACTIVA no es un token vencido: es la consola
+ *  revocando el acceso. Renovar no ayuda — se lee el cuerpo (clonado,
+ *  la respuesta sigue intacta) para no confundir los dos mundos. */
+async function esAccesoRevocado(respuesta: Response): Promise<boolean> {
+  try {
+    const cuerpo = (await respuesta.clone().json()) as { error?: string };
+    return cuerpo.error === "SESION_INACTIVA";
+  } catch {
+    return false;
+  }
+}
+
 /** Único camino a la API: adjunta el token y renueva una vez ante 401.
- *  Si la renovación también falla, la sesión local se borra — el
- *  tablero vuelve al login en lugar de quedarse en un error opaco. */
+ *  Si la renovación también falla, la sesión local se borra y el marco
+ *  vuelve al login — nunca un error opaco ni un reintento imposible. */
 export async function solicitar(ruta: string, opciones: RequestInit = {}): Promise<Response> {
   const ejecutar = () =>
     fetch(`${URL_API}${ruta}`, {
@@ -181,14 +225,14 @@ export async function solicitar(ruta: string, opciones: RequestInit = {}): Promi
       },
     });
 
-  if (!accessToken && !(await refrescar())) throw new SesionVencida();
+  if (!accessToken && !(await refrescar())) perder("sesion");
   let respuesta = await ejecutar();
   if (respuesta.status === 401) {
-    if (!(await refrescar())) throw new SesionVencida();
+    if (await esAccesoRevocado(respuesta)) perder("desactivado");
+    if (!(await refrescar())) perder("sesion");
     respuesta = await ejecutar();
     if (respuesta.status === 401) {
-      cerrarSesionLocal();
-      throw new SesionVencida();
+      perder((await esAccesoRevocado(respuesta)) ? "desactivado" : "sesion");
     }
   }
   return respuesta;
