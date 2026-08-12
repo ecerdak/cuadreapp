@@ -14,16 +14,17 @@ Runbook de despliegue, verificación, respaldo y recuperación. Complementa el P
 
 ### API (Railway) — validadas al arrancar (`apps/api/src/config.ts`); la API se niega a arrancar si falta alguna
 
-| Variable                    | Qué es                                                                                                                                                                        |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`              | Pooler de Postgres de Supabase (usar el **transaction pooler** para runtime)                                                                                                  |
-| `SUPABASE_URL`              | `https://<proyecto>.supabase.co`                                                                                                                                              |
-| `SUPABASE_ANON_KEY`         | Clave anon (grants de GoTrue del lado del servidor)                                                                                                                           |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role — **solo** vive en Railway, jamás en el cliente                                                                                                                  |
-| `SUPABASE_JWT_SECRET`       | Secreto legado HS256. **Los proyectos nuevos firman ES256**: la API verifica automáticamente contra el JWKS del proyecto (`/auth/v1/.well-known/jwks.json`), sin config extra |
-| `BUCKET_FOTOS`              | Opcional, default `fotos-cargas`                                                                                                                                              |
-| `CORS_ORIGENES`             | Opcional: lista separada por comas de orígenes de navegador permitidos; sin ella se permiten los `*.up.railway.app`. Fijarla a los dominios definitivos al salir del piloto   |
-| `PORT`                      | La inyecta Railway                                                                                                                                                            |
+| Variable                    | Qué es                                                                                                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`              | Pooler de Postgres de Supabase (usar el **transaction pooler** para runtime)                                                                                                                           |
+| `SUPABASE_URL`              | `https://<proyecto>.supabase.co`                                                                                                                                                                       |
+| `SUPABASE_ANON_KEY`         | Clave anon (grants de GoTrue del lado del servidor)                                                                                                                                                    |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role — **solo** vive en Railway, jamás en el cliente                                                                                                                                           |
+| `SUPABASE_JWT_SECRET`       | Secreto legado HS256. **Los proyectos nuevos firman ES256**: la API verifica automáticamente contra el JWKS del proyecto (`/auth/v1/.well-known/jwks.json`), sin config extra                          |
+| `BUCKET_FOTOS`              | Opcional, default `fotos-cargas`                                                                                                                                                                       |
+| `URL_RESTABLECER_PASSWORD`  | Opcional: URL de la pantalla `/restablecer` del Dashboard (destino del correo de recuperación). Debe estar autorizada como **Redirect URL** en Supabase Auth; sin ella decide la Site URL del proyecto |
+| `CORS_ORIGENES`             | Opcional: lista separada por comas de orígenes de navegador permitidos; sin ella se permiten los `*.up.railway.app`. Fijarla a los dominios definitivos al salir del piloto                            |
+| `PORT`                      | La inyecta Railway                                                                                                                                                                                     |
 
 ### Frontends (build-time, Vite los incrusta)
 
@@ -142,9 +143,16 @@ empresa se carga.
 2. Sección **Accesos al Dashboard** → **+ Crear acceso**.
 3. Nombre, correo, rol (_Supervisor_ por defecto) y sede
    (_Todas las sedes_ si debe verlas todas).
-4. La consola muestra **una sola vez** la contraseña temporal: cópiala y
-   entrégala por tu canal. No se guarda en ninguna parte.
-5. Comparte el enlace único con **Copiar enlace** en la misma pestaña.
+4. La consola muestra **una sola vez** las credenciales (URL del
+   Dashboard, usuario y contraseña temporal). **Copiar credenciales**
+   arma el mensaje completo listo para WhatsApp o correo; el diálogo no
+   se cierra si el portapapeles falla y advierte si intentas cerrarlo
+   sin copiar. Nada se guarda en ninguna parte.
+5. La contraseña temporal sirve para **UN ingreso**: en el primer
+   login, el Dashboard obliga a la persona a definir la suya (la API
+   cierra el tablero con 403 `PASSWORD_TEMPORAL` hasta entonces).
+   «¿Olvidaste tu contraseña?» envía el correo de recuperación de
+   Supabase Auth hacia la pantalla `/restablecer`.
 
 Una cuenta **por persona**, aunque compartan rol: es lo que permite ver
 el último acceso de cada quien, revocar a uno sin tocar a los demás y
@@ -167,3 +175,11 @@ Requisitos de infraestructura:
 - `20260810070000_accesos_dashboard` — agrega `usuarios.email` y
   `usuarios.ultimo_acceso_en`. Sin ella la consola no puede listar ni
   sellar accesos.
+- `20260812090000_password_temporal` — agrega
+  `usuarios.debe_cambiar_password`. **Debe aplicarse ANTES de desplegar
+  la API que la consulta** (el login y `/tablero/*` la leen). Sin ella,
+  la API desplegada tras el P0 falla al resolver sesiones.
+- Correo de recuperación: en Supabase Auth, autorizar
+  `https://<dominio-del-dashboard>/restablecer` como **Redirect URL** y
+  fijar `URL_RESTABLECER_PASSWORD` en la API. Sin esto, «¿Olvidaste tu
+  contraseña?» envía el enlace a la Site URL por defecto del proyecto.

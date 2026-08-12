@@ -293,3 +293,46 @@ Con este registro la arquitectura queda congelada. Cualquier cambio estructural 
 
 - **Ninguna decisión de sistema.** Si al diagramar aparece una que el sistema no resuelve, es un defecto del sistema y se corrige ahí, no dentro de una página.
 - Sigue pendiente todo lo de T3: visita a planta, 22 capturas bloqueadas, diagramación y grabación.
+
+## [Etapa P.3 — Accesos al Dashboard] (10-ago-2026)
+
+Documentada retroactivamente el 12-ago-2026: los cuatro commits del 10-ago
+(`771cb78`..`71d7213`) se desplegaron sin su entrada de CHANGELOG.
+
+### Agregado
+
+- BD (migración `20260810070000_accesos_dashboard`, aplicada a producción el 10-ago **sin registrar** en `schema_migrations` — reparar con `supabase migration repair`): `usuarios.email` y `usuarios.ultimo_acceso_en`.
+- API: administración de accesos al Dashboard por cliente (`/api/v1/admin/clientes/:id/accesos` — listar, crear con contraseña temporal, editar/activar/desactivar, regenerar contraseña) mediada contra Supabase Auth; el login sella `ultimo_acceso_en` sin poder tumbarlo.
+- Consola: pestaña **Accesos** en la ficha del cliente — una cuenta por persona, último acceso visible, activar/desactivar y nueva contraseña.
+- `docs/OPERACIONES.md` §8: el alta de usuarios del Dashboard deja de necesitar SQL.
+
+## [P.3 UX Hardening P0] (12-ago-2026) — trabajo LOCAL, listo para desplegar
+
+Cierre de los hallazgos P0 del Executive UX Audit del flujo comercial
+(12-ago-2026). **Nada de esto está desplegado**: commits locales en `main`,
+pendientes de push; el plan de despliegue exige aplicar
+`20260812090000_password_temporal` ANTES de desplegar la API.
+
+### Agregado
+
+- **Ciclo de contraseña del Dashboard (P0.1):** la contraseña temporal de la consola es de UN ingreso — `usuarios.debe_cambiar_password` (migración `20260812090000`, sin aplicar), el login informa el flag, `/tablero/*` responde 403 `PASSWORD_TEMPORAL` hasta definir una propia, y el Dashboard fuerza «Crea tu contraseña» sin volver a pedir la temporal (viaja solo en memoria). Cambio voluntario con la actual (`POST /auth/password`, verificada por el MISMO camino del login), «¿Olvidaste tu contraseña?» sin oráculo de cuentas (`POST /auth/recuperar`) y `/restablecer` que consume la sesión del enlace del correo (`POST /auth/password-restablecer`, exige `amr: recovery`). Ninguna pantalla del ciclo es un callejón: el ingreso forzado ofrece cerrar sesión y el cambio voluntario ofrece volver sin cambiar.
+- **Entrega de credenciales (P0.2):** diálogo con URL del Dashboard, usuario y contraseña temporal; «Copiar credenciales» arma el texto completo para WhatsApp/correo; éxito y fallo del portapapeles se anuncian; con fallo el diálogo NO se cierra; cerrar sin copiar pide segunda intención. La política es una transición pura con pruebas.
+- **Estados de acceso (P0.4):** el login responde 403 `ACCESO_DESACTIVADO` al usuario revocado (la barrera sigue siendo el middleware en cada petición); el cliente distingue revocado de expirado (`SESION_INACTIVA` ya no dispara renovaciones ni bucles), la expiración en pestaña montada vuelve al login con su motivo, y SinPermiso/SinEmpresa tienen identidad, explicación y cierre de sesión.
+- **Bienvenida del cliente nuevo (P0.6):** `/tablero/hoy` informa `tiene_cargas` (historia, no día); sin ninguna carga el tablero se presenta («Tu Dashboard está listo» + proceso en tres pasos con el vocabulario del perfil) y la primera carga sincronizada lo reemplaza por el tablero normal vía el polling existente.
+- **Excel por Perfil Operativo (P0.8):** la vista de exportación la decide `perfil.vistaEvidencia`; inventario exporta llegó con / galones cargados / total al salir / duración / veredicto **desde la lista** (la API manda `duracion_segundos`; desaparece el N+1 de un detalle por carga), medidor conserva sus 15 columnas exactas (regresión fijada por prueba) con detalles por lotes de 6, y las hojas de Entregas/Balance existen solo si el perfil declara el módulo de suministro.
+- **Confirmaciones en Accesos (P0.9):** desactivar y regenerar contraseña dicen su consecuencia antes de ejecutar y muestran su error; activar no confirma a propósito.
+- Evidencia visual: `scripts/capturar-p0.mjs` produce las 15 capturas del cierre en `docs/capturas/p0-ux-hardening/` (apps locales reales, API interceptada).
+
+### Corregido
+
+- **Errores humanos (P0.5):** `mensajeDeError()` era inalcanzable (la consulta stringificaba el error) — las pantallas mostraban `Error: HTTP_500` y `TypeError: Failed to fetch`. Ahora toda pantalla traduce a frase humana con `Soporte: <request_id>` copiable, y la exportación a Excel avisa cuando falla en vez de rechazar la promesa en silencio.
+- «Volver al tablero» tras el cambio de contraseña era decorativo (submit sin manejador + `setTimeout`): el botón ES la navegación.
+- `PanelConsumo` con quincena en cero lo dice con palabras; Equipos deja de mandar al cliente a «la consola» de Lubryco; `PASSWORD_ACTUAL_INCORRECTA` pasó de 401 a 403 (el 401 cerraba la sesión de quien se equivocaba de contraseña).
+
+### Verificado sin cambios (P0.7)
+
+- Suministro ya estaba correctamente condicionado: el dominio lo declara solo para perfiles con medidor (invariante probado), la pestaña sale de `perfil.modulos`, la ruta redirige si el perfil no lo declara, y `pnpm sin-clientes` garantiza por máquina que nada decide por nombre de cliente.
+
+### Pendiente
+
+- Despliegue: repair de las migraciones del 5 y 10-ago en `schema_migrations`, aplicar `20260812090000_password_temporal`, push y despliegues (la migración ANTES que la API; la API antes que los frontends), configurar la Redirect URL de Supabase para `/restablecer` y `URL_RESTABLECER_PASSWORD`, humo del ciclo completo con un usuario real.
