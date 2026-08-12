@@ -18,12 +18,8 @@ import { TEMA } from "../../tema";
 import type { ContextoFicha } from "./FichaCliente";
 import { AccesosDashboard } from "./AccesosDashboard";
 
-/** URL del Dashboard de Cliente. Única para todas las empresas: el
- *  login decide cuál se carga (DEC-018). Configurable por entorno para
- *  que producción, preview y desarrollo apunten a su despliegue. */
-export const URL_DASHBOARD =
-  (import.meta.env.VITE_DASHBOARD_URL as string | undefined) ??
-  "https://cuadreappdashboard-production.up.railway.app";
+export { URL_DASHBOARD } from "./url-dashboard";
+import { URL_DASHBOARD } from "./url-dashboard";
 
 const duracion = (segundos: number | null): string => {
   if (segundos === null) return "—";

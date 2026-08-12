@@ -14,6 +14,8 @@ import { useState } from "react";
 import { useFuenteAdmin } from "../../datos/proveedor";
 import { useConsulta } from "../../datos/consulta";
 import type { AccesoDashboard } from "../../datos/puertos";
+import { DialogoCredenciales } from "./DialogoCredenciales";
+import { URL_DASHBOARD } from "./url-dashboard";
 import {
   Boton,
   Campo,
@@ -55,12 +57,18 @@ export function AccesosDashboard(props: { clienteId: string }) {
     [props.clienteId],
   );
   const [creando, setCreando] = useState(false);
-  const [credencial, setCredencial] = useState<{ nombre: string; password: string } | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [credencial, setCredencial] = useState<{
+    nombre: string;
+    email: string;
+    password: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const formulario = useFormulario({ nombre: "", email: "", rol: "supervisor", sedeId: "" });
 
   const crear = async () => {
     setError(null);
+    setEnviando(true);
     try {
       const acceso = await fuente.crearAccesoDashboard(props.clienteId, {
         nombre: formulario.valores.nombre,
@@ -70,14 +78,20 @@ export function AccesosDashboard(props: { clienteId: string }) {
       });
       setCreando(false);
       formulario.reiniciar();
-      setCredencial({ nombre: acceso.nombre, password: acceso.password_temporal });
+      setCredencial({
+        nombre: acceso.nombre,
+        email: acceso.email ?? formulario.valores.email,
+        password: acceso.password_temporal,
+      });
       recargar();
     } catch (fallo) {
       setError(
-        fallo instanceof Error && fallo.message.includes("CORREO")
+        fallo instanceof Error && fallo.message.toLowerCase().includes("correo")
           ? "Ese correo ya tiene una cuenta en CuadreApp."
-          : "No se pudo crear el acceso.",
+          : "No se pudo crear el acceso. Intenta de nuevo.",
       );
+    } finally {
+      setEnviando(false);
     }
   };
 
@@ -90,7 +104,11 @@ export function AccesosDashboard(props: { clienteId: string }) {
 
   const reiniciar = async (acceso: AccesoDashboard) => {
     const nuevo = await fuente.reiniciarPasswordAcceso(props.clienteId, acceso.usuarioId);
-    setCredencial({ nombre: nuevo.nombre, password: nuevo.password_temporal });
+    setCredencial({
+      nombre: nuevo.nombre,
+      email: nuevo.email ?? acceso.email ?? "",
+      password: nuevo.password_temporal,
+    });
   };
 
   if (consulta.estado === "cargando") return <Esqueleto alto={220} />;
@@ -183,6 +201,12 @@ export function AccesosDashboard(props: { clienteId: string }) {
           error={error}
           onCerrar={() => setCreando(false)}
           onEnviar={() => void crear()}
+          enviando={enviando}
+          etiquetaEnviar="Crear acceso"
+          etiquetaEnviando="Creando…"
+          deshabilitado={
+            formulario.valores.nombre.trim().length < 2 || !formulario.valores.email.includes("@")
+          }
         >
           <div className="flex flex-col" style={{ gap: 12 }}>
             <Campo
@@ -212,51 +236,19 @@ export function AccesosDashboard(props: { clienteId: string }) {
               ]}
             />
             <div style={{ fontSize: 11.5, color: TEMA.tenue }}>
-              La contraseña temporal se genera sola y se muestra una sola vez. Entrégala por tu canal y
-              pide que la cambie.
+              La contraseña temporal se genera sola, se muestra una sola vez y sirve para UN ingreso: en
+              el primer acceso la persona define su contraseña propia.
             </div>
-            <Boton
-              tipo="submit"
-              deshabilitado={
-                formulario.valores.nombre.trim().length < 2 || !formulario.valores.email.includes("@")
-              }
-            >
-              Crear acceso
-            </Boton>
           </div>
         </Dialogo>
       ) : null}
 
       {credencial ? (
-        <Dialogo
-          titulo="Contraseña temporal"
-          onCerrar={() => setCredencial(null)}
-          onEnviar={() => {
-            void navigator.clipboard?.writeText(credencial.password);
-            setCredencial(null);
-          }}
-        >
-          <div className="flex flex-col" style={{ gap: 12 }}>
-            <div style={{ fontSize: 12.5, color: TEMA.suave }}>
-              Para <strong style={{ color: TEMA.texto }}>{credencial.nombre}</strong>. No se vuelve a
-              mostrar: cópiala ahora.
-            </div>
-            <div
-              className="font-mono"
-              style={{
-                background: TEMA.panelAlto,
-                border: `1px solid ${TEMA.linea}`,
-                borderRadius: 8,
-                padding: "12px 14px",
-                fontSize: 15,
-                userSelect: "all",
-              }}
-            >
-              {credencial.password}
-            </div>
-            <Boton tipo="submit">Copiar y cerrar</Boton>
-          </div>
-        </Dialogo>
+        <DialogoCredenciales
+          credencial={credencial}
+          urlDashboard={URL_DASHBOARD}
+          alCerrar={() => setCredencial(null)}
+        />
       ) : null}
     </Panel>
   );
