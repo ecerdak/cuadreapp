@@ -478,3 +478,306 @@ export function responder(metodo, ruta) {
 function nombreDe(clienteId) {
   return CLIENTES.find((c) => c.id === clienteId)?.nombreComercial ?? "";
 }
+
+/* ============ Dashboard del cliente (P.2/P.3) ============ */
+/* El Dashboard dejó los datos simulados en P.2: sus pantallas se
+ * responden aquí, igual que las del Admin. Mismo mundo neutro:
+ * Agroindustrias del Valle (medidor) y Constructora Andina
+ * (inventario). Escenarios: md · ci · md0 · ci0 (los «0» son el
+ * cliente recién creado, sin ninguna carga en su historia). */
+
+const fechaLocal = (desplazamientoDias) =>
+  new Date(Date.now() + desplazamientoDias * 86_400_000).toLocaleDateString("sv-SE", {
+    timeZone: "America/Bogota",
+  });
+
+const consumo14 = (porDia) =>
+  Array.from({ length: 14 }, (_, i) => ({ fecha: fechaLocal(i - 13), galones: porDia(i) }));
+
+const CONTEXTO_TABLERO = {
+  md: {
+    usuario: { nombre: "Patricia Gómez", rol: "supervisor" },
+    permisos: ["tablero.leer"],
+    cliente: {
+      id: "cli-001",
+      nombre: "Agroindustrias del Valle S.A.S.",
+      nombreComercial: "Agroindustrias del Valle",
+      colorPrimario: "#1E9B4B",
+      colorSecundario: null,
+      logoUrl: null,
+    },
+    perfil: {
+      codigo: "medidor_doble",
+      nombre: "Medidor Doble",
+      modulos: ["hoy", "cargas", "equipos", "suministro"],
+      panelesHoy: ["totalizador", "consumo", "cargas_del_dia"],
+      columnasCargas: ["galones"],
+      vistaEvidencia: "medidor",
+    },
+    sedes: [{ id: "sede-n", nombre: "Planta Norte", ciudad: "Valle del Cauca" }],
+    sedeActual: "sede-n",
+    medidor: { modelo: "Serie 900", instalado: "2026-06-15" },
+  },
+  ci: {
+    usuario: { nombre: "Jorge Perea", rol: "admin_cliente" },
+    permisos: ["tablero.leer"],
+    cliente: {
+      id: "cli-002",
+      nombre: "Constructora Andina de Obras S.A.S.",
+      nombreComercial: "Constructora Andina",
+      colorPrimario: "#C8102E",
+      colorSecundario: null,
+      logoUrl: null,
+    },
+    perfil: {
+      codigo: "carga_inventario",
+      nombre: "Carga sobre Inventario",
+      modulos: ["hoy", "cargas", "equipos"],
+      panelesHoy: ["inventario", "consumo", "cargas_del_dia"],
+      columnasCargas: ["llegada", "galones", "total_salida", "llenado"],
+      vistaEvidencia: "inventario",
+    },
+    sedes: [{ id: "sede-k18", nombre: "Frente de obra Km 18", ciudad: "Cauca" }],
+    sedeActual: "sede-k18",
+    medidor: null,
+  },
+};
+
+const CARGA_TAB_MD = [
+  {
+    id: "demo-003",
+    fecha: fechaLocal(0),
+    hora: "07:20",
+    equipoCodigo: "P-01",
+    equipoDescripcion: "Pickup Toyota Hilux",
+    conductorNombre: "María Fernanda Ríos",
+    galones: 14.2,
+    estado: "ok",
+    banderas: [],
+    perfilCodigo: "medidor_doble",
+    duracionSegundos: 187,
+    llegadaGal: null,
+    inventarioFinalGal: null,
+    capacidadEquipoGal: 20,
+    galNoRegistrados: null,
+  },
+  {
+    id: "demo-002",
+    fecha: fechaLocal(0),
+    hora: "06:41",
+    equipoCodigo: "AL-01",
+    equipoDescripcion: "Alzadora Bell 1745",
+    conductorNombre: "Jhon Cortés",
+    galones: 52.0,
+    estado: "inconsistente",
+    banderas: ["SALTO_TOTALIZADOR"],
+    perfilCodigo: "medidor_doble",
+    duracionSegundos: 402,
+    llegadaGal: null,
+    inventarioFinalGal: null,
+    capacidadEquipoGal: 90,
+    galNoRegistrados: 18,
+  },
+  {
+    id: "demo-001",
+    fecha: fechaLocal(0),
+    hora: "06:12",
+    equipoCodigo: "T-04",
+    equipoDescripcion: "Tractor Massey Ferguson 4292",
+    conductorNombre: "Duván Bonilla",
+    galones: 42.5,
+    estado: "ok",
+    banderas: [],
+    perfilCodigo: "medidor_doble",
+    duracionSegundos: 312,
+    llegadaGal: null,
+    inventarioFinalGal: null,
+    capacidadEquipoGal: 80,
+    galNoRegistrados: null,
+  },
+];
+
+const CARGA_TAB_CI = [
+  {
+    id: "ci-002",
+    fecha: fechaLocal(0),
+    hora: "07:41",
+    equipoCodigo: "CT-11",
+    equipoDescripcion: "Carrotanque 1",
+    conductorNombre: "Rosa Elvira Díaz",
+    galones: 600,
+    estado: "ok",
+    banderas: [],
+    perfilCodigo: "carga_inventario",
+    duracionSegundos: 754,
+    llegadaGal: 150,
+    inventarioFinalGal: 750,
+    capacidadEquipoGal: 1000,
+    galNoRegistrados: null,
+  },
+  {
+    id: "ci-001",
+    fecha: fechaLocal(-1),
+    hora: "09:05",
+    equipoCodigo: "CT-07",
+    equipoDescripcion: "Carrotanque 2",
+    conductorNombre: "Rosa Elvira Díaz",
+    galones: 480,
+    estado: "advertencia",
+    banderas: ["FOTO_FALTANTE"],
+    perfilCodigo: "carga_inventario",
+    duracionSegundos: 611,
+    llegadaGal: 60,
+    inventarioFinalGal: 540,
+    capacidadEquipoGal: 1000,
+    galNoRegistrados: null,
+  },
+];
+
+const BALANCE_TABLERO = {
+  entregadoTotalGal: 1550,
+  despachadoTotalGal: 902.5,
+  consumoDiarioGal: 118,
+  existenciaEstimadaGal: 647.5,
+  autonomiaDias: 5.4,
+};
+
+const BALANCE_VACIO_TAB = {
+  entregadoTotalGal: 0,
+  despachadoTotalGal: 0,
+  consumoDiarioGal: 0,
+  existenciaEstimadaGal: null,
+  autonomiaDias: null,
+};
+
+const HOY_TABLERO = {
+  md: {
+    tieneCargas: true,
+    cargasDeHoy: CARGA_TAB_MD,
+    consumo14d: consumo14((i) => (i === 13 ? 108.7 : [96, 120, 84, 132, 0, 0, 110][i % 7])),
+    totalizadorGal: 1889.5,
+    galSinRegistrarGal: 18,
+    balance: BALANCE_TABLERO,
+    inventarioHoy: { recibidoGal: 0, despachadoGal: 0, totalSalidaGal: 0, capacidadGal: null },
+  },
+  ci: {
+    tieneCargas: true,
+    cargasDeHoy: [CARGA_TAB_CI[0]],
+    consumo14d: consumo14((i) => (i === 13 ? 600 : i % 3 === 0 ? 480 : 0)),
+    totalizadorGal: null,
+    galSinRegistrarGal: 0,
+    balance: BALANCE_VACIO_TAB,
+    inventarioHoy: { recibidoGal: 150, despachadoGal: 600, totalSalidaGal: 750, capacidadGal: 1000 },
+  },
+  vacio: {
+    tieneCargas: false,
+    cargasDeHoy: [],
+    consumo14d: consumo14(() => 0),
+    totalizadorGal: null,
+    galSinRegistrarGal: 0,
+    balance: BALANCE_VACIO_TAB,
+    inventarioHoy: { recibidoGal: 0, despachadoGal: 0, totalSalidaGal: 0, capacidadGal: null },
+  },
+};
+
+/* Fotos del detalle: en desarrollo, Vite sirve los assets del propio
+ * producto — la evidencia del medidor usa las fotografías reales del
+ * Fill-Rite que ya viven en el repo. El carrotanque aún no tiene
+ * fotografía real (orden fotográfica, bloques A-C): va sin foto. */
+const DETALLES_TABLERO = {
+  "demo-002": {
+    carga: CARGA_TAB_MD[1],
+    lecturas: { tandaInicial: 0, totInicial: 1795, tandaFinal: 52.0, totFinal: 1865 },
+    inventario: null,
+    lecturaEquipo: 2481,
+    tipoLectura: "horometro",
+    duracionSegundos: 402,
+    galNoRegistrados: 18,
+    notas: null,
+    fotos: [
+      { momento: "inicial", url: "/src/marca/assets/fillrite-antes.webp" },
+      { momento: "final", url: "/src/marca/assets/fillrite-despues.webp" },
+    ],
+  },
+  "demo-001": {
+    carga: CARGA_TAB_MD[2],
+    lecturas: { tandaInicial: 0, totInicial: 1847, tandaFinal: 42.5, totFinal: 1889.5 },
+    inventario: null,
+    lecturaEquipo: 1093,
+    tipoLectura: "horometro",
+    duracionSegundos: 312,
+    galNoRegistrados: null,
+    notas: null,
+    fotos: [
+      { momento: "inicial", url: "/src/marca/assets/fillrite-antes.webp" },
+      { momento: "final", url: "/src/marca/assets/fillrite-despues.webp" },
+    ],
+  },
+  "ci-002": {
+    carga: CARGA_TAB_CI[0],
+    lecturas: null,
+    inventario: { llegadaGal: 150, despachadosGal: 600, totalSalidaGal: 750 },
+    lecturaEquipo: null,
+    tipoLectura: null,
+    duracionSegundos: 754,
+    galNoRegistrados: null,
+    notas: "Sello del carrotanque verificado a la llegada.",
+    fotos: [
+      { momento: "inicial", url: null },
+      { momento: "final", url: null },
+    ],
+  },
+};
+
+const EQUIPOS_TABLERO = {
+  md: [
+    { codigo: "AL-01", descripcion: "Alzadora Bell 1745", categoria: "Alzadora", tipoMedidor: "horometro", capacidadTanqueGal: 90, galonesPeriodoGal: 322, usoPeriodo: 41.5, rendimiento: 7.8, medianaHistorica: 6.1, ultimoInventarioGal: null },
+    { codigo: "T-04", descripcion: "Tractor Massey Ferguson 4292", categoria: "Tractor", tipoMedidor: "horometro", capacidadTanqueGal: 80, galonesPeriodoGal: 264, usoPeriodo: 52.0, rendimiento: 5.1, medianaHistorica: 5.0, ultimoInventarioGal: null },
+    { codigo: "P-01", descripcion: "Pickup Toyota Hilux", categoria: "Vehículo", tipoMedidor: "odometro", capacidadTanqueGal: 20, galonesPeriodoGal: 96, usoPeriodo: 1240, rendimiento: 0.08, medianaHistorica: 0.08, ultimoInventarioGal: null },
+  ],
+  ci: [
+    { codigo: "CT-11", descripcion: "Carrotanque 1", categoria: "Carrotanque", tipoMedidor: "ninguno", capacidadTanqueGal: 1000, galonesPeriodoGal: 1080, usoPeriodo: null, rendimiento: null, medianaHistorica: null, ultimoInventarioGal: 750 },
+    { codigo: "CT-07", descripcion: "Carrotanque 2", categoria: "Carrotanque", tipoMedidor: "ninguno", capacidadTanqueGal: 1000, galonesPeriodoGal: 960, usoPeriodo: null, rendimiento: null, medianaHistorica: null, ultimoInventarioGal: 540 },
+  ],
+};
+
+const SUMINISTRO_TABLERO = {
+  entregas: [
+    { numeroRemision: "R-1042", fecha: fechaLocal(-2), galones: 800, placaCarrotanque: "XYZ-123", recibidoPor: "Patricia Gómez" },
+    { numeroRemision: "R-1037", fecha: fechaLocal(-9), galones: 750, placaCarrotanque: "XYZ-123", recibidoPor: "Patricia Gómez" },
+  ],
+  balance: BALANCE_TABLERO,
+};
+
+/** Responde las rutas del Dashboard del cliente según el escenario:
+ *  `md` · `ci` · `md0` · `ci0` (cliente sin cargas). */
+export function responderTablero(metodo, ruta, escenario = "md") {
+  const sinQuery = ruta.split("?")[0];
+  const base = escenario.startsWith("ci") ? "ci" : "md";
+  const vacio = escenario.endsWith("0");
+
+  if (sinQuery.endsWith("/auth/refresh")) return TOKENS;
+  if (sinQuery.endsWith("/auth/logout")) return { ok: true };
+  if (sinQuery.endsWith("/tablero/contexto")) return CONTEXTO_TABLERO[base];
+  if (sinQuery.endsWith("/tablero/hoy")) return vacio ? HOY_TABLERO.vacio : HOY_TABLERO[base];
+  if (sinQuery.endsWith("/tablero/equipos")) return { equipos: vacio ? [] : EQUIPOS_TABLERO[base] };
+  if (sinQuery.endsWith("/tablero/suministro")) {
+    return vacio ? { entregas: [], balance: BALANCE_VACIO_TAB } : SUMINISTRO_TABLERO;
+  }
+
+  const detalleDe = sinQuery.match(/\/tablero\/cargas\/([^/]+)$/);
+  if (detalleDe) return DETALLES_TABLERO[detalleDe[1]] ?? DETALLES_TABLERO["demo-001"];
+
+  if (sinQuery.endsWith("/tablero/cargas")) {
+    const cargas = vacio ? [] : base === "ci" ? CARGA_TAB_CI : CARGA_TAB_MD;
+    return {
+      cargas,
+      total: cargas.length,
+      cuadran: cargas.filter((c) => c.estado === "ok").length,
+      sinFotoFinal: cargas.filter((c) => c.banderas.includes("FOTO_FALTANTE")).length,
+      galSinRegistrarGal: base === "md" && !vacio ? 18 : 0,
+    };
+  }
+
+  return {};
+}

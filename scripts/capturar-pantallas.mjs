@@ -30,7 +30,7 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { APPS, CAPTURAS, DISPOSITIVOS } from "./capturas/manifiesto.mjs";
-import { responder, TOKENS } from "./capturas/demostracion.mjs";
+import { responder, responderTablero, TOKENS } from "./capturas/demostracion.mjs";
 import { EQUIPO_DEMO, recorrido as recorridoPwa, responder as responderPwa } from "./capturas/pwa.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname;
@@ -197,13 +197,19 @@ async function capturarApp(chromium, app, capturas) {
     });
 
     // Toda la API se responde con datos de demostración. El producto no
-    // se entera: para él es una respuesta HTTP normal.
+    // se entera: para él es una respuesta HTTP normal. El Dashboard
+    // responde por escenario (md · ci · md0 · ci0) desde P.2: sus datos
+    // reales viven en la API y aquí se interceptan igual que el Admin.
     await contexto.route("**/api/v1/**", async (ruta, peticion) => {
       const url = new URL(peticion.url());
+      const cuerpo =
+        app === "dashboard"
+          ? responderTablero(peticion.method(), url.pathname + url.search, captura.escenario)
+          : responder(peticion.method(), url.pathname + url.search);
       await ruta.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(responder(peticion.method(), url.pathname + url.search)),
+        body: JSON.stringify(cuerpo),
       });
     });
 
@@ -211,6 +217,13 @@ async function capturarApp(chromium, app, capturas) {
       await contexto.addInitScript(
         ([clave, valor]) => window.localStorage.setItem(clave, valor),
         ["cuadreapp-admin:refresh", TOKENS.refresh_token],
+      );
+    }
+
+    if (app === "dashboard" && !captura.sinSesion) {
+      await contexto.addInitScript(
+        ([clave, valor]) => window.localStorage.setItem(clave, valor),
+        ["cuadreapp-tablero:refresh", TOKENS.refresh_token],
       );
     }
 
