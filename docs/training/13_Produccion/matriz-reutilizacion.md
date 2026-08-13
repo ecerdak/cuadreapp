@@ -99,7 +99,7 @@ De las 17 capturas de Android, **13 sirven para los dos perfiles**; solo `and-11
 | `C-26`        | El cronómetro corre solo          | Los 4 de operador                   |
 | `C-18`        | Los dos registros de la carátula  | `OP-*-MD`                           |
 | `C-35`        | El total lo calcula la aplicación | `OP-*-CI`, `SUP-CI`, `QG-OP-CI`     |
-| `C-57`        | El salto de totalizador           | `SUP-MD`, `QG-SUP`                  |
+| `C-57`        | El salto de totalizador           | `SUP-MD`, `QG-SUP-MD`               |
 
 De los 66 callouts, **31 aparecen en más de un manual**. Se escriben una vez en [`../00_Fuente/biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) y se referencian por ID — nunca se reescriben en la página.
 

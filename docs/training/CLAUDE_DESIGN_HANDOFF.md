@@ -90,7 +90,7 @@ docs/training/
 
 ```
 0. AGENDAR LA VISITA A PLANTA        ← primer día, aunque se ejecute en el paso 5
-1. QG-OP-MD + QG-SUP                 ← una guía por perfil, no por plataforma
+1. QG-OP-MD + QG-SUP-MD              ← una guía por perfil, no por plataforma
 2. OP-AND-MD + SUP-MD
 3. ►►► VALIDACIÓN CON USUARIOS REALES ◄◄◄
 4. OP-IOS-MD + ADM + QG-ADM
@@ -203,7 +203,7 @@ Lista completa y normativa en [`TRAINING_DESIGN_SYSTEM.md`](TRAINING_DESIGN_SYST
 
 | Prioridad | Piezas                                         | Por qué                                               |
 | --------- | ---------------------------------------------- | ----------------------------------------------------- |
-| **P0**    | `OP-AND-MD`, `SUP-MD`, `QG-OP-MD`, `QG-SUP`    | Hay una planta operando hoy con usuarios esperándolos |
+| **P0**    | `OP-AND-MD`, `SUP-MD`, `QG-OP-MD`, `QG-SUP-MD` | Hay una planta operando hoy con usuarios esperándolos |
 | **P1**    | `OP-IOS-MD`, `ADM`, `QG-ADM`                   | Cierra el piloto actual                               |
 | **P2**    | `OP-AND-CI`, `OP-IOS-CI`, `SUP-CI`, `QG-OP-CI` | El segundo perfil aún no tiene operadores             |
 

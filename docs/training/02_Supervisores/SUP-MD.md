@@ -1,15 +1,15 @@
 # Controlar el combustible de su planta
 
-## Curso para supervisores · operación con medidor Fill-Rite
+## Curso para usuarios del Dashboard del cliente · operación con medidor de doble registro
 
 > `SUP-MD` · Momentos: [`catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md) · Callouts: [`biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) · Zooms: [`inventario-zooms.md`](../00_Fuente/inventario-zooms.md)
-> Layout: [`../05_Layouts/SUP-MD.md`](../05_Layouts/SUP-MD.md) · Quick Guide: [`../10_QuickGuides/QG-SUP.md`](../10_QuickGuides/QG-SUP.md) · Video: [`../08_Storyboards/SUP-MD.md`](../08_Storyboards/SUP-MD.md)
+> Layout: [`../05_Layouts/SUP-MD.md`](../05_Layouts/SUP-MD.md) · Quick Guide: [`../10_QuickGuides/QG-SUP-MD.md`](../10_QuickGuides/QG-SUP-MD.md) · Video: [`../08_Storyboards/SUP-MD.md`](../08_Storyboards/SUP-MD.md)
 
 ---
 
 ## Para quién es esto
 
-Para quien responde por el combustible de la planta.
+Para quien responde por el combustible de la planta: gerente general, de operaciones o de mantenimiento, supervisor o administrador del cliente. Si su empresa le dio un acceso al Dashboard, este curso es suyo.
 
 **Al terminar este curso usted podrá:** saber en cinco minutos si el combustible del día cuadró, decidir qué hacer con lo que no, y —tan importante como lo anterior— **saber cuándo NO hay motivo para alarmarse**.
 
@@ -22,6 +22,7 @@ Para quien responde por el combustible de la planta.
 Este curso no le enseña pestañas. Le enseña **decisiones**. Cada capítulo arranca con una situación real que usted va a vivir y termina con qué hacer.
 
 ```
+RECIBÍ MIS CREDENCIALES           →  Decisión 0
 ¿HAY ALGO QUE ATENDER HOY?        →  Decisión 1
 UNA CARGA NO CUADRA               →  Decisión 2
 FALTA UNA FOTOGRAFÍA              →  Decisión 3
@@ -29,7 +30,36 @@ UN EQUIPO CONSUME DE MÁS          →  Decisión 4
 ¿CUÁNDO PIDO MÁS COMBUSTIBLE?     →  Decisión 5
 ME PREGUNTAN SI HUBO ROBO         →  Decisión 6
 CONTABILIDAD PIDE LOS DATOS       →  Decisión 7
+EL TABLERO ESTÁ EN BLANCO         →  Decisión 8
+NO PUEDO ENTRAR                   →  Decisión 9
 ```
+
+---
+
+# Decisión 0 · Recibí mis credenciales
+
+> Momento `S-00` · Una sola vez · 2 minutos
+
+### Si ve esto
+
+Un mensaje de su empresa (o de Lubryco) con tres cosas: el enlace del Dashboard, su usuario (su correo) y una **contraseña temporal**.
+· Capturas `dsh-07_entrar.png`, `dsh-08_crear-contrasena.png` · Callouts `C-62`, `C-63`
+
+### Qué significa
+
+Le crearon su acceso personal. La contraseña temporal es un pase de entrada, no una llave: **sirve para entrar UNA sola vez**. Al usarla, el Dashboard le pedirá crear su contraseña propia —mínimo 10 caracteres— antes de mostrarle nada. La suya no la conoce nadie más, ni quien se la creó.
+
+### Qué decisión tomar
+
+Entre el mismo día. Abra el enlace, escriba su correo y la temporal, y cuando aparezca «Crea tu contraseña», defina la suya y guárdela donde usted guarda sus contraseñas. Desde ese momento la temporal deja de existir.
+
+Si más adelante quiere cambiarla: el enlace «Cambiar contraseña» está siempre en la parte superior del tablero.
+
+### Qué NO hacer
+
+- **No** comparta su acceso con un compañero. Cada cuenta es personal: es lo que permite saber quién vio qué, y revocar una sin tocar las demás.
+- **No** guarde la temporal «por si acaso»: después del primer ingreso ya no sirve para nada.
+- **No** se preocupe si tarda unos días en entrar y la temporal «ya no funciona» a la primera: pida una nueva a quien administra los accesos — se genera en un minuto.
 
 ---
 
@@ -297,6 +327,65 @@ Descargue y envíe. Los galones van como número, no como texto: se pueden sumar
 
 ---
 
+# Decisión 8 · El tablero está en blanco
+
+> Momento `S-09` · Solo al empezar la operación · 1 minuto
+
+### Si ve esto
+
+«**Bienvenido a CuadreApp** — Tu Dashboard está listo», con un proceso en tres pasos, en lugar de los indicadores.
+· Captura `dsh-11_bienvenida.png` · Callout `C-67`
+
+### Qué significa
+
+Su operación es nueva: **nadie ha registrado la primera carga todavía**. No falta configurar nada y no hay ningún error — el tablero está esperando al operador.
+
+### Qué decisión tomar
+
+Confirme que el operador de la planta ya tiene CuadreApp funcionando en su teléfono. Con la primera carga que registre, esta pantalla se reemplaza sola por los indicadores: el veredicto del día, el consumo y la evidencia. La pantalla se actualiza cada minuto sin que usted haga nada.
+
+### Qué NO hacer
+
+- **No** busque un botón de configuración: no existe, y es a propósito.
+- **No** reporte un error: la bienvenida ES el estado correcto de una operación sin cargas.
+
+---
+
+# Decisión 9 · No puedo entrar
+
+> Momento `S-08` · Cuando ocurre · 2 minutos
+
+### Si ve esto
+
+El login no lo deja pasar, o el tablero lo devolvió al login con un aviso.
+· Capturas `dsh-07_entrar.png`, `dsh-10_recuperar.png`, `dsh-13_acceso-desactivado.png` · Callouts `C-64`, `C-65`
+
+### Qué significa
+
+Son tres casos distintos, y el aviso le dice cuál es el suyo:
+
+| El aviso dice                                                   | Qué significa                                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| «Correo o contraseña incorrectos.»                              | La contraseña no es la que usted creó. Fichas `E-24` y `E-27`.                 |
+| «Tu sesión expiró. Vuelve a entrar.»                            | La sesión venció por tiempo. Es normal; no se perdió nada. Ficha `E-26`.       |
+| «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.» | Alguien de su empresa desactivó su cuenta. Ficha `E-25`. |
+
+### Qué decisión tomar
+
+- **Olvidó la contraseña** → «¿Olvidaste tu contraseña?» bajo el botón de entrar. Escriba su correo y siga el enlace que le llega: define una nueva y entra directo. Nadie tiene que dársela.
+- **Sesión expirada** → vuelva a entrar con su correo y su contraseña. Nada más.
+- **Acceso desactivado** → hable con quien administra los accesos al Dashboard en SU empresa. Reactivarlo toma un minuto y no borra nada.
+
+Y si el tablero carga pero una pantalla muestra un error con una línea «**Soporte:** …»: esa referencia es todo lo que necesita darle a Lubryco para que encuentren su caso al instante. Cópiela con el botón que tiene al lado. · Callout `C-66`
+
+### Qué NO hacer
+
+- **No** pida la contraseña de un compañero para «mientras tanto».
+- **No** pida el enlace de recuperación muchas veces seguidas: los envíos tienen límite y solo alarga la espera (ficha `E-27`).
+- **No** reporte la sesión expirada como falla, salvo que ocurra a cada rato el mismo día.
+
+---
+
 # Su rutina
 
 Versión imprimible en [`../06_Checklists/SUP-MD.md`](../06_Checklists/SUP-MD.md).
@@ -311,7 +400,7 @@ Versión imprimible en [`../06_Checklists/SUP-MD.md`](../06_Checklists/SUP-MD.md
 
 # Preguntas frecuentes
 
-De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40` a `P-47`.
+De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40` a `P-49`.
 `P-41` («¿"No cuadra" significa que alguien robó?») va **primera y destacada**: determina si usted usará bien esta herramienta.
 
 ---
@@ -320,6 +409,7 @@ De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40` a `P-47`.
 
 | Decisión                  | La primera vez | En rutina       |
 | ------------------------- | -------------- | --------------- |
+| Primer ingreso            | 2 min          | — (una vez)     |
 | ¿Hay algo que atender?    | 3 min          | 1 min           |
 | Una carga no cuadra       | 5 min          | 3 min           |
 | Falta una fotografía      | 2 min          | 1 min           |

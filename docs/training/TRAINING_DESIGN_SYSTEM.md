@@ -287,7 +287,7 @@ Un manual está terminado cuando cumple los diez. **Uno que falle lo deja sin te
 
 ```
 0. AGENDAR LA VISITA A PLANTA        ← primer día, aunque se ejecute en el paso 5
-1. QG-OP-MD + QG-SUP                 ← una guía por perfil, no por plataforma
+1. QG-OP-MD + QG-SUP-MD              ← una guía por perfil, no por plataforma
 2. OP-AND-MD + SUP-MD
 3. ►►► VALIDACIÓN CON USUARIOS REALES ◄◄◄
 4. OP-IOS-MD + ADM + QG-ADM

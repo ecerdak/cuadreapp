@@ -195,21 +195,21 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Código:** `apps/dashboard/src/paginas/Cargas.tsx`
 - **Captura:** `dsh-02_cargas.png` · **Manuales:** SUP-MD, SUP-CI
 - **Zona superior:** «Estado del registro · últimos 14 días» · «Cargas que cuadran» · «Despachados sin equipo asignado» · «Carga sin foto final»
-- **Export:** «Descargar el detalle» → «Día · hoy» y «Últimos 14 días» (→ «Generando…»)
+- **Export:** «Descargar el detalle» → «Día · hoy» y «Últimos 14 días» (→ «Generando…»). **El Excel habla el idioma del perfil** (P.3): Medidor Doble exporta sus 15 columnas de siempre; Carga sobre Inventario exporta «Llegó con (gal)» · «Galones cargados (gal)» · «Total al salir (gal)» · «Duración» · «Veredicto». La nota bajo los botones dice las hojas reales de cada perfil, y si la descarga falla lo dice junto a los botones («No se pudo generar el Excel…»).
 - **Filtros:** «Todas» · «Cuadran» · «Revisar» · «No cuadran»
 - **Tabla:** Fecha · Hora · Equipo · Conductor · Galones · Estado
 - **Ayuda:** «Últimas cargas · toca una fila para ver la evidencia»
 
 ### `DSH-03` · Evidencia — Medidor Doble
 
-- **Código:** `apps/dashboard/src/paginas/Cargas.tsx` (`PanelEvidencia`)
+- **Código:** `apps/dashboard/src/perfiles/evidencia.tsx` (`EvidenciaMedidor`; la abre `apps/dashboard/src/paginas/Cargas.tsx`)
 - **Captura:** `dsh-03_evidencia-medidor.png` · **Manuales:** SUP-MD
 - **Contenido:** dos fotos («Antes de cargar» / «Después de cargar») con «Tanda» y «Totalizador» bajo cada una · «Verificación automática» con tres candados · mensajes por bandera · contador del equipo · «Nota del conductor:»
 - **Candados:** «Tanda en 0,0» · «Continuidad del totalizador» · «La tanda cuadra»
 
 ### `DSH-04` · Evidencia — Carga sobre Inventario
 
-- **Código:** `apps/dashboard/src/paginas/Cargas.tsx` (`EvidenciaInventario`)
+- **Código:** `apps/dashboard/src/perfiles/evidencia.tsx` (`EvidenciaInventario`; la abre `apps/dashboard/src/paginas/Cargas.tsx`)
 - **Captura:** `dsh-04_evidencia-inventario.png` · **Manuales:** SUP-CI
 - **Contenido:** recuadro de tres cifras («Llegó con» · «Despachado por Lubryco» · «Total al salir») + «El total lo calcula el sistema — el operador nunca lo escribe.» · dos fotos («Llegada» / «Salida») · duración · «Observaciones:»
 - **No muestra** candados, tanda ni totalizador: ese perfil no los tiene.
@@ -229,6 +229,56 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Zona superior:** «Reabastecimiento» · «Autonomía restante» · «Pedido sugerido»
 - **Tarjeta:** «Balance de suministro» («Entregado» · «Despachado» · «En tanque»)
 - **Tabla:** Remisión · Fecha · Galones · Carrotanque · Recibido por
+
+### `DSH-07` · Entrar
+
+- **Código:** `apps/dashboard/src/paginas/Entrar.tsx`
+- **Captura:** `dsh-07_entrar.png` · **Manuales:** SUP-MD, SUP-CI
+- **Textos:** campos «Correo» y «Contraseña» · botón «Entrar» → «Entrando…» · enlace «¿Olvidaste tu contraseña?» · pie «Tu tablero se carga solo: la empresa, sus sedes y sus indicadores salen de tu usuario.»
+- **Errores:** «Correo o contraseña incorrectos.» · «Demasiados intentos. Espera un minuto e inténtalo de nuevo.» · «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.» · «No se pudo contactar el servidor. Revisa la conexión.»
+- **Avisos de vuelta** (cuando la sesión murió en otra pestaña): «Tu sesión expiró. Vuelve a entrar.» · «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.»
+
+### `DSH-08` · Crea tu contraseña (primer ingreso)
+
+- **Código:** `apps/dashboard/src/paginas/Contrasena.tsx` (`ContrasenaNueva`)
+- **Captura:** `dsh-08_crear-contrasena.png` · **Manuales:** SUP-MD, SUP-CI
+- **Cuándo aparece:** SIEMPRE tras entrar con la contraseña temporal de una sola vez (la API cierra el tablero hasta definir la propia).
+- **Textos:** «Crea tu contraseña» · «Estás entrando con la contraseña temporal que te entregaron. Define una propia para continuar: la temporal deja de funcionar.» · «Contraseña nueva (mínimo 10 caracteres)» · «Repite la contraseña nueva» · botón «Guardar y entrar» · salida «Cerrar sesión»
+- **Errores:** «La contraseña nueva debe tener al menos 10 caracteres.» · «Las contraseñas no coinciden.»
+- **Nota:** tras una recarga de página sí pide la «Contraseña actual» (la temporal viaja solo en memoria).
+
+### `DSH-09` · Cambiar contraseña (voluntario)
+
+- **Código:** `apps/dashboard/src/paginas/Contrasena.tsx` (`CambiarContrasena`)
+- **Captura:** `dsh-09_cambiar-contrasena.png` · **Manuales:** SUP-MD, SUP-CI
+- **Cómo se llega:** enlace «Cambiar contraseña» en la cabecera del tablero.
+- **Textos:** «Cambiar contraseña» · «Escribe tu contraseña actual y define la nueva.» · «Contraseña actual» · salida «Volver al tablero sin cambiarla»
+- **Confirmación:** «✓ Contraseña actualizada.» + botón «Volver al tablero» (el botón ES la navegación).
+- **Error:** «La contraseña actual no es correcta.»
+
+### `DSH-10` · Recuperar acceso
+
+- **Código:** `apps/dashboard/src/paginas/Contrasena.tsx` (`Recuperar` y `Restablecer`)
+- **Captura:** `dsh-10_recuperar.png` · **Manuales:** SUP-MD, SUP-CI
+- **Paso 1 («¿Olvidaste tu contraseña?»):** «Escribe el correo con el que entras al Dashboard y te enviaremos un enlace para restablecer tu contraseña.» · botón «Enviar enlace» → «Enviando…» · respuesta SIEMPRE neutra: «Si {correo} tiene una cuenta en CuadreApp, te enviamos un correo con el enlace…»
+- **Paso 2 (enlace del correo, pantalla `/restablecer`):** «Define tu contraseña nueva. Al guardarla entras directo a tu tablero.» · botón «Guardar y entrar»
+- **Errores:** «No se pudo contactar el servidor. Revisa la conexión.» · «El enlace no es válido o ya expiró. Pide uno nuevo desde “¿Olvidaste tu contraseña?”.»
+
+### `DSH-11` · Bienvenida del tablero (cliente sin cargas)
+
+- **Código:** `apps/dashboard/src/componentes/bienvenida.tsx` (la decide `apps/dashboard/src/paginas/Hoy.tsx` cuando el cliente no registró NINGUNA carga en su historia)
+- **Capturas:** `dsh-11_bienvenida.png` (Medidor Doble), `dsh-12_bienvenida-inventario.png` (Carga sobre Inventario) · **Manuales:** SUP-MD, SUP-CI
+- **Textos:** «Tu Dashboard está listo» · «Bienvenido a CuadreApp» · «Los indicadores aparecerán automáticamente cuando se registre la primera carga de combustible.» · proceso en tres pasos (el paso 2 habla el idioma del perfil: «tanda y totalizador» con medidor, «con cuánto llega… y el total al salir» con inventario) · «Esta pantalla se actualiza sola cada minuto.» · botón «Actualizar ahora»
+- **Transición:** con la primera carga sincronizada, esta pantalla se reemplaza sola por el tablero normal.
+
+### `DSH-12` · Sin acceso (desactivado · sin permiso · sesión expirada)
+
+- **Código:** `apps/dashboard/src/datos/contexto.tsx` (`SinPermiso`, `SinEmpresa`) y `apps/dashboard/src/paginas/Entrar.tsx` (motivos de vuelta)
+- **Captura:** `dsh-13_acceso-desactivado.png` · **Manuales:** SUP-MD, SUP-CI
+- **Desactivado:** el login (o la sesión viva) termina en «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.»
+- **Sin permiso:** «Tu usuario no tiene acceso al Dashboard» + explicación + botón «Cerrar sesión» (misma tarjeta del login — ninguna pantalla de acceso es un callejón).
+- **Sesión expirada:** vuelve sola al login con «Tu sesión expiró. Vuelve a entrar.»
+- **Errores con referencia:** cuando algo falla al cargar datos, la pantalla dice una frase humana y «Soporte: {request_id}» copiable — esa referencia es lo que se le da a Lubryco al reportar.
 
 ---
 
@@ -312,10 +362,10 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 | ----------- | --------------------------- | --------------- | ------------------------------------------------------------------ |
 | PWA Android | 15                          | 15              | 13 comunes a ambos perfiles, 2 exclusivas por perfil               |
 | PWA iPhone  | 15                          | 15              | mismas pantallas, capturas propias (barra de estado e instalación) |
-| Dashboard   | 6                           | 6               | 4 compartidas entre perfiles, 2 exclusivas de evidencia            |
+| Dashboard   | 12                          | 13              | acceso y bienvenida (P.3) + 4 de tablero compartidas + 2 evidencias |
 | Admin       | 11                          | 11              | manual único                                                       |
-| **Total**   | **32 entradas de pantalla** | **47 capturas** | 7 manuales                                                         |
+| **Total**   | **38 entradas de pantalla** | **54 capturas** | 7 manuales                                                         |
 
-Las 32 entradas producen 47 capturas porque cada pantalla de la PWA se fotografía dos veces —una en Android y otra en iPhone—, mientras que Dashboard y Admin tienen una sola captura por pantalla.
+Las 38 entradas producen 54 capturas porque cada pantalla de la PWA se fotografía dos veces —una en Android y otra en iPhone—, mientras que Dashboard y Admin tienen una sola captura por pantalla (la bienvenida del Dashboard tiene dos: una por perfil).
 
 Sin el catálogo, los mismos contenidos exigirían **86 capturas** y describir «Inicio» cuatro veces. La reutilización no es un ahorro cosmético: es lo que hace que una pantalla se corrija en un solo lugar.

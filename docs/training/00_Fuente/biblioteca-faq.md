@@ -110,6 +110,12 @@ Hable con el operador **hoy**. Mañana ya no recuerda esa carga, y la foto no se
 **`P-47` ¿Puedo ver los datos de otro cliente?**
 No. Cada supervisor ve únicamente su empresa.
 
+**`P-48` ¿Por qué al entrar por primera vez me obliga a crear una contraseña?**
+Porque la temporal que le entregaron sirve para UN solo ingreso: es un pase de entrada, no una llave. La suya no la conoce nadie más — ni quien se la creó.
+
+**`P-49` El tablero solo dice «Bienvenido a CuadreApp». ¿Falta configurar algo?**
+No. Su tablero está listo; lo que falta es la primera carga. Cuando el operador la registre, esta pantalla se reemplaza sola por los indicadores.
+
 ---
 
 ## Supervisor · Carga sobre Inventario

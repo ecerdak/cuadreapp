@@ -125,9 +125,16 @@ Situación normal, no excepción. **Pantallas:** `PWA-03`, `PWA-13`
 
 ---
 
-## Supervisor · momentos de decisión
+## Usuario del Dashboard del cliente · momentos de decisión
 
-Un supervisor no recorre pestañas: llega con una pregunta y necesita una respuesta.
+Quien entra al Dashboard puede ser gerente general, de operaciones o de mantenimiento, supervisor o administrador del cliente. Ninguno recorre pestañas: llega con una pregunta y necesita una respuesta. En el kit esta audiencia conserva el ID histórico `SUP-*`.
+
+### `S-00` · Recibí mis credenciales
+
+- **Cuándo ocurre:** una sola vez — le llegó por WhatsApp o correo el enlace del Dashboard, su usuario y una contraseña temporal.
+- **Qué pasa en el mundo:** la contraseña temporal sirve para UN solo ingreso; al entrar, el Dashboard obliga a crear la propia antes de mostrar nada.
+- **Pantallas:** `DSH-07`, `DSH-08`
+- **Dura:** 2 minutos
 
 ### `S-01` · ¿Hay algo que deba atender hoy?
 
@@ -164,6 +171,19 @@ Un supervisor no recorre pestañas: llega con una pregunta y necesita una respue
 ### `S-07` · Contabilidad me pide los datos del mes
 
 - **Pantallas:** `DSH-02`
+
+### `S-08` · No puedo entrar
+
+- **Cuándo ocurre:** olvidó la contraseña, la sesión expiró, o el acceso fue desactivado.
+- **Decisión real:** distinguir los tres casos — el primero se resuelve solo con el correo de recuperación; el segundo con volver a entrar; el tercero hablando con quien administra los accesos de SU empresa.
+- **Pantallas:** `DSH-07`, `DSH-09`, `DSH-10`, `DSH-12`
+
+### `S-09` · El tablero está en blanco
+
+- **Cuándo ocurre:** la operación es nueva — nadie ha registrado la primera carga.
+- **Qué pasa en el mundo:** no hay nada que configurar: el tablero se presenta, dice qué va a pasar, y se llena solo con la primera carga del operador.
+- **Pantallas:** `DSH-11`
+- **Dura:** 1 minuto
 
 ---
 
@@ -213,8 +233,8 @@ Un administrador no crea entidades sueltas: ejecuta procesos que empiezan con un
 | ------------------------------- | --------------- | --------------------------- |
 | Operador Medidor Doble          | 6               | 4 compartidos               |
 | Operador Carga sobre Inventario | 6               | 4 compartidos               |
-| Supervisor                      | 7               | —                           |
+| Usuario del Dashboard           | 10              | —                           |
 | Administrador                   | 7               | —                           |
-| **Total**                       | **30 momentos** |                             |
+| **Total**                       | **33 momentos** |                             |
 
-Los 30 momentos cubren las 32 pantallas catalogadas. **Ninguna pantalla queda huérfana y ningún momento inventa pantallas** — el verificador lo comprueba.
+Los 33 momentos cubren las 38 pantallas catalogadas. **Ninguna pantalla queda huérfana y ningún momento inventa pantallas** — el verificador lo comprueba.

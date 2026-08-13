@@ -34,7 +34,8 @@ La orden de trabajo. Todo lo que sigue está especificado en la fuente; **nada e
 | Guía       | Audiencia                  | Dónde vive         | Prioridad |
 | ---------- | -------------------------- | ------------------ | --------- |
 | `QG-OP-MD` | Operador, Medidor Doble    | Junto al surtidor  | **P0**    |
-| `QG-SUP`   | Supervisor, ambos perfiles | Escritorio         | **P0**    |
+| `QG-SUP-MD` | Dashboard del cliente, Medidor Doble | Escritorio | **P0**   |
+| `QG-SUP-CI` | Dashboard del cliente, Carga sobre Inventario | Escritorio | P2 |
 | `QG-ADM`   | Administrador Lubryco      | Escritorio         | **P1**    |
 | `QG-OP-CI` | Operador, Inventario       | Caseta de despacho | **P2**    |
 

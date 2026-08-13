@@ -47,7 +47,7 @@ El orden propuesto produce cuatro artefactos de operador antes de que nadie comp
 0.  AGENDAR LA VISITA A PLANTA
     Se agenda el primer día aunque se ejecute en el paso 5.
 
-1.  QG-OP-MD  +  QG-SUP
+1.  QG-OP-MD  +  QG-SUP-MD
     Una guía por perfil, no por plataforma.
 
 2.  OP-AND-MD  +  SUP-MD
@@ -60,7 +60,7 @@ El orden propuesto produce cuatro artefactos de operador antes de que nadie comp
 5.  VISITA A PLANTA
     17 fotografías y todos los planos de rodaje, en una sola sesión.
 
-6.  OP-AND-CI  +  OP-IOS-CI  +  SUP-CI  +  QG-OP-CI
+6.  OP-AND-CI  +  OP-IOS-CI  +  SUP-CI  +  QG-OP-CI  +  QG-SUP-CI
 
 7.  VIDEOS
     Guiones ya cerrados. Se montan con el material del paso 5.
@@ -85,7 +85,7 @@ Agendarla el primer día cuesta una llamada. Descubrir en el paso 5 que el clien
 
 Es el entregable de mayor impacto por hora invertida de todo el proyecto, y por eso va primero.
 
-`QG-SUP` entra aquí y no en el quinto lugar porque el supervisor es quien evalúa si esto funciona. Un supervisor con una tarjeta en el escritorio desde la primera semana es un aliado; sin ella, es alguien esperando a que le expliquen.
+`QG-SUP-MD` entra aquí y no en el quinto lugar porque el supervisor es quien evalúa si esto funciona. Un supervisor con una tarjeta en el escritorio desde la primera semana es un aliado; sin ella, es alguien esperando a que le expliquen.
 
 ### Paso 2 · Los dos manuales P0
 

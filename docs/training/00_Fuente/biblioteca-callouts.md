@@ -131,6 +131,12 @@
 | `C-59` | El operador no escribe el total: por eso no lo puede acomodar.            | La línea del total        | Alta      |
 | `C-60` | Un consumo alto suele ser mantenimiento antes que otra cosa.              | La columna de desvío      | Media     |
 | `C-61` | Si esto baja de 7 días, llame a Lubryco.                                  | Los días de autonomía     | Alta      |
+| `C-62` | Esta contraseña sirve para entrar UNA sola vez. Al entrar creará la suya. | La contraseña temporal    | Alta      |
+| `C-63` | Mínimo 10 caracteres. Nadie más que usted la conocerá.                    | El campo de la nueva      | Alta      |
+| `C-64` | ¿La olvidó? Este enlace se la repone por correo. Nadie tiene que dársela. | «¿Olvidaste tu contraseña?» | Media   |
+| `C-65` | Si dice «desactivado», hable con quien administra los accesos en SU empresa. | El aviso del login     | Alta      |
+| `C-66` | Copie esta referencia al reportar un problema: con ella soporte lo encuentra al instante. | «Soporte: …» del error | Media |
+| `C-67` | No hay nada que configurar: esta pantalla se reemplaza sola con la primera carga. | La bienvenida     | Alta      |
 
 ## Administrador
 

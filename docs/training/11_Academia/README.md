@@ -138,7 +138,7 @@ Guía rápida `QG-OP-CI` · checklist · comparativas `K-02`, `K-05` · zoom `Z-
 
 ### Material complementario
 
-Guía rápida `QG-SUP` · comparativas `K-08`, `K-09` · zooms `Z-64` a `Z-67`.
+Guías rápidas `QG-SUP-MD` y `QG-SUP-CI` · comparativas `K-08`, `K-09` · zooms `Z-64` a `Z-67`.
 
 ### Evaluación sugerida
 

@@ -1,6 +1,14 @@
 # CONTROL DIARIO · GUÍA RÁPIDA
 
-**Supervisor**
+**Dashboard del cliente · operación con medidor**
+
+---
+
+## LA PRIMERA VEZ
+
+**1.** Entre con su correo y la contraseña temporal que le entregaron.
+**2.** Cree su contraseña propia cuando la pantalla lo pida. La temporal sirve **una sola vez**.
+**3.** ¿La olvidó después? «¿Olvidaste tu contraseña?» → el enlace llega a su correo.
 
 ---
 
@@ -69,3 +77,4 @@ La autonomía es **estimada por balance**, ±2 %. No es una medición del tanque
 ✗ Decir «robo» antes de mirar las fotos
 ✗ Acumular cargas marcadas para el cierre de mes
 ✗ Comparar equipos distintos entre sí
+✗ Compartir su contraseña: cada cuenta es personal

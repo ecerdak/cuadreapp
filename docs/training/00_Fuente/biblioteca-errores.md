@@ -127,6 +127,30 @@ Las matrices por audiencia viven en [`../07_Troubleshooting/`](../07_Troubleshoo
 
 ## Supervisor y administrador
 
+### `E-24` · «La contraseña temporal no me funciona»
+
+- **Lo que pasó:** la temporal sirve para UN solo ingreso. Si ya se usó, dejó de existir; si al entrar no se creó la propia, la sesión quedó a medio camino.
+- **Qué hacer:** intente entrar con la contraseña que usted creó. Si no la recuerda, use «¿Olvidaste tu contraseña?». Si nunca alcanzó a crearla, pida a quien administra los accesos de su empresa que le genere una temporal nueva.
+- **Qué NO hacer:** pedir que le «reactiven» la temporal usada: no se puede, y es a propósito.
+
+### `E-25` · «Dice que mi acceso está desactivado»
+
+- **Lo que pasó:** alguien de su empresa (o Lubryco, a pedido de su empresa) desactivó su cuenta. No es un error del sistema y no se arregla reintentando.
+- **Qué hacer:** hable con quien administra los accesos al Dashboard en SU empresa. Reactivarlo toma un minuto y no borra nada.
+- **Qué NO hacer:** pedirle la contraseña a un compañero. Cada cuenta es personal: es lo que permite saber quién vio qué.
+
+### `E-26` · «Me sacó y dice que la sesión expiró»
+
+- **Lo que pasó:** la sesión venció por tiempo. Es normal y no se perdió nada.
+- **Qué hacer:** vuelva a entrar con su correo y su contraseña.
+- **Qué NO hacer:** reportarlo como falla. Solo es una falla si ocurre a cada rato en el mismo día.
+
+### `E-27` · «No me llega el correo de recuperación»
+
+- **Lo que pasó:** el correo puede tardar unos minutos, caer en no deseado, o el mensaje se pidió para una dirección distinta a la de su cuenta. La pantalla responde lo mismo exista o no la cuenta — es una protección, no una pista.
+- **Qué hacer:** revise no deseado; confirme con qué correo lo crearon; espere unos minutos y pida el enlace una sola vez más. Si no llega, pida a quien administra los accesos una contraseña temporal nueva — el resultado es el mismo.
+- **Qué NO hacer:** pedir el enlace muchas veces seguidas: los envíos tienen límite y solo alarga la espera.
+
 ### `E-20` · «No veo las cargas de hoy»
 
 - **Lo que pasó:** los teléfonos de la planta todavía no han sincronizado, o el filtro de fechas quedó en otro rango.

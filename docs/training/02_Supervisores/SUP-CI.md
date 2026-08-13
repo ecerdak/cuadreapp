@@ -1,15 +1,15 @@
 # Controlar lo que Lubryco entrega
 
-## Curso para supervisores · operación de carga sobre inventario
+## Curso para usuarios del Dashboard del cliente · operación de carga sobre inventario
 
 > `SUP-CI` · Momentos: [`catalogo-momentos.md`](../00_Fuente/catalogo-momentos.md) · Callouts: [`biblioteca-callouts.md`](../00_Fuente/biblioteca-callouts.md) · Zooms: [`inventario-zooms.md`](../00_Fuente/inventario-zooms.md)
-> Layout: [`../05_Layouts/SUP-CI.md`](../05_Layouts/SUP-CI.md) · Quick Guide: [`../10_QuickGuides/QG-SUP.md`](../10_QuickGuides/QG-SUP.md) · Video: [`../08_Storyboards/SUP-CI.md`](../08_Storyboards/SUP-CI.md)
+> Layout: [`../05_Layouts/SUP-CI.md`](../05_Layouts/SUP-CI.md) · Quick Guide: [`../10_QuickGuides/QG-SUP-CI.md`](../10_QuickGuides/QG-SUP-CI.md) · Video: [`../08_Storyboards/SUP-CI.md`](../08_Storyboards/SUP-CI.md)
 
 ---
 
 ## Para quién es esto
 
-Para quien responde por lo que Lubryco entregó y por lo que se llevó cada carrotanque.
+Para quien responde por lo que Lubryco entregó y por lo que se llevó cada carrotanque: gerente general, de operaciones o de mantenimiento, supervisor o administrador del cliente. Si su empresa le dio un acceso al Dashboard, este curso es suyo.
 
 **Al terminar este curso usted podrá:** cerrar el día en cinco minutos, sustentar cada galón facturado con una fotografía, y saber cuándo una diferencia es un error de digitación y cuándo merece una llamada.
 
@@ -35,6 +35,7 @@ Antes de mirar una sola pantalla, hay que tener claro qué prueba esta informaci
 ## Cómo está organizado
 
 ```
+RECIBÍ MIS CREDENCIALES              →  Decisión 0
 ¿HAY ALGO QUE ATENDER HOY?           →  Decisión 1
 UNA CARGA QUEDÓ MARCADA              →  Decisión 2
 FALTA UNA FOTOGRAFÍA                 →  Decisión 3
@@ -42,7 +43,36 @@ LOS GALONES NO COINCIDEN CON LA GUÍA →  Decisión 4
 ¿CUÁNTO LLEVAMOS ENTREGADO?          →  Decisión 5
 ME PIDEN SUSTENTAR UNA ENTREGA       →  Decisión 6
 CONTABILIDAD PIDE LOS DATOS          →  Decisión 7
+EL TABLERO ESTÁ EN BLANCO            →  Decisión 8
+NO PUEDO ENTRAR                      →  Decisión 9
 ```
+
+---
+
+# Decisión 0 · Recibí mis credenciales
+
+> Momento `S-00` · Una sola vez · 2 minutos
+
+### Si ve esto
+
+Un mensaje de su empresa (o de Lubryco) con tres cosas: el enlace del Dashboard, su usuario (su correo) y una **contraseña temporal**.
+· Capturas `dsh-07_entrar.png`, `dsh-08_crear-contrasena.png` · Callouts `C-62`, `C-63`
+
+### Qué significa
+
+Le crearon su acceso personal. La contraseña temporal es un pase de entrada, no una llave: **sirve para entrar UNA sola vez**. Al usarla, el Dashboard le pedirá crear su contraseña propia —mínimo 10 caracteres— antes de mostrarle nada. La suya no la conoce nadie más, ni quien se la creó.
+
+### Qué decisión tomar
+
+Entre el mismo día. Abra el enlace, escriba su correo y la temporal, y cuando aparezca «Crea tu contraseña», defina la suya y guárdela donde usted guarda sus contraseñas. Desde ese momento la temporal deja de existir.
+
+Si más adelante quiere cambiarla: el enlace «Cambiar contraseña» está siempre en la parte superior del tablero.
+
+### Qué NO hacer
+
+- **No** comparta su acceso con un compañero. Cada cuenta es personal: es lo que permite saber quién vio qué, y revocar una sin tocar las demás.
+- **No** guarde la temporal «por si acaso»: después del primer ingreso ya no sirve para nada.
+- **No** se preocupe si tarda unos días en entrar y la temporal «ya no funciona» a la primera: pida una nueva a quien administra los accesos — se genera en un minuto.
 
 ---
 
@@ -274,7 +304,7 @@ El botón de descarga en la pantalla de cargas.
 
 ### Qué significa
 
-Un archivo de Excel con las cargas del período, con las tres cifras separadas en columnas propias.
+Un archivo de Excel que habla el idioma de SU operación. La hoja de cargas trae, por cada una: fecha, hora, equipo, operador, **«Llegó con (gal)»**, **«Galones cargados (gal)»**, **«Total al salir (gal)»**, la duración y el veredicto — las tres cifras en columnas propias, listas para sumar. Completan el archivo las hojas de consumo por día y por equipo. No hay hojas de entregas ni balance: esas son de la operación con tanque propio, y este perfil no las necesita.
 
 ### Qué decisión tomar
 
@@ -283,6 +313,65 @@ Descargue y envíe tal cual.
 ### Qué NO hacer
 
 - **No** sume a mano el total al salir: ya viene calculado y verificado.
+
+---
+
+# Decisión 8 · El tablero está en blanco
+
+> Momento `S-09` · Solo al empezar la operación · 1 minuto
+
+### Si ve esto
+
+«**Bienvenido a CuadreApp** — Tu Dashboard está listo», con un proceso en tres pasos, en lugar de los indicadores.
+· Captura `dsh-12_bienvenida-inventario.png` · Callout `C-67`
+
+### Qué significa
+
+Su operación es nueva: **nadie ha registrado la primera carga todavía**. No falta configurar nada y no hay ningún error. Fíjese en el paso 2 del proceso: habla de «con cuánto llega» y «el total al salir» — el tablero ya sabe cómo opera su empresa.
+
+### Qué decisión tomar
+
+Confirme que el operador del punto de despacho ya tiene CuadreApp funcionando en su teléfono. Con la primera carga que registre, esta pantalla se reemplaza sola por los indicadores. La pantalla se actualiza cada minuto sin que usted haga nada.
+
+### Qué NO hacer
+
+- **No** busque un botón de configuración: no existe, y es a propósito.
+- **No** reporte un error: la bienvenida ES el estado correcto de una operación sin cargas.
+
+---
+
+# Decisión 9 · No puedo entrar
+
+> Momento `S-08` · Cuando ocurre · 2 minutos
+
+### Si ve esto
+
+El login no lo deja pasar, o el tablero lo devolvió al login con un aviso.
+· Capturas `dsh-07_entrar.png`, `dsh-10_recuperar.png`, `dsh-13_acceso-desactivado.png` · Callouts `C-64`, `C-65`
+
+### Qué significa
+
+Son tres casos distintos, y el aviso le dice cuál es el suyo:
+
+| El aviso dice                                                   | Qué significa                                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| «Correo o contraseña incorrectos.»                              | La contraseña no es la que usted creó. Fichas `E-24` y `E-27`.                 |
+| «Tu sesión expiró. Vuelve a entrar.»                            | La sesión venció por tiempo. Es normal; no se perdió nada. Ficha `E-26`.       |
+| «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.» | Alguien de su empresa desactivó su cuenta. Ficha `E-25`. |
+
+### Qué decisión tomar
+
+- **Olvidó la contraseña** → «¿Olvidaste tu contraseña?» bajo el botón de entrar. Escriba su correo y siga el enlace que le llega: define una nueva y entra directo. Nadie tiene que dársela.
+- **Sesión expirada** → vuelva a entrar con su correo y su contraseña. Nada más.
+- **Acceso desactivado** → hable con quien administra los accesos al Dashboard en SU empresa. Reactivarlo toma un minuto y no borra nada.
+
+Y si el tablero carga pero una pantalla muestra un error con una línea «**Soporte:** …»: esa referencia es todo lo que necesita darle a Lubryco para que encuentren su caso al instante. Cópiela con el botón que tiene al lado. · Callout `C-66`
+
+### Qué NO hacer
+
+- **No** pida la contraseña de un compañero para «mientras tanto».
+- **No** pida el enlace de recuperación muchas veces seguidas: los envíos tienen límite y solo alarga la espera (ficha `E-27`).
+- **No** reporte la sesión expirada como falla, salvo que ocurra a cada rato el mismo día.
 
 ---
 
@@ -300,7 +389,7 @@ Versión imprimible en [`../06_Checklists/SUP-CI.md`](../06_Checklists/SUP-CI.md
 
 # Preguntas frecuentes
 
-De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40`, `P-42` a `P-47` y `P-50` a `P-53`.
+De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40`, `P-42` a `P-49` y `P-50` a `P-53`.
 `P-50` («la guía dice otra cosa que el registro») va **primera**: es la consulta más frecuente de esta operación.
 
 ---
@@ -309,6 +398,7 @@ De [`biblioteca-faq.md`](../00_Fuente/biblioteca-faq.md): `P-40`, `P-42` a `P-47
 
 | Decisión                    | La primera vez | En rutina       |
 | --------------------------- | -------------- | --------------- |
+| Primer ingreso              | 2 min          | — (una vez)     |
 | ¿Hay algo que atender?      | 3 min          | 1 min           |
 | Una carga quedó marcada     | 5 min          | 3 min           |
 | Falta una fotografía        | 2 min          | 1 min           |

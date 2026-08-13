@@ -112,7 +112,7 @@ Aquí el orden se invierte a propósito: **ninguna de las dos es incorrecta.** E
 | **Imágenes**          | Ninguna: dos columnas de texto                                                   |
 | **Formato**           | Tabla de dos columnas — «Lo que la gente asume» / «Lo que casi siempre es»       |
 | **Mensaje principal** | **«Un salto de totalizador no es combustible perdido: el medidor ya lo contó.»** |
-| **Dónde**             | `SUP-MD` decisión 6 · `QG-SUP` · storyboard `SUP-MD` escena 8                    |
+| **Dónde**             | `SUP-MD` decisión 6 · `QG-SUP-MD` · storyboard `SUP-MD` escena 8                 |
 
 | Lo que la gente asume       | Lo que casi siempre es                               |
 | --------------------------- | ---------------------------------------------------- |
@@ -132,7 +132,7 @@ Aquí el orden se invierte a propósito: **ninguna de las dos es incorrecta.** E
 | **Imágenes**          | Recorte del bloque de tres cifras con la línea correcta marcada                     |
 | **Formato**           | Una imagen, dos flechas: una tachada, una correcta                                  |
 | **Mensaje principal** | **«Compare la guía contra "Despachado por Lubryco", no contra el total al salir.»** |
-| **Dónde**             | `SUP-CI` decisión 4 · `QG-SUP`                                                      |
+| **Dónde**             | `SUP-CI` decisión 4 · `QG-SUP-CI`                                                   |
 
 ---
 

@@ -34,8 +34,8 @@ const MANUALES = {
   "OP-AND-CI": { carpeta: "01_Operadores", forma: "operador", guia: "QG-OP-CI" },
   "OP-IOS-MD": { carpeta: "01_Operadores", forma: "operador", guia: "QG-OP-MD" },
   "OP-IOS-CI": { carpeta: "01_Operadores", forma: "operador", guia: "QG-OP-CI" },
-  "SUP-MD": { carpeta: "02_Supervisores", forma: "supervisor", guia: "QG-SUP" },
-  "SUP-CI": { carpeta: "02_Supervisores", forma: "supervisor", guia: "QG-SUP" },
+  "SUP-MD": { carpeta: "02_Supervisores", forma: "supervisor", guia: "QG-SUP-MD" },
+  "SUP-CI": { carpeta: "02_Supervisores", forma: "supervisor", guia: "QG-SUP-CI" },
   ADM: { carpeta: "03_Admin", forma: "admin", guia: "QG-ADM" },
 };
 
