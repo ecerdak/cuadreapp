@@ -360,13 +360,13 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 
 ## Resumen de reutilización
 
-| Contexto    | Pantallas                   | Capturas        | Comentario                                                         |
-| ----------- | --------------------------- | --------------- | ------------------------------------------------------------------ |
-| PWA Android | 15                          | 15              | 13 comunes a ambos perfiles, 2 exclusivas por perfil               |
-| PWA iPhone  | 15                          | 15              | mismas pantallas, capturas propias (barra de estado e instalación) |
+| Contexto    | Pantallas                   | Capturas        | Comentario                                                          |
+| ----------- | --------------------------- | --------------- | ------------------------------------------------------------------- |
+| PWA Android | 15                          | 15              | 13 comunes a ambos perfiles, 2 exclusivas por perfil                |
+| PWA iPhone  | 15                          | 15              | mismas pantallas, capturas propias (barra de estado e instalación)  |
 | Dashboard   | 12                          | 13              | acceso y bienvenida (P.3) + 4 de tablero compartidas + 2 evidencias |
-| Admin       | 11                          | 11              | manual único                                                       |
-| **Total**   | **38 entradas de pantalla** | **54 capturas** | 7 manuales                                                         |
+| Admin       | 11                          | 11              | manual único                                                        |
+| **Total**   | **38 entradas de pantalla** | **54 capturas** | 7 manuales                                                          |
 
 Las 38 entradas producen 54 capturas porque cada pantalla de la PWA se fotografía dos veces —una en Android y otra en iPhone—, mientras que Dashboard y Admin tienen una sola captura por pantalla (la bienvenida del Dashboard tiene dos: una por perfil).
 

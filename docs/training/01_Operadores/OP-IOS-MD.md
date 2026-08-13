@@ -79,12 +79,12 @@ La aplicación abre desde el ícono, a pantalla completa, y arriba dice **«Todo
 
 ### Errores frecuentes
 
-| Lo que pasa                                        | Qué hacer                                                                                                        |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| No encuentro «Añadir a pantalla de inicio»         | Está dentro de **Compartir** (el cuadrado con la flecha). Deslice la lista de opciones hacia arriba si no lo ve.    |
-| Lo abrí en Chrome y no aparece la opción           | En iPhone la instalación **solo existe en Safari**. Copie el enlace y ábralo en Safari.                            |
-| «Código inválido, vencido o ya usado.»             | El código vence en 7 días y sirve una sola vez. Pídale uno nuevo a su supervisor.                                  |
-| Cambió de teléfono                                 | No intente pasarla usted: su supervisor revoca el teléfono viejo y enrola el nuevo con un código nuevo.            |
+| Lo que pasa                                | Qué hacer                                                                                                        |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| No encuentro «Añadir a pantalla de inicio» | Está dentro de **Compartir** (el cuadrado con la flecha). Deslice la lista de opciones hacia arriba si no lo ve. |
+| Lo abrí en Chrome y no aparece la opción   | En iPhone la instalación **solo existe en Safari**. Copie el enlace y ábralo en Safari.                          |
+| «Código inválido, vencido o ya usado.»     | El código vence en 7 días y sirve una sola vez. Pídale uno nuevo a su supervisor.                                |
+| Cambió de teléfono                         | No intente pasarla usted: su supervisor revoca el teléfono viejo y enrola el nuevo con un código nuevo.          |
 
 ---
 

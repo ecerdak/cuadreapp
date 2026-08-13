@@ -1,5 +1,7 @@
 # Handoff a diseño — inventario de producción
 
+> **REEMPLAZADO (13-ago-2026):** el handoff vigente es [`CLAUDE_DESIGN_HANDOFF_V2.md`](CLAUDE_DESIGN_HANDOFF_V2.md) — alcance solo-clientes, máximos de 3 páginas y fuentes post-P.3. Este documento queda como referencia histórica del inventario T3.
+
 **Este documento dice QUÉ producir y en qué estado está cada pieza.**
 
 Las **reglas** —cómo debe ser cada cosa— viven en [`TRAINING_DESIGN_SYSTEM.md`](TRAINING_DESIGN_SYSTEM.md), que es la norma del sistema. Los dos documentos no se solapan a propósito: uno es el inventario, el otro es la ley.

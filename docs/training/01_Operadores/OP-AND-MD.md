@@ -78,12 +78,12 @@ La aplicación abre desde el ícono, a pantalla completa, y arriba dice **«Todo
 
 ### Errores frecuentes
 
-| Lo que pasa                                        | Qué hacer                                                                                                        |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| No aparece el botón «Instalar»                     | Es normal en algunos teléfonos. Use el menú **⋮** → «Agregar a la pantalla principal». El resultado es el mismo.   |
-| «Código inválido, vencido o ya usado.»             | El código vence en 7 días y sirve una sola vez. Pídale uno nuevo a su supervisor.                                  |
-| «Sin conexión: el enrolamiento necesita señal.»    | Solo el enrolamiento necesita señal. Muévase a donde haya y vuelva a intentar. Después, la app trabaja sin señal.  |
-| Cambió de teléfono                                 | No intente pasarla usted: su supervisor revoca el teléfono viejo y enrola el nuevo con un código nuevo.            |
+| Lo que pasa                                     | Qué hacer                                                                                                         |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| No aparece el botón «Instalar»                  | Es normal en algunos teléfonos. Use el menú **⋮** → «Agregar a la pantalla principal». El resultado es el mismo.  |
+| «Código inválido, vencido o ya usado.»          | El código vence en 7 días y sirve una sola vez. Pídale uno nuevo a su supervisor.                                 |
+| «Sin conexión: el enrolamiento necesita señal.» | Solo el enrolamiento necesita señal. Muévase a donde haya y vuelva a intentar. Después, la app trabaja sin señal. |
+| Cambió de teléfono                              | No intente pasarla usted: su supervisor revoca el teléfono viejo y enrola el nuevo con un código nuevo.           |
 
 ---
 

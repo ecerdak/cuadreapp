@@ -117,26 +117,26 @@
 
 ## Supervisor
 
-| ID     | Callout                                                                   | Dónde señala              | Prioridad |
-| ------ | ------------------------------------------------------------------------- | ------------------------- | --------- |
-| `C-50` | Lea esta frase. Si está en verde, ya terminó por hoy.                     | El veredicto de arriba    | Alta      |
-| `C-51` | Este número no lo puede resetear nadie. Todo se compara contra él.        | El contador del medidor   | Alta      |
-| `C-52` | Toque cualquier carga para ver sus fotos.                                 | Una fila de la lista      | Media     |
-| `C-53` | Filtre por «No cuadran» y quédese solo con lo que importa.                | El filtro                 | Alta      |
-| `C-54` | Descargue esto para contabilidad: los galones salen como número.          | El botón de descarga      | Media     |
-| `C-55` | Estas dos fotos son la prueba. Tienen hora y lugar.                       | El par de fotos           | Alta      |
-| `C-56` | Estas tres verificaciones las hace la máquina por usted.                  | El bloque de verificación | Alta      |
-| `C-57` | Un salto no significa robo: falta saber a qué equipo fueron esos galones. | El mensaje de salto       | Alta      |
-| `C-58` | Llegó con, se le echó, y salió con. La tercera la calcula el sistema.     | El recuadro de cifras     | Alta      |
-| `C-59` | El operador no escribe el total: por eso no lo puede acomodar.            | La línea del total        | Alta      |
-| `C-60` | Un consumo alto suele ser mantenimiento antes que otra cosa.              | La columna de desvío      | Media     |
-| `C-61` | Si esto baja de 7 días, llame a Lubryco.                                  | Los días de autonomía     | Alta      |
-| `C-62` | Esta contraseña sirve para entrar UNA sola vez. Al entrar creará la suya. | La contraseña temporal    | Alta      |
-| `C-63` | Mínimo 10 caracteres. Nadie más que usted la conocerá.                    | El campo de la nueva      | Alta      |
-| `C-64` | ¿La olvidó? Este enlace se la repone por correo. Nadie tiene que dársela. | «¿Olvidaste tu contraseña?» | Media   |
-| `C-65` | Si dice «desactivado», hable con quien administra los accesos en SU empresa. | El aviso del login     | Alta      |
-| `C-66` | Copie esta referencia al reportar un problema: con ella soporte lo encuentra al instante. | «Soporte: …» del error | Media |
-| `C-67` | No hay nada que configurar: esta pantalla se reemplaza sola con la primera carga. | La bienvenida     | Alta      |
+| ID     | Callout                                                                                   | Dónde señala                | Prioridad |
+| ------ | ----------------------------------------------------------------------------------------- | --------------------------- | --------- |
+| `C-50` | Lea esta frase. Si está en verde, ya terminó por hoy.                                     | El veredicto de arriba      | Alta      |
+| `C-51` | Este número no lo puede resetear nadie. Todo se compara contra él.                        | El contador del medidor     | Alta      |
+| `C-52` | Toque cualquier carga para ver sus fotos.                                                 | Una fila de la lista        | Media     |
+| `C-53` | Filtre por «No cuadran» y quédese solo con lo que importa.                                | El filtro                   | Alta      |
+| `C-54` | Descargue esto para contabilidad: los galones salen como número.                          | El botón de descarga        | Media     |
+| `C-55` | Estas dos fotos son la prueba. Tienen hora y lugar.                                       | El par de fotos             | Alta      |
+| `C-56` | Estas tres verificaciones las hace la máquina por usted.                                  | El bloque de verificación   | Alta      |
+| `C-57` | Un salto no significa robo: falta saber a qué equipo fueron esos galones.                 | El mensaje de salto         | Alta      |
+| `C-58` | Llegó con, se le echó, y salió con. La tercera la calcula el sistema.                     | El recuadro de cifras       | Alta      |
+| `C-59` | El operador no escribe el total: por eso no lo puede acomodar.                            | La línea del total          | Alta      |
+| `C-60` | Un consumo alto suele ser mantenimiento antes que otra cosa.                              | La columna de desvío        | Media     |
+| `C-61` | Si esto baja de 7 días, llame a Lubryco.                                                  | Los días de autonomía       | Alta      |
+| `C-62` | Esta contraseña sirve para entrar UNA sola vez. Al entrar creará la suya.                 | La contraseña temporal      | Alta      |
+| `C-63` | Mínimo 10 caracteres. Nadie más que usted la conocerá.                                    | El campo de la nueva        | Alta      |
+| `C-64` | ¿La olvidó? Este enlace se la repone por correo. Nadie tiene que dársela.                 | «¿Olvidaste tu contraseña?» | Media     |
+| `C-65` | Si dice «desactivado», hable con quien administra los accesos en SU empresa.              | El aviso del login          | Alta      |
+| `C-66` | Copie esta referencia al reportar un problema: con ella soporte lo encuentra al instante. | «Soporte: …» del error      | Media     |
+| `C-67` | No hay nada que configurar: esta pantalla se reemplaza sola con la primera carga.         | La bienvenida               | Alta      |
 
 ## Administrador
 

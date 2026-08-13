@@ -17,13 +17,13 @@ El manual se lee una vez, cuando alguien entra. La guía rápida se cuelga junto
 
 ## Producción
 
-| Guía                         | Audiencia                        | Dónde se cuelga          |
-| ---------------------------- | -------------------------------- | ------------------------ |
-| [`QG-OP-MD.md`](QG-OP-MD.md) | Operador, Medidor Doble          | Junto al surtidor        |
-| [`QG-OP-CI.md`](QG-OP-CI.md) | Operador, Carga sobre Inventario | En la caseta de despacho |
-| [`QG-SUP-MD.md`](QG-SUP-MD.md) | Dashboard del cliente, Medidor Doble | Escritorio           |
-| [`QG-SUP-CI.md`](QG-SUP-CI.md) | Dashboard del cliente, Carga sobre Inventario | Escritorio  |
-| [`QG-ADM.md`](QG-ADM.md)     | Administrador Lubryco            | Escritorio               |
+| Guía                           | Audiencia                                     | Dónde se cuelga          |
+| ------------------------------ | --------------------------------------------- | ------------------------ |
+| [`QG-OP-MD.md`](QG-OP-MD.md)   | Operador, Medidor Doble                       | Junto al surtidor        |
+| [`QG-OP-CI.md`](QG-OP-CI.md)   | Operador, Carga sobre Inventario              | En la caseta de despacho |
+| [`QG-SUP-MD.md`](QG-SUP-MD.md) | Dashboard del cliente, Medidor Doble          | Escritorio               |
+| [`QG-SUP-CI.md`](QG-SUP-CI.md) | Dashboard del cliente, Carga sobre Inventario | Escritorio               |
+| [`QG-ADM.md`](QG-ADM.md)       | Administrador Lubryco                         | Escritorio               |
 
 **Formato físico:** carta vertical, laminada. Las de operador van laminadas sí o sí: viven en un ambiente con combustible, polvo y sol.
 

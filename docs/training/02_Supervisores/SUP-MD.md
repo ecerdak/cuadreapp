@@ -364,11 +364,11 @@ El login no lo deja pasar, o el tablero lo devolvió al login con un aviso.
 
 Son tres casos distintos, y el aviso le dice cuál es el suyo:
 
-| El aviso dice                                                   | Qué significa                                                                  |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| «Correo o contraseña incorrectos.»                              | La contraseña no es la que usted creó. Fichas `E-24` y `E-27`.                 |
-| «Tu sesión expiró. Vuelve a entrar.»                            | La sesión venció por tiempo. Es normal; no se perdió nada. Ficha `E-26`.       |
-| «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.» | Alguien de su empresa desactivó su cuenta. Ficha `E-25`. |
+| El aviso dice                                                                       | Qué significa                                                            |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| «Correo o contraseña incorrectos.»                                                  | La contraseña no es la que usted creó. Fichas `E-24` y `E-27`.           |
+| «Tu sesión expiró. Vuelve a entrar.»                                                | La sesión venció por tiempo. Es normal; no se perdió nada. Ficha `E-26`. |
+| «Tu acceso al Dashboard está desactivado. Contacta al administrador de tu empresa.» | Alguien de su empresa desactivó su cuenta. Ficha `E-25`.                 |
 
 ### Qué decisión tomar
 

@@ -1,5 +1,7 @@
 # Layout · OP-IOS-MD — Operadores iPhone · Medidor Doble
 
+> **Presupuesto de páginas reemplazado (v2, 13-ago-2026):** la arquitectura de páginas de este layout queda como referencia de bloques, pero el total ya no manda — el objetivo vigente es el de `CLAUDE_DESIGN_HANDOFF_V2.md`: **máximo 3 páginas** por manual (operadores: +1 página exclusiva de instalación por plataforma). Mucha imagen, poco texto, una tarea por bloque.
+
 > Especificación de diagramación para Claude Design. **No es diseño**: dice qué va en cada página y con qué jerarquía, nunca colores, tipografías ni medidas exactas.
 > Manual: [`../01_Operadores/OP-IOS-MD.md`](../01_Operadores/OP-IOS-MD.md) · Assets: [`../04_Assets/inventario-assets.md`](../04_Assets/inventario-assets.md)
 
