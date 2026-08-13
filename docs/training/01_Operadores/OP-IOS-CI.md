@@ -35,6 +35,7 @@ Si entiende esto, ya entendió el 80 % del curso.
 ## Cómo está organizado
 
 ```
+LA APP LLEGA AL TELÉFONO  →  Capítulo 0 (una sola vez)
 ANTES DE SALIR             →  Capítulo 1
 LLEGÓ EL CARROTANQUE       →  Capítulo 2
 ANTES DE DESPACHAR         →  Capítulo 3
@@ -43,6 +44,59 @@ TERMINÓ EL DESPACHO        →  Capítulo 5
 YA QUEDÓ REGISTRADA        →  Capítulo 6
 SI ALGO PASA               →  Capítulo 7
 ```
+
+---
+
+# Capítulo 0 · La aplicación llega a este teléfono
+
+> Momento `M-CI-00` · Una sola vez en la vida del teléfono · 10 minutos · **con señal**
+
+### Objetivo
+
+Que CuadreApp quede instalada y enrolada, lista para trabajar todos los días — con o sin señal.
+
+### Qué está ocurriendo
+
+Este teléfono va a ser la herramienta de registro del punto de despacho. Lo que sigue se hace **una sola vez**; si a usted le entregaron el teléfono ya listo, pase directo al Capítulo 1 — pero lea igual el bloque de lo que nunca debe hacer.
+
+### Qué debe hacer
+
+1. Abra **en Safari** el enlace que le entregaron. **Tiene que ser Safari** — en iPhone no funciona desde otro navegador.
+2. Toque **Compartir** (el cuadrado con la flecha, abajo en el centro).
+3. Toque **«Añadir a pantalla de inicio»** → **Añadir**.
+4. Desde ahora, ábrala **siempre desde el ícono nuevo** — nunca desde Safari.
+5. Con la app abierta y con señal, escriba el **código de enrolamiento** que le da su supervisor y toque **«Enrolar»**.
+6. Cuando el teléfono pregunte por la **cámara** o la **ubicación**, diga que sí.
+
+### Qué nunca debe hacer
+
+- **Nunca** la use desde Safari después de instalada: el teléfono puede borrar lo que no ha subido.
+- **Nunca** borre el historial ni los «datos de sitios web» de Safari: **eso borra la aplicación instalada y todo lo que no haya subido**.
+- **Nunca** deje el teléfono semanas sin abrir la aplicación: el iPhone puede reclamar ese espacio. Ábrala al menos una vez por semana.
+- **Nunca** pase la aplicación a otro teléfono por su cuenta: eso lo hace su supervisor con un código nuevo.
+
+### Qué verá en la aplicación
+
+La pantalla **«Enrolar este dispositivo»**, con el campo del código y el botón **«Enrolar»** → **«Enrolando…»**. Al terminar, la pantalla de inicio con el saludo.
+· Capturas `ios-15_instalar.png`, `ios-02_enrolar.png`
+
+### Qué verá físicamente
+
+El ícono nuevo de CuadreApp en la pantalla de inicio del iPhone, junto a las demás aplicaciones.
+· Foto `F-93`
+
+### Resultado esperado
+
+La aplicación abre desde el ícono, a pantalla completa, y arriba dice **«Todo sincronizado»**. Desde este momento funciona aunque no haya señal.
+
+### Errores frecuentes
+
+| Lo que pasa                                        | Qué hacer                                                                                                        |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| No encuentro «Añadir a pantalla de inicio»         | Está dentro de **Compartir** (el cuadrado con la flecha). Deslice la lista de opciones hacia arriba si no lo ve.    |
+| Lo abrí en Chrome y no aparece la opción           | En iPhone la instalación **solo existe en Safari**. Copie el enlace y ábralo en Safari.                            |
+| «Código inválido, vencido o ya usado.»             | El código vence en 7 días y sirve una sola vez. Pídale uno nuevo a su supervisor.                                  |
+| Cambió de teléfono                                 | No intente pasarla usted: su supervisor revoca el teléfono viejo y enrola el nuevo con un código nuevo.            |
 
 ---
 

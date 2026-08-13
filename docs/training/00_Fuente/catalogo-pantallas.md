@@ -69,7 +69,8 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Perfiles:** ambos · **Manuales:** los 4 de operador
 - **Título:** «Confirma tu clave» · **Subtítulo:** «Cargando {CÓDIGO} · {descripción}»
 - **Campo:** «Código de conductor» + teclado numérico. Reconoce solo, sin botón.
-- **Error:** «Código o PIN incorrecto.»
+- **Error:** «Código de operador no encontrado.» — solo aparece cuando lo tecleado ya no puede ser ningún código; un prefijo incompleto no lo dispara.
+- **Salida garantizada:** debajo, la lista «Operadores de esta sede» siempre visible y tocable — con código olvidado o mal tecleado, el operador se elige de la lista.
 - **Avance:** 2 de 5
 
 ### `PWA-07` · Operador — PIN
@@ -79,6 +80,7 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Perfiles:** ambos · **Manuales:** los 4 de operador
 - **Tarjeta:** «Conductor» + nombre + «Código {n}» · cuatro puntos que se llenan · leyenda «Cuatro dígitos»
 - **Botón:** «Continuar» (gris hasta completar 4 dígitos) · enlace «No soy {nombre} — cambiar»
+- **Error:** «Código o PIN incorrecto.»
 - **Nota:** el PIN se verifica **sin señal**, contra el catálogo guardado en el teléfono.
 - **Avance:** 2 de 5
 
@@ -127,7 +129,7 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Subtítulo:** «Toma la foto del carrotanque y registra con cuántos galones llegó. Si llegó vacío, escribe 0,0.»
 - **Cámara sin guía:** «Foto inicial del carrotanque» · «Encuadra el carrotanque completo»
 - **Campo único:** «Galones con los que llegó» (ayuda «0,0 si llegó vacío»)
-- **Botón:** «Empezar a cargar» / «Toma la foto para seguir»
+- **Botón — nombra lo que falta:** «Toma la foto para continuar» → «Escribe los galones para seguir» → «Empezar a cargar». Llegar con 0,0 es válido y habilita el botón.
 - **Avance:** 3 de 5
 
 ### `PWA-12` · Despacho · **solo Carga sobre Inventario**
@@ -141,8 +143,8 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Campo único:** «Galones despachados por Lubryco» (ayuda «llegó con {n}»)
 - **Tarjeta calculada:** «Llegó con» · «Despachado por Lubryco» · «Total al salir» (destacado) + leyenda «El total lo calcula la aplicación — nunca se escribe a mano.»
 - **Campo libre:** «Observaciones (opcional)»
-- **Aviso si 0:** «No se registró despacho»
-- **Botón:** «Guardar la carga» → «Guardando…»
+- **Aviso si 0:** «No se registró despacho» — no bloquea; la carga queda marcada para revisión.
+- **Botón — nombra lo que falta:** «Toma la foto para continuar» → «Escribe los galones para seguir» → «Guardar la carga» → «Guardando…»
 - **Avance:** 5 de 5
 
 ### `PWA-13` · Listo
@@ -154,7 +156,7 @@ Convención de captura: `{contexto}-{NN}_{slug}.png` — contextos `and` (Androi
 - **Tarjeta Medidor Doble:** «Equipo» · «Conductor» · «Hora» · «Medidor» ({inicial} → {final})
 - **Tarjeta Carga sobre Inventario:** «Equipo» · «Conductor» · «Hora» · «Llegó con» · «Despachado por Lubryco» · «Total al salir»
 - **Chip:** «Cuadra» / «Revisar» / «No cuadra»
-- **Sin señal:** «Guardado en el celular» / «No hay señal en este momento. La carga se sube sola cuando vuelva la red. Ya quedó registrada.» · **Con señal:** «✓ Guardado y sincronizado»
+- **Sin señal:** «Guardado en el celular» / «No hay señal en este momento. La carga se sube sola cuando vuelva la red. Ya quedó registrada.» · **Con señal:** «✓ Guardado y sincronizado» (+ « · soporte: {referencia}» cuando el servidor la devuelve)
 - **Botón:** «Registrar otra carga»
 - **Nota:** paso terminal — no tiene botón atrás por diseño.
 

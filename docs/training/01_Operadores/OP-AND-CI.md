@@ -35,6 +35,7 @@ Si entiende esto, ya entendió el 80 % del curso.
 ## Cómo está organizado
 
 ```
+LA APP LLEGA AL TELÉFONO  →  Capítulo 0 (una sola vez)
 ANTES DE SALIR             →  Capítulo 1
 LLEGÓ EL CARROTANQUE       →  Capítulo 2
 ANTES DE DESPACHAR         →  Capítulo 3
@@ -43,6 +44,58 @@ TERMINÓ EL DESPACHO        →  Capítulo 5
 YA QUEDÓ REGISTRADA        →  Capítulo 6
 SI ALGO PASA               →  Capítulo 7
 ```
+
+---
+
+# Capítulo 0 · La aplicación llega a este teléfono
+
+> Momento `M-CI-00` · Una sola vez en la vida del teléfono · 10 minutos · **con señal**
+
+### Objetivo
+
+Que CuadreApp quede instalada y enrolada, lista para trabajar todos los días — con o sin señal.
+
+### Qué está ocurriendo
+
+Este teléfono va a ser la herramienta de registro del punto de despacho. Lo que sigue se hace **una sola vez**; si a usted le entregaron el teléfono ya listo, pase directo al Capítulo 1 — pero lea igual el bloque de lo que nunca debe hacer.
+
+### Qué debe hacer
+
+1. Abra **en Chrome** el enlace que le entregaron.
+2. Si aparece el botón amarillo **«Instalar CuadreApp»**, tóquelo. Listo.
+3. Si no aparece: menú **⋮** (arriba a la derecha) → **«Agregar a la pantalla principal»**.
+4. Desde ahora, ábrala **siempre desde el ícono** — nunca desde el navegador.
+5. Con la app abierta y con señal, escriba el **código de enrolamiento** que le da su supervisor y toque **«Enrolar»**.
+6. Cuando el teléfono pregunte por la **cámara**, la **ubicación** o **guardar datos en el dispositivo**, diga que sí a todo.
+
+### Qué nunca debe hacer
+
+- **Nunca** la use desde el navegador después de instalada: el teléfono puede borrar lo que no ha subido.
+- **Nunca** borre los datos del navegador ni instale aplicaciones de «limpieza» en este teléfono.
+- **Nunca** pase la aplicación a otro teléfono por su cuenta: eso lo hace su supervisor con un código nuevo.
+
+### Qué verá en la aplicación
+
+La pantalla **«Enrolar este dispositivo»**, con el campo del código y el botón **«Enrolar»** → **«Enrolando…»**. Al terminar, la pantalla de inicio con el saludo.
+· Capturas `and-15_instalar.png`, `and-02_enrolar.png`
+
+### Qué verá físicamente
+
+El ícono de CuadreApp —azul con la C amarilla— apareciendo en la pantalla del teléfono junto a las demás aplicaciones.
+· Foto `F-93`
+
+### Resultado esperado
+
+La aplicación abre desde el ícono, a pantalla completa, y arriba dice **«Todo sincronizado»**. Desde este momento funciona aunque no haya señal.
+
+### Errores frecuentes
+
+| Lo que pasa                                        | Qué hacer                                                                                                        |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| No aparece el botón «Instalar»                     | Es normal en algunos teléfonos. Use el menú **⋮** → «Agregar a la pantalla principal». El resultado es el mismo.   |
+| «Código inválido, vencido o ya usado.»             | El código vence en 7 días y sirve una sola vez. Pídale uno nuevo a su supervisor.                                  |
+| «Sin conexión: el enrolamiento necesita señal.»    | Solo el enrolamiento necesita señal. Muévase a donde haya y vuelva a intentar. Después, la app trabaja sin señal.  |
+| Cambió de teléfono                                 | No intente pasarla usted: su supervisor revoca el teléfono viejo y enrola el nuevo con un código nuevo.            |
 
 ---
 
