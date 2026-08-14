@@ -8,11 +8,11 @@
 
 ```
 ┌────────────────────────────────────────┐
-│  CON CUÁNTO LLEGÓ      →  lo escribe   │
-│  CUÁNTO DESPACHÓ       →  lo escribe   │
+│  CON CUÁNTO LLEGÓ        →  lo escribe │
+│  DESPACHADO POR LUBRYCO  →  lo escribe │
 │  ──────────────────────────────────    │
-│  TOTAL AL SALIR        →  LO CALCULA   │
-│                           LA APP       │
+│  TOTAL AL SALIR          →  LO CALCULA │
+│                             LA APP     │
 └────────────────────────────────────────┘
 ```
 
